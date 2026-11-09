@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Erro de Emissão · CetrEmer{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 80px; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding-bottom: 80px;">
+    <div class="glass-card" style="max-width: 500px; text-align: center; padding: 40px; border-radius: 8px;">
+        <span style="font-size: 48px;">🔒</span>
+        <h2 style="font-family: var(--font-title); font-size: 24px; font-weight: 800; color: #fff; margin-top: 20px; margin-bottom: 12px;">
+            Certificado Bloqueado
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 24px;">
+            Você precisa completar <strong>100%</strong> das aulas do curso <strong>{{ course.title }}</strong> para poder emitir seu certificado. 
+            Atualmente, seu progresso é de <strong>{{ progress_percent }}%</strong>.
+        </p>
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 32px;">
+            <div style="background: var(--accent-gradient); width: {{ progress_percent }}%; height: 100%;"></div>
+        </div>
+        <a href="{% url 'lesson_detail' course.slug 1 %}" class="btn btn-primary" style="width: 100%; font-weight: 700; border-radius: 4px; padding: 14px;">
+            Voltar para o Curso
+        </a>
+    </div>
+</div>
+{% endblock %}

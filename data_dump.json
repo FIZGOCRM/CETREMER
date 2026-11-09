@@ -1,0 +1,442 @@
+[
+{
+  "model": "sessions.session",
+  "pk": "c33b4hkxjk0fdlpdluyhpyi8jfp31egt",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGll2_NksJT1nsHa9NgmgRIqTCnF3iJQC2jcz76USbeuQtlaWNIo6K4fq9Dsy5UeZdiJ3mm6zzvO0LiPrXdEHbfo6S3leDvfvYKA2fGvP3hAzx4jSBwYAjzkGcUH62pmQqbNiM5ZaDWLvwaC3jrBzECy4qt4fB0I3YQ:1wgqS6:VcA4walrBXAetZsonO4g7w5njRFlkLURKAuo6leHp9c",
+    "expire_date": "2026-07-20T21:02:06.608Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "pm0qldxqct2ymv5jwac2xkn12slku3d7",
+  "fields": {
+    "session_data": ".eJxVjEEOwiAQRe_C2hAYoGVcuvcMZIYhUjU0Ke3KeHdt0oVu_3vvv1Siba1p62VJk6izcladfkem_ChtJ3Kndpt1ntu6TKx3RR-06-ss5Xk53L-DSr1-65GCleh4ACmI4iJB9BAks7fAzvBgUZCy4xA4YkAjgA78aIIphot6fwD5NTdv:1wg45h:yqXngg0uPjMlNxFeWOE70LXJA-GicaePbEiHZk7OrzI",
+    "expire_date": "2026-07-18T17:23:45.931Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "rifccg6iya7acq6ptppvlt9evj6i0fwm",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGln-rGOWkj5nsHb9wQHkSHFSIe4OkVJA-2bmvUSgba1h63kJUxIXAUqcfkem-MhtJ-lO7TbLOLd1mVjuijxol-Oc8vN6uH8HlXr91gUUQ_GYdHbKg7XFawCy7BwkHIwtg0PPmQybs6ZiE6AryGAwRkQW7w_yBje6:1xQWZd:Hu22QeXjQIPc6LNHQzU7XAbWxnqdtnZVaIcMlPQX930",
+    "expire_date": "2026-11-23T21:06:41.818Z"
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$aJHwT5EgDhgsRBzqicBg9R$swfrxLoiZc2mHSX1t5X4tIIftel2T3ICmAGsADWVq6Y=",
+    "last_login": "2026-11-09T21:05:59.929Z",
+    "is_superuser": false,
+    "username": "john_creator",
+    "first_name": "",
+    "last_name": "",
+    "email": "john@creator.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-07-06T19:15:20.200Z",
+    "role": "CREATOR",
+    "avatar": "",
+    "bio": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$ftjqxipWSVwoNR6SZbA8XS$hXbULAbZvlhI/L9HM+e18l1K8u7MHKbIkkfZx1ihyXI=",
+    "last_login": "2026-11-09T21:06:41.817Z",
+    "is_superuser": false,
+    "username": "jane_student",
+    "first_name": "",
+    "last_name": "",
+    "email": "jane@student.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-07-06T19:15:20.335Z",
+    "role": "STUDENT",
+    "avatar": "",
+    "bio": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.user",
+  "fields": {
+    "password": "pbkdf2_sha256$600000$DRwlft3k73zT8tUpQ38sie$g/UdDo24fVKO313BYqR5QL8kzunOvqbNHYQorz1unHo=",
+    "last_login": null,
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@cetremer.com.br",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-07-06T19:15:20.474Z",
+    "role": "ADMIN",
+    "avatar": "",
+    "bio": "",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "users.studentprofile",
+  "pk": 19,
+  "fields": {
+    "user": [
+      "jane_student"
+    ],
+    "points": 0,
+    "level": 1,
+    "title": "Novice",
+    "full_name": null,
+    "cpf": null,
+    "address": null
+  }
+},
+{
+  "model": "users.creatorprofile",
+  "pk": 21,
+  "fields": {
+    "user": [
+      "john_creator"
+    ],
+    "company_name": "Tech Academy Inc.",
+    "primary_color": "#bc002c",
+    "logo": "",
+    "bank_name": null,
+    "pix_key": null,
+    "gateway_name": "MOCK_GATEWAY",
+    "gateway_api_key": null,
+    "email_host": "smtp.gmail.com",
+    "email_port": 587,
+    "email_username": null,
+    "email_password": null,
+    "email_use_tls": true,
+    "asaas_token": null,
+    "asaas_sandbox": true,
+    "ai_provider": "GEMINI",
+    "ai_api_key": null,
+    "ai_tutor_enabled": false,
+    "certificate_signature_name": null,
+    "certificate_signature_role": null
+  }
+},
+{
+  "model": "users.creatorprofile",
+  "pk": 22,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "company_name": "Admin Academy",
+    "primary_color": "#bc002c",
+    "logo": "",
+    "bank_name": null,
+    "pix_key": null,
+    "gateway_name": "MOCK_GATEWAY",
+    "gateway_api_key": null,
+    "email_host": "smtp.gmail.com",
+    "email_port": 587,
+    "email_username": null,
+    "email_password": null,
+    "email_use_tls": true,
+    "asaas_token": null,
+    "asaas_sandbox": true,
+    "ai_provider": "GEMINI",
+    "ai_api_key": null,
+    "ai_tutor_enabled": false,
+    "certificate_signature_name": null,
+    "certificate_signature_role": null
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 55,
+  "fields": {
+    "title": "BLS - Suporte Básico de Vida",
+    "slug": "suporte-basico-vida-bls",
+    "description": "Curso presencial credenciado pela American Heart Association (AHA). Aprenda RCP de alta qualidade, manobras de desengasgo e uso do Desfibrilador Externo Automático (DEA). Duração: 8h.",
+    "cover_image": "courses/bls_cover.png",
+    "creator": 21,
+    "price": "150.00",
+    "is_published": true,
+    "live_meet_url": null,
+    "live_schedule_embed": null,
+    "created_at": "2026-07-06T19:15:20.604Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 56,
+  "fields": {
+    "title": "ACLS - Suporte Avançado de Vida em Cardiologia",
+    "slug": "suporte-avancado-cardiologia-acls",
+    "description": "Curso avançado credenciado pela AHA. Focado em atendimento emergencial cardiovascular, RCP de alto desempenho, ritmos de PCR e dinâmica de equipe médica. Duração: 16h.",
+    "cover_image": "courses/acls_cover.png",
+    "creator": 21,
+    "price": "450.00",
+    "is_published": true,
+    "live_meet_url": null,
+    "live_schedule_embed": null,
+    "created_at": "2026-07-06T19:15:20.605Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 57,
+  "fields": {
+    "title": "PALS - Suporte Avançado de Vida em Pediatria",
+    "slug": "suporte-avancado-pediatria-pals",
+    "description": "Curso avançado pediátrico credenciado pela AHA. Manejo de paradas cardíacas, insuficiência respiratória e choque em crianças e neonatos. Duração: 16h.",
+    "cover_image": "courses/pals_cover.png",
+    "creator": 21,
+    "price": "500.00",
+    "is_published": true,
+    "live_meet_url": null,
+    "live_schedule_embed": null,
+    "created_at": "2026-07-06T19:15:20.605Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 58,
+  "fields": {
+    "title": "DEA e Primeiros Socorros para Leigos",
+    "slug": "dea-primeiros-socorros-leigos",
+    "description": "Treinamento prático direcionado a escolas, empresas, brigadas de incêndio e cidadãos que desejam aprender a salvar vidas e utilizar o DEA no dia a dia. Duração: 4h.",
+    "cover_image": "courses/dea_cover.png",
+    "creator": 21,
+    "price": "90.00",
+    "is_published": true,
+    "live_meet_url": null,
+    "live_schedule_embed": null,
+    "created_at": "2026-07-06T19:15:20.606Z"
+  }
+},
+{
+  "model": "courses.course",
+  "pk": 59,
+  "fields": {
+    "title": "Plantão Sem GPT",
+    "slug": "plantao-sem-gpt",
+    "description": "O guia prático definitivo para médicos dominarem condutas de emergência, UTI e pronto-socorro de forma rápida e segura na vida real, sem depender de GPT ou consultas rápidas.",
+    "cover_image": "courses/plantao_cover.png",
+    "creator": 21,
+    "price": "190.00",
+    "is_published": true,
+    "live_meet_url": "https://meet.google.com/abc-defg-hij",
+    "live_schedule_embed": "<iframe src=\"https://calendar.google.com/calendar/embed?src=pt.brazilian%23holiday%40group.v.calendar.google.com&ctz=America%2FCampo_Grande\" style=\"border: 0\" width=\"100%\" height=\"320\" frameborder=\"0\" scrolling=\"no\"></iframe>",
+    "created_at": "2026-07-06T19:15:20.606Z"
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 59,
+  "fields": {
+    "course": 55,
+    "title": "Módulo 1: Introdução ao Suporte Básico",
+    "description": "",
+    "order": 1
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 60,
+  "fields": {
+    "course": 55,
+    "title": "Módulo 2: Desfibrilação e Técnicas Especiais",
+    "description": "",
+    "order": 2
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 61,
+  "fields": {
+    "course": 56,
+    "title": "Módulo 1: Reconhecimento e Fármacos do ACLS",
+    "description": "",
+    "order": 1
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 62,
+  "fields": {
+    "course": 57,
+    "title": "Módulo 1: Emergências Pediátricas e RCP",
+    "description": "",
+    "order": 1
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 63,
+  "fields": {
+    "course": 58,
+    "title": "Módulo 1: RCP e Uso do DEA para Leigos",
+    "description": "",
+    "order": 1
+  }
+},
+{
+  "model": "courses.module",
+  "pk": 64,
+  "fields": {
+    "course": 59,
+    "title": "Módulo 1: Condutas Imediatas",
+    "description": "",
+    "order": 1
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 81,
+  "fields": {
+    "module": 59,
+    "title": "Reconhecimento da PCR e Corrente de Sobrevivência",
+    "description": "Nesta aula inicial, cobriremos o diagnóstico rápido de uma parada cardiorrespiratória e a cadeia de sobrevivência intra e extra-hospitalar.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 300,
+    "order": 1,
+    "download_url": "https://www.heart.org/-/media/files/providers/handbook-resources/bls-adult-cardiac-arrest-algorithm-pdf.pdf",
+    "download_name": "AHA BLS Algoritmo de PCR em Adultos (PDF)"
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 82,
+  "fields": {
+    "module": 59,
+    "title": "Compressões Torácicas em Adultos",
+    "description": "Treinamento prático de posicionamento, frequência (100 a 120 por minuto) e profundidade (5 a 6 cm) recomendadas pela AHA.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 420,
+    "order": 2,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 83,
+  "fields": {
+    "module": 60,
+    "title": "Operação e Segurança do DEA",
+    "description": "Como ligar, posicionar as pás e aplicar o choque de segurança utilizando o desfibrilador externo automático em adultos e crianças.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 500,
+    "order": 3,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 84,
+  "fields": {
+    "module": 60,
+    "title": "Manejo de Engasgo (Obstrução de Vias Aéreas)",
+    "description": "Aprenda a aplicar a Manobra de Heimlich em adultos conscientes e os protocolos de intervenção em bebês e gestantes.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 460,
+    "order": 4,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 85,
+  "fields": {
+    "module": 61,
+    "title": "Dinâmica de Equipe de Alto Desempenho",
+    "description": "Entenda os papéis de liderança, comunicação em alça fechada e organização de equipes na sala de emergência médica.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 360,
+    "order": 1,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 86,
+  "fields": {
+    "module": 62,
+    "title": "Reconhecimento de Insuficiência Respiratória Pediátrica",
+    "description": "Diretrizes da AHA para diagnosticar e intervir em paradas ou falências respiratórias infantis.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 420,
+    "order": 1,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 87,
+  "fields": {
+    "module": 63,
+    "title": "Engasgo e Obstrução de Vias Aéreas para Leigos",
+    "description": "Como realizar compressões de socorro e manobra de desengasgo em ambientes escolares ou de trabalho.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 380,
+    "order": 1,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.lesson",
+  "pk": 88,
+  "fields": {
+    "module": 64,
+    "title": "Manejo da Via Aérea Difícil e Intubação",
+    "description": "Passo a passo prático para intubação orotraqueal em cenários críticos na sala de emergência.",
+    "video_url": "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    "duration_seconds": 480,
+    "order": 1,
+    "download_url": null,
+    "download_name": null
+  }
+},
+{
+  "model": "courses.enrollment",
+  "pk": 22,
+  "fields": {
+    "student": 19,
+    "course": 55,
+    "enrolled_at": "2026-07-06T19:15:20.612Z"
+  }
+},
+{
+  "model": "courses.enrollment",
+  "pk": 23,
+  "fields": {
+    "student": 19,
+    "course": 59,
+    "enrolled_at": "2026-07-06T19:15:20.612Z"
+  }
+},
+{
+  "model": "courses.herobanner",
+  "pk": 2,
+  "fields": {
+    "title": "Torne-se preparado para salvar vidas em situações reais",
+    "subtitle": "Capacitação e simulação realística ministrada por médicos atuantes no SAMU e sala vermelha. Aprenda na prática a conduzir emergências cardiovasculares e suporte básico de vida.",
+    "background_image": "",
+    "background_video_url": null,
+    "primary_button_text": "Explorar Cursos",
+    "primary_button_url": "#catalog",
+    "whatsapp_button_text": "Falar pelo WhatsApp",
+    "whatsapp_button_url": "https://wa.me/5567996494740",
+    "is_active": true
+  }
+}
+]

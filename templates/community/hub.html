@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Comunidade · CetrEmer{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 48px; min-height: 100vh; padding-bottom: 96px;">
+    
+    <!-- Top Header and stats -->
+    <div style="margin-bottom: 36px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-family: var(--font-title); font-size: 28px; font-weight: 850; color: #fff; margin-bottom: 8px;">
+                💬 Comunidade de Alunos
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 14px;">Tire dúvidas, colabore com colegas e interaja com os instrutores médicos.</p>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start;">
+        
+        <!-- Left Side: Discussion Feed -->
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+            {% for post in posts %}
+                <div class="glass-card" style="padding: 24px;">
+                    <!-- User Meta Row -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="background: rgba(0, 153, 255, 0.15); color: var(--accent-color); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
+                                {{ post.author.username|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <div style="font-size: 14px; font-weight: 700; color: #fff;">{{ post.author.username }}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">{{ post.created_at|date:"d/m/Y H:i" }}</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Categorization Tag -->
+                        {% if post.course %}
+                            <span style="font-size: 10px; font-weight: 700; color: var(--accent-color); background: rgba(0, 153, 255, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(0, 153, 255, 0.15);">
+                                📚 {{ post.course.title }}
+                            </span>
+                        {% else %}
+                            <span style="font-size: 10px; font-weight: 700; color: #9b59b6; background: rgba(155, 89, 182, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(155, 89, 182, 0.15);">
+                                🌐 Discussão Geral
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Post Content -->
+                    <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 10px;">
+                        {{ post.title }}
+                    </h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+                        {{ post.content|linebreaksbr }}
+                    </p>
+                    
+                    <!-- Toggle comments collapse and counter -->
+                    <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">
+                                💬 {{ post.comments.count }} respostas
+                            </span>
+                        </div>
+                        
+                        <!-- Replies list -->
+                        {% if post.comments.all %}
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+                                {% for comment in post.comments.all %}
+                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; margin-left: 16px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                            <span style="font-size: 12px; font-weight: 700; color: #fff;">
+                                                {{ comment.author.username }}
+                                            </span>
+                                            <span style="font-size: 10px; color: var(--text-muted);">
+                                                {{ comment.created_at|date:"d/m/Y H:i" }}
+                                            </span>
+                                        </div>
+                                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin: 0;">
+                                            {{ comment.content }}
+                                        </p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Inline comment form -->
+                        <form action="{% url 'create_comment' post_id=post.id %}" method="post" style="display: flex; gap: 12px; margin-top: 12px;">
+                            {% csrf_token %}
+                            <input type="text" name="content" class="form-control" placeholder="Escreva uma resposta..." required style="padding: 10px 14px; font-size: 13px;">
+                            <button type="submit" class="btn btn-secondary" style="padding: 10px 18px; font-size: 12px; height: auto;">
+                                Responder
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="glass-card" style="padding: 48px; text-align: center; color: var(--text-muted);">
+                    <span style="font-size: 40px; display: block; margin-bottom: 16px;">💬</span>
+                    Nenhum tópico criado na comunidade ainda. Compartilhe sua primeira dúvida ao lado!
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Right Side: Create Post Form -->
+        <div class="glass-card" style="padding: 28px; position: sticky; top: 100px; z-index: 10;">
+            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                💡 Criar Novo Tópico
+            </h3>
+            
+            <form action="{% url 'create_hub_post' %}" method="post">
+                {% csrf_token %}
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="course_id" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Categoria / Curso</label>
+                    <select id="course_id" name="course_id" class="form-control" style="background-color: var(--bg-primary); color: #fff;">
+                        <option value="general">🌐 Discussão Geral</option>
+                        {% for course in my_courses %}
+                            <option value="{{ course.id }}">📚 {{ course.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="title" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Título da Dúvida</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Ex: Dúvida sobre DEA no BLS" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="content" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Descrição</label>
+                    <textarea id="content" name="content" class="form-control" rows="5" placeholder="Descreva em detalhes sua dúvida ou sugestão..." required style="resize: vertical;"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-weight: 700; border-radius: 4px; padding: 12px;">
+                    Publicar Tópico
+                </button>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

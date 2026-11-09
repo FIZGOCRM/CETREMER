@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Central de Integrações · CetrEmer{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 48px; min-height: 100vh; padding-bottom: 96px; max-width: 900px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; border-bottom: 1px solid var(--border-color); padding-bottom: 16px;">
+        <div>
+            <h1 style="font-family: var(--font-title); font-size: 28px; font-weight: 850; color: #fff; margin-bottom: 4px;">
+                🔗 Central de Integrações
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 14px; margin: 0;">Configure credenciais externas de inteligência artificial, pagamentos e regras de assinatura de certificados.</p>
+        </div>
+        <a href="{% url 'creator_dashboard' %}" class="btn btn-secondary" style="font-size: 13px; font-weight: 700; border-radius: 4px; padding: 10px 16px;">
+            ← Painel
+        </a>
+    </div>
+
+    {% if success %}
+        <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; color: #2ecc71; padding: 14px; border-radius: 6px; margin-bottom: 24px; font-size: 14px;">
+            ✓ Integrações salvas e ativadas com sucesso!
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Section 1: Asaas Gateway -->
+        <div class="glass-card" style="padding: 28px; margin-bottom: 28px; border-radius: 8px;">
+            <h3 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                💳 API Gateway de Pagamentos Asaas
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+                O Asaas permite receber pagamentos via Pix, Boleto e Cartão de Crédito. Preencha sua chave de produção abaixo.
+            </p>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="asaas_token" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Chave de Acesso da API (Access Token)</label>
+                <input type="password" id="asaas_token" name="asaas_token" class="form-control" value="{{ creator.asaas_token|default:'' }}" placeholder="Insira o token secreto gerado no painel do Asaas..." style="font-family: monospace;">
+            </div>
+            
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="asaas_sandbox" name="asaas_sandbox" {% if creator.asaas_sandbox %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="asaas_sandbox" style="font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; user-select: none;">Ativar modo de teste (Sandbox)?</label>
+            </div>
+        </div>
+
+        <!-- Section 2: AI Tutor -->
+        <div class="glass-card" style="padding: 28px; margin-bottom: 28px; border-radius: 8px;">
+            <h3 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                🤖 Inteligência Artificial (Copiloto da Comunidade)
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+                Habilite um robô de IA para atuar como tutor respondendo automaticamente a dúvidas de alunos registradas no fórum de discussão da comunidade.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label for="ai_provider" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Provedor de IA</label>
+                    <select id="ai_provider" name="ai_provider" class="form-control" style="background-color: var(--bg-primary); color: #fff;">
+                        <option value="GEMINI" {% if creator.ai_provider == 'GEMINI' %}selected{% endif %}>Google Gemini API</option>
+                        <option value="OPENAI" {% if creator.ai_provider == 'OPENAI' %}selected{% endif %}>OpenAI GPT-4 API</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="ai_api_key" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Chave de API (API Key)</label>
+                    <input type="password" id="ai_api_key" name="ai_api_key" class="form-control" value="{{ creator.ai_api_key|default:'' }}" placeholder="AI API Key..." style="font-family: monospace;">
+                </div>
+            </div>
+            
+            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="ai_tutor_enabled" name="ai_tutor_enabled" {% if creator.ai_tutor_enabled %}checked{% endif %} style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="ai_tutor_enabled" style="font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; user-select: none;">Habilitar Respostas Automáticas do Tutor de IA nas Comunidades de Alunos?</label>
+            </div>
+        </div>
+
+        <!-- Section 3: Certificate Signatures -->
+        <div class="glass-card" style="padding: 28px; margin-bottom: 32px; border-radius: 8px;">
+            <h3 style="font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                ✍️ Assinatura e Credenciamento de Certificados
+            </h3>
+            <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px;">
+                Define os dados de validação legal que serão exibidos no rodapé do certificado dos alunos quando completarem os treinamentos.
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label for="certificate_signature_name" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Nome Completo do Assinante</label>
+                    <input type="text" id="certificate_signature_name" name="certificate_signature_name" class="form-control" value="{{ creator.certificate_signature_name|default:'' }}" placeholder="Ex: Dr. Márcio Hirade">
+                </div>
+                <div class="form-group">
+                    <label for="certificate_signature_role" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Cargo / Conselho Regional</label>
+                    <input type="text" id="certificate_signature_role" name="certificate_signature_role" class="form-control" value="{{ creator.certificate_signature_role|default:'' }}" placeholder="Ex: Diretor Clínico - CRM/MS 12345">
+                </div>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-weight: 700; border-radius: 4px; padding: 14px; font-size: 15px;">
+            Salvar Todas as Integrações
+        </button>
+    </form>
+</div>
+{% endblock %}

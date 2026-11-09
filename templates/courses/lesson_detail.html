@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ lesson.title }} · {{ course.title }} · TheMembers{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 32px; min-height: 100vh;">
+    <!-- Course Title Breadcrumbs -->
+    <div style="margin-bottom: 20px;">
+        <a href="{% url 'dashboard' %}" style="color: var(--text-secondary); font-size: 13px;">Minha Biblioteca</a>
+        <span style="color: var(--text-muted); font-size: 13px; margin: 0 8px;">/</span>
+        <span style="color: #fff; font-size: 13px; font-weight: 500;">{{ course.title }}</span>
+    </div>
+
+    <div class="lesson-layout">
+        <!-- Left Panel: Video & Content -->
+        <div>
+            <div class="video-container">
+                {% if lesson.video_url %}
+                    {% if "youtube.com" in lesson.video_url or "youtu.be" in lesson.video_url %}
+                        <iframe src="{{ lesson.video_url }}" allowfullscreen></iframe>
+                    {% else %}
+                        <video src="{{ lesson.video_url }}" controls></video>
+                    {% endif %}
+                {% else %}
+                    <!-- Elegant mock video container -->
+                    <div class="video-placeholder">
+                        <span class="video-placeholder-icon">🎬</span>
+                        <h3 style="font-size: 18px; font-weight: 600;">{{ lesson.title }}</h3>
+                        <p style="color: var(--text-muted); font-size: 13px;">Nenhuma URL de vídeo configurada. Acompanhe a descrição textual abaixo.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="lesson-info-bar">
+                <div class="lesson-meta">
+                    <h2 style="font-size: 24px; color: #fff;">{{ lesson.title }}</h2>
+                    <p style="font-size: 13px; color: var(--text-secondary);">Módulo: {{ lesson.module.title }}</p>
+                </div>
+                <div>
+                    {% csrf_token %}
+                    <button class="btn btn-toggle-complete {% if is_completed %}btn-primary{% else %}btn-secondary{% endif %}" data-lesson-id="{{ lesson.id }}">
+                        {% if is_completed %}
+                            <span>✓ Concluído</span>
+                        {% else %}
+                            <span>Marcar como Concluído</span>
+                        {% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Description Text -->
+            <div style="margin-top: 32px; line-height: 1.6; color: var(--text-secondary); font-size: 15px;">
+                <h3 style="color: #fff; font-size: 18px; margin-bottom: 12px; font-weight: 600;">Detalhes da Aula</h3>
+                <p>{{ lesson.description|linebreaksbr|default:"Nenhum detalhe adicional configurado para esta aula." }}</p>
+            </div>
+
+            {% if lesson.download_url %}
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 32px; margin-bottom: 48px;">
+                    <h3 style="color: #fff; font-size: 16px; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <span>📁</span> Materiais de Apoio / Downloads
+                    </h3>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
+                        Baixe os arquivos complementares e apostilas vinculadas a esta aula:
+                    </p>
+                    <a href="{{ lesson.download_url }}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 16px; border-color: rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; border-radius: 6px; background: rgba(255,255,255,0.03);">
+                        <span>📥</span> {{ lesson.download_name|default:"Baixar Material Complementar" }}
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- Lesson Comments Section -->
+            <div class="community-section" style="border-top: 1px solid var(--border-color); padding-top: 40px;">
+                <h3 class="community-header">Dúvidas e Comentários</h3>
+                
+                <div class="glass-card" style="margin-bottom: 32px;">
+                    <h4 style="font-size: 15px; margin-bottom: 12px; font-weight: 600;">Iniciar uma nova discussão ou dúvida</h4>
+                    <form action="{% url 'create_post' course_slug=course.slug %}" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="title" class="form-control" placeholder="Título do Assunto..." required>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="content" class="form-control" rows="3" placeholder="Escreva aqui a sua dúvida ou comentário..." required style="resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Enviar Publicação</button>
+                    </form>
+                </div>
+
+                <!-- Discussion Posts List -->
+                {% for post in posts %}
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div style="background: rgba(255,255,255,0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: #fff;">
+                                {{ post.author.username|slice:":2"|upper }}
+                            </div>
+                            <div>
+                                <span class="post-author">{{ post.author.username }}</span>
+                                <span style="color: var(--text-muted); margin: 0 6px;">·</span>
+                                <span class="post-date">{{ post.created_at|date:"d/m/Y H:i" }}</span>
+                            </div>
+                        </div>
+                        <h4 style="font-size: 16px; margin-bottom: 8px; color: #fff; font-weight: 600;">{{ post.title }}</h4>
+                        <p class="post-content">{{ post.content|linebreaksbr }}</p>
+                        
+                        <!-- Nested Comments/Replies -->
+                        <div class="comment-thread">
+                            {% for comment in post.comments.all %}
+                                <div class="comment-card" style="padding-left: 8px; margin-top: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                                        <div style="background: rgba(255,255,255,0.06); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 10px; color: #fff;">
+                                            {{ comment.author.username|slice:":2"|upper }}
+                                        </div>
+                                        <span style="font-size: 12px; font-weight: 600;">{{ comment.author.username }}</span>
+                                        <span style="font-size: 10px; color: var(--text-muted);">{{ comment.created_at|date:"d/m/Y H:i" }}</span>
+                                    </div>
+                                    <p style="font-size: 13px; color: var(--text-secondary);">{{ comment.content }}</p>
+                                </div>
+                            {% endfor %}
+                            
+                            <!-- Reply Input Form -->
+                            <form action="{% url 'create_comment' post_id=post.id %}" method="post" style="margin-top: 16px; display: flex; gap: 12px;">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.path }}">
+                                <input type="text" name="content" class="form-control" placeholder="Escreva uma resposta..." required style="padding: 8px 12px; font-size: 13px;">
+                                <button type="submit" class="btn btn-secondary" style="padding: 8px 16px; font-size: 12px; height: auto;">Responder</button>
+                            </form>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="color: var(--text-muted); text-align: center; padding: 24px;">Nenhuma publicação nesta aula ainda. Seja o primeiro a iniciar uma conversa!</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Panel: Modular Accordion Sidebar -->
+        <div class="sidebar-panel">
+            <div class="sidebar-header">
+                <h3>Grade de Conteúdo</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 8px;">
+                    <span class="progress-percent" style="font-weight: 600;">{{ completed_percent|floatformat:0 }}% concluído</span>
+                    <span class="progress-fraction" style="color: var(--text-secondary);">{{ completed_count }}/{{ total_lessons }}</span>
+                </div>
+                <div class="progress-track-bar" style="margin-bottom: 8px;">
+                    <div class="progress-fill" style="width: {{ completed_percent }}%;"></div>
+                </div>
+                {% if completed_count == total_lessons %}
+                    <a href="{% url 'issue_certificate' course.slug %}" target="_blank" class="btn btn-primary" style="display: block; margin-top: 12px; text-align: center; background: #2ecc71; border: none; font-size: 13px; font-weight: 700; border-radius: 4px; padding: 10px; color: #fff; text-decoration: none; box-shadow: 0 0 10px rgba(46, 204, 113, 0.2);">
+                        🎓 Emitir Certificado
+                    </a>
+                {% endif %}
+            </div>
+            <div class="modules-list">
+                {% for mod in modules %}
+                    <div class="module-item">
+                        <button class="module-title-btn" type="button">
+                            <span>{{ mod.title }}</span>
+                            <span class="module-toggle-icon" style="transition: transform 0.2s; display: inline-block; transform: rotate(0deg);">▼</span>
+                        </button>
+                        <!-- Hide modules that are not active by default -->
+                        <ul class="module-lessons {% if mod.id != lesson.module.id %}hidden{% endif %}">
+                            {% for les in mod.lessons.all %}
+                                <li>
+                                    <a href="{% url 'lesson_detail' course_slug=course.slug lesson_order=les.order %}" class="lesson-item-btn {% if les.id == lesson.id %}active{% endif %}">
+                                        <span id="status-dot-{{ les.id }}" class="lesson-status-icon {% if les.id in completed_lesson_ids %}completed{% endif %}"></span>
+                                        <span>{{ les.order }}. {{ les.title }}</span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/netflix.js' %}"></script>
+{% endblock %}

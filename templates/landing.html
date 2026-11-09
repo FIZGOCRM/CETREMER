@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CetrEmer · Centro de Treinamento em Emergência{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Dark Theme Variables & Styling overrides */
+    body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+    }
+    
+    /* Hero section Netflix CetrEmer style */
+    .ud-hero-banner {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 120px 0;
+        overflow: hidden;
+        min-height: 480px;
+        display: flex;
+        align-items: center;
+    }
+    .video-background-container {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 1;
+    }
+    .video-bg-media {
+        width: 100vw;
+        height: 56.25vw;
+        min-height: 100vh;
+        min-width: 177.77vh;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0.35;
+        object-fit: cover;
+    }
+    .ud-hero-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(90deg, #0a0a0c 35%, rgba(10,10,12,0.6) 70%, transparent 100%), linear-gradient(0deg, #0a0a0c 0%, transparent 100%);
+        z-index: 2;
+    }
+    .ud-hero-banner h1 {
+        font-family: var(--font-title);
+        font-size: 42px;
+        font-weight: 900;
+        margin-bottom: 20px;
+        color: #fff;
+        line-height: 1.2;
+    }
+    .ud-hero-banner p {
+        font-size: 16px;
+        color: var(--text-secondary);
+        max-width: 650px;
+        line-height: 1.6;
+        margin-bottom: 32px;
+    }
+    .ud-hero-ctas {
+        display: flex;
+        gap: 16px;
+    }
+    
+    /* Stats Row */
+    .ud-stats-row {
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 32px 0;
+        background-color: var(--bg-secondary);
+    }
+    .ud-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        text-align: center;
+    }
+    .ud-stat-number {
+        font-size: 32px;
+        font-weight: 900;
+        color: var(--accent-color);
+        font-family: var(--font-title);
+    }
+    .ud-stat-label {
+        font-size: 12px;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-top: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Catalog Section Header */
+    .ud-catalog-title {
+        font-family: var(--font-title);
+        font-size: 26px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    /* Udemy-style Card Grid in Dark Mode */
+    .ud-course-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 24px;
+    }
+    .ud-course-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: transform 0.25s var(--transition-smooth), border-color 0.25s, box-shadow 0.25s;
+    }
+    .ud-course-card:hover {
+        transform: translateY(-6px);
+        border-color: rgba(0, 153, 255, 0.4);
+        box-shadow: 0 12px 32px rgba(0, 153, 255, 0.15);
+    }
+    .ud-card-img {
+        aspect-ratio: 3/4;
+        background-size: cover;
+        background-position: center;
+        width: 100%;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .ud-card-info {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+    }
+    .ud-card-title {
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.3;
+        color: #fff;
+        margin-bottom: 8px;
+        height: 38px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    .ud-card-author {
+        font-size: 12px;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .ud-rating-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+    .ud-rating-score {
+        color: #e59819;
+        font-weight: 700;
+    }
+    .ud-rating-stars {
+        color: #e59819;
+    }
+    .ud-rating-count {
+        color: var(--text-muted);
+    }
+    .ud-card-badge-row {
+        margin-bottom: 12px;
+        display: flex;
+    }
+    .ud-card-badge {
+        background-color: rgba(0, 153, 255, 0.1);
+        color: var(--accent-color);
+        font-size: 10px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 1px solid rgba(0, 153, 255, 0.2);
+    }
+    .ud-card-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: auto;
+        border-top: 1px solid var(--border-color);
+        padding-top: 14px;
+    }
+    .ud-card-price-current {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+    }
+    .ud-card-price-original {
+        font-size: 13px;
+        color: var(--text-muted);
+        text-decoration: line-through;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="ud-hero-banner" style="{% if hero.background_image %}background-image: url('{{ hero.background_image.url }}');{% endif %}">
+    
+    {% if hero.background_video_url %}
+        <!-- Video Background loop -->
+        {% if "youtube.com" in hero.background_video_url or "youtu.be" in hero.background_video_url or "embed" in hero.background_video_url %}
+            <div class="video-background-container">
+                <iframe src="{{ hero.background_video_url }}{% if "?" in hero.background_video_url %}&{% else %}?{% endif %}autoplay=1&mute=1&controls=0&loop=1&playlist={{ hero.background_video_url|slice:"-11:" }}&showinfo=0&rel=0&iv_load_policy=3" frameborder="0" allow="autoplay; encrypted-media" class="video-bg-media"></iframe>
+            </div>
+        {% else %}
+            <div class="video-background-container">
+                <video autoplay muted loop playsinline class="video-bg-media">
+                    <source src="{{ hero.background_video_url }}" type="video/mp4">
+                </video>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="ud-hero-overlay"></div>
+
+    <div class="container" style="position: relative; z-index: 3;">
+        <h1>{{ hero.title|default:"Torne-se preparado para salvar vidas em situações reais" }}</h1>
+        <p>{{ hero.subtitle|default:"Capacitação e simulação realística ministrada por médicos atuantes no SAMU e sala vermelha. Aprenda na prática a conduzir emergências cardiovasculares e suporte básico de vida." }}</p>
+        <div class="ud-hero-ctas">
+            <a href="{{ hero.primary_button_url|default:'#catalog' }}" class="btn btn-primary" style="background: var(--accent-gradient); border-color: transparent; padding: 14px 28px; font-weight: 700; border-radius: 4px; box-shadow: var(--accent-glow);">
+                {{ hero.primary_button_text|default:"Explorar Cursos" }}
+            </a>
+            <a href="{{ hero.whatsapp_button_url|default:'https://wa.me/5567996494740' }}" target="_blank" class="btn btn-secondary" style="border-radius: 4px; padding: 14px 28px; font-weight: 700;">
+                {{ hero.whatsapp_button_text|default:"Falar pelo WhatsApp" }}
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Row component -->
+<section class="ud-stats-row">
+    <div class="container ud-stats-grid">
+        <div class="ud-stat-item">
+            <div class="ud-stat-number">+2.000</div>
+            <div class="ud-stat-label">Alunos capacitados</div>
+        </div>
+        <div class="ud-stat-item">
+            <div class="ud-stat-number">15+</div>
+            <div class="ud-stat-label">Cursos disponíveis</div>
+        </div>
+        <div class="ud-stat-item">
+            <div class="ud-stat-number">AHA</div>
+            <div class="ud-stat-label">Certificação internacional</div>
+        </div>
+        <div class="ud-stat-item">
+            <div class="ud-stat-number">100%</div>
+            <div class="ud-stat-label">Prático e aplicado</div>
+        </div>
+    </div>
+</section>
+
+<!-- Catalog Section -->
+<section id="catalog" class="container" style="padding: 64px 0 96px 0;">
+    
+    <!-- 1. TODOS OS CURSOS (GRID) -->
+    <div style="margin-bottom: 64px;">
+        <h2 class="ud-catalog-title">📚 Todos os cursos</h2>
+        <div class="ud-course-grid">
+            {% for course in courses %}
+                <a href="{% url 'course_preview' course_slug=course.slug %}" class="ud-course-card">
+                    {% if course.cover_image %}
+                        <div class="ud-card-img" style="background-image: url('{{ course.cover_image.url }}');"></div>
+                    {% else %}
+                        <div class="ud-card-img" style="background-image: linear-gradient(135deg, #1b1b22 0%, #0c0b0f 100%); display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 36px;">🚑</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="ud-card-info">
+                        <div>
+                            <h3 class="ud-card-title">{{ course.title }}</h3>
+                            <p class="ud-card-author">Cetremer Academy • Equipe Médica SAMU</p>
+                            
+                            <div class="ud-rating-row">
+                                <span class="ud-rating-score">4,8</span>
+                                <span class="ud-rating-stars">★★★★★</span>
+                                <span class="ud-rating-count">(120)</span>
+                            </div>
+                            
+                            <div class="ud-card-badge-row">
+                                <span class="ud-card-badge">Mais vendidos</span>
+                            </div>
+                        </div>
+                        
+                        <div class="ud-card-price-row">
+                            <span class="ud-card-price-current">R$ {{ course.price }}</span>
+                            <span class="ud-card-price-original">R$ 490,00</span>
+                        </div>
+                    </div>
+                </a>
+            {% empty %}
+                <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 48px; border: 1px solid var(--border-color);">
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">Nenhum treinamento disponível no momento.</p>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 2. CURSOS EM ALTA (GRID) -->
+    <div>
+        <h2 class="ud-catalog-title">🔥 Cursos em alta</h2>
+        <div class="ud-course-grid">
+            {% for course in courses %}
+                {# Filter for top trending courses (BLS, ACLS, and Plantão Sem GPT) #}
+                {% if course.slug == 'suporte-basico-vida-bls' or course.slug == 'suporte-avancado-cardiologia-acls' or course.slug == 'plantao-sem-gpt' %}
+                    <a href="{% url 'course_preview' course_slug=course.slug %}" class="ud-course-card">
+                        {% if course.cover_image %}
+                            <div class="ud-card-img" style="background-image: url('{{ course.cover_image.url }}');"></div>
+                        {% else %}
+                            <div class="ud-card-img" style="background-image: linear-gradient(135deg, #1b1b22 0%, #0c0b0f 100%); display: flex; align-items: center; justify-content: center;">
+                                <span style="font-size: 36px;">🚑</span>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="ud-card-info">
+                            <div>
+                                <h3 class="ud-card-title">{{ course.title }}</h3>
+                                <p class="ud-card-author">Cetremer Academy • Equipe Médica SAMU</p>
+                                
+                                <div class="ud-rating-row">
+                                    <span class="ud-rating-score">4,9</span>
+                                    <span class="ud-rating-stars">★★★★★</span>
+                                    <span class="ud-rating-count">(94)</span>
+                                </div>
+                                
+                                <div class="ud-card-badge-row">
+                                    <span class="ud-card-badge">Cursos em Alta</span>
+                                </div>
+                            </div>
+                            
+                            <div class="ud-card-price-row">
+                                <span class="ud-card-price-current">R$ {{ course.price }}</span>
+                                <span class="ud-card-price-original">R$ 490,00</span>
+                            </div>
+                        </div>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- B2B Hospital Banner Section -->
+<section style="background-color: var(--bg-secondary); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); padding: 64px 0;">
+    <div class="container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center;">
+        <div>
+            <h2 style="font-size: 28px; font-weight: 800; margin-bottom: 16px; font-family: var(--font-title); color: #fff;">Capacite sua equipe hospitalar</h2>
+            <p style="color: var(--text-secondary); line-height: 1.6; font-size: 15px; margin-bottom: 24px;">Desenvolvemos programas B2B customizados sob medida para hospitais, clínicas e universidades de saúde para padronizar desfechos clínicos e garantir conformidade.</p>
+            <a href="#" class="btn btn-primary" style="background-color: #1c1d1f; border-color: var(--border-color); border-radius: 4px; padding: 12px 24px; font-weight: 700;">Capacitar Equipe</a>
+        </div>
+        <div class="glass-card">
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #fff;">Diferenciais Cetremer</h3>
+            <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;">✓ Prática em manequins eletrônicos avançados.<br>✓ Instrutores médicos ativos em UTI/SAMU.<br>✓ Certificação AHA com reconhecimento internacional.</p>
+            <a href="https://wa.me/5567996494740" target="_blank" style="color: var(--accent-color); font-weight: 700; text-decoration: none;">Entre em contato pelo WhatsApp →</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

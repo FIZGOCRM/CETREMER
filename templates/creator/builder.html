@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Grade de Conteúdo · {{ course.title }} · CetrEmer{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 48px; min-height: 100vh; padding-bottom: 96px;">
+    
+    <!-- Top Header -->
+    <div style="margin-bottom: 32px;">
+        <a href="{% url 'creator_dashboard' %}" style="color: var(--text-secondary); font-size: 13px; text-decoration: none;">← Voltar ao Painel</a>
+        <h1 style="font-family: var(--font-title); font-size: 26px; font-weight: 850; color: #fff; margin-top: 12px; margin-bottom: 8px;">
+            Syllabus Builder: {{ course.title }}
+        </h1>
+        <p style="color: var(--text-secondary); font-size: 14px;">Estruture a grade curricular do seu curso criando módulos e cadastrando as respectivas aulas e materiais.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1.1fr; gap: 40px; align-items: start;">
+        
+        <!-- Left Side: List of Modules and Lessons -->
+        <div style="display: flex; flex-direction: column; gap: 28px;">
+            <h2 style="font-family: var(--font-title); font-size: 18px; font-weight: 800; color: #fff; margin: 0;">
+                Módulos do Curso
+            </h2>
+            
+            {% for mod in modules %}
+                <div class="glass-card" style="padding: 24px; border-left: 4px solid var(--accent-color);">
+                    <!-- Module Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 4px;">{{ mod.title }}</h3>
+                            <span style="font-size: 11px; color: var(--text-secondary);">Ordem: {{ mod.order }}</span>
+                        </div>
+                        <form method="post" onsubmit="return confirm('Deseja realmente excluir este módulo e todas as suas aulas?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="delete_module">
+                            <input type="hidden" name="module_id" value="{{ mod.id }}">
+                            <button type="submit" class="btn btn-secondary" style="background: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.2); color: #e74c3c; font-size: 12px; padding: 4px 10px; height: auto;">
+                                Excluir Módulo
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Lessons list inside Module -->
+                    <div style="margin-bottom: 24px;">
+                        <h4 style="font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">Aulas Cadastradas</h4>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            {% for les in mod.lessons.all %}
+                                <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px 16px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px;">
+                                            {{ les.order }}. {{ les.title }}
+                                        </div>
+                                        <div style="font-size: 11px; color: var(--text-muted); display: flex; gap: 12px;">
+                                            <span>⏱️ {{ les.duration_seconds }}s</span>
+                                            {% if les.video_url %}
+                                                <span>🎬 Com vídeo</span>
+                                            {% endif %}
+                                            {% if les.download_url %}
+                                                <span>📁 Material: {{ les.download_name }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <form method="post" onsubmit="return confirm('Excluir esta aula?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_lesson">
+                                        <input type="hidden" name="lesson_id" value="{{ les.id }}">
+                                        <button type="submit" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 12px;">
+                                            ✕
+                                        </button>
+                                    </form>
+                                </div>
+                            {% empty %}
+                                <p style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 12px 0;">Nenhuma aula cadastrada neste módulo.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Add Lesson form inline (Collapsible trigger) -->
+                    <div style="background: rgba(255,255,255,0.01); border: 1px solid var(--border-color); border-radius: 6px; padding: 16px;">
+                        <h4 style="font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 12px;">+ Adicionar Aula a este Módulo</h4>
+                        <form method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="add_lesson">
+                            <input type="hidden" name="module_id" value="{{ mod.id }}">
+                            
+                            <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <input type="text" name="lesson_title" class="form-control" placeholder="Título da Aula" required style="font-size: 13px; padding: 8px 12px;">
+                                <input type="number" name="lesson_order" class="form-control" placeholder="Ordem (ex: 1)" value="{{ mod.lessons.count|add:1 }}" required style="font-size: 13px; padding: 8px 12px;">
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <input type="url" name="lesson_video" class="form-control" placeholder="Link do Vídeo (ex: YouTube Embed URL)" style="font-size: 13px; padding: 8px 12px;">
+                                <input type="number" name="lesson_duration" class="form-control" placeholder="Duração (Segundos)" style="font-size: 13px; padding: 8px 12px;">
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                <input type="url" name="lesson_download_url" class="form-control" placeholder="Material Complementar (Link PDF)" style="font-size: 13px; padding: 8px 12px;">
+                                <input type="text" name="lesson_download_name" class="form-control" placeholder="Nome do Arquivo (Apostila)" style="font-size: 13px; padding: 8px 12px;">
+                            </div>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <textarea name="lesson_desc" class="form-control" rows="2" placeholder="Resumo/Instruções da aula..." style="font-size: 13px; padding: 8px 12px; resize: vertical;"></textarea>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-size: 12px; padding: 8px; font-weight: 700; border-radius: 4px;">
+                                Salvar Aula
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            {% empty %}
+                <div class="glass-card" style="padding: 48px; text-align: center; color: var(--text-muted);">
+                    <span style="font-size: 32px; display: block; margin-bottom: 12px;">📂</span>
+                    Nenhum módulo estruturado. Crie seu primeiro módulo ao lado!
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Right Side: Add New Module Form -->
+        <div class="glass-card" style="padding: 28px; position: sticky; top: 100px; z-index: 10;">
+            <h3 style="font-size: 16px; font-weight: 800; color: #fff; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+                ⚙️ Criar Novo Módulo
+            </h3>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_module">
+                
+                <div class="form-group" style="margin-bottom: 16px;">
+                    <label for="module_title" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Título do Módulo</label>
+                    <input type="text" id="module_title" name="module_title" class="form-control" placeholder="Ex: Módulo 1: RCP Básica" required>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="module_order" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary); font-weight: 600;">Ordem de Exibição</label>
+                    <input type="number" id="module_order" name="module_order" class="form-control" value="{{ modules.count|add:1 }}" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-weight: 700; border-radius: 4px; padding: 12px;">
+                    Criar Módulo
+                </button>
+            </form>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
