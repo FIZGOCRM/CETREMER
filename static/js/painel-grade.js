@@ -23,7 +23,7 @@
     root.querySelectorAll('[data-module-id][draggable]').forEach(function (section) {
       payload.modules.push(Number(section.getAttribute('data-module-id')));
     });
-    root.querySelectorAll('ul.module__list[data-module-id]').forEach(function (list) {
+    root.querySelectorAll('[data-module-id].module__list').forEach(function (list) {
       payload.lessons[list.getAttribute('data-module-id')] = Array.prototype.map.call(
         list.querySelectorAll('[data-lesson-id]'), function (li) { return Number(li.getAttribute('data-lesson-id')); }
       );
@@ -33,6 +33,29 @@
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
       body: JSON.stringify(payload)
+    }).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
+      if (window.CTM) window.CTM.toast('Ordem salva', { duration: 3000 });
+      snapshot = takeSnapshot();
+    }).catch(function () {
+      restore();
+      if (window.CTM) window.CTM.toast('Não foi possível salvar a nova ordem. A lista voltou como estava.', { kind: 'error', action: { label: 'Tentar de novo', onClick: save } });
+    });
+  }
+
+  /* Guarda a ordem salva para desfazer o movimento se o servidor recusar. */
+  function takeSnapshot() {
+    return Array.prototype.map.call(root.querySelectorAll('[data-module-id][draggable]'), function (section) {
+      return { node: section, lessons: Array.prototype.map.call(section.querySelectorAll('[data-lesson-id]'), function (li) { return li; }) };
+    });
+  }
+  var snapshot = takeSnapshot();
+  function restore() {
+    snapshot.forEach(function (entry) { root.appendChild(entry.node); });
+    snapshot.forEach(function (entry) {
+      var list = entry.node.querySelector('.module__list');
+      var tail = list.querySelector('.inline-create');
+      entry.lessons.forEach(function (li) { list.insertBefore(li, tail); });
     });
   }
 
@@ -56,11 +79,11 @@
     if (!dragged) return;
     var isLesson = dragged.hasAttribute('data-lesson-id');
     var target = isLesson ? e.target.closest('[data-lesson-id]') : e.target.closest('section[data-module-id]');
-    var list = isLesson ? e.target.closest('ul.module__list') : root;
+    var list = isLesson ? e.target.closest('.module__list') : root;
     if (!list) return;
     e.preventDefault();
     if (!target || target === dragged) {
-      if (isLesson && !list.querySelector('[data-lesson-id]')) list.appendChild(dragged);
+      if (isLesson && !list.querySelector('[data-lesson-id]')) list.insertBefore(dragged, list.querySelector('.inline-create'));
       return;
     }
     var rect = target.getBoundingClientRect();

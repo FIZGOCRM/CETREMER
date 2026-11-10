@@ -1,0 +1,18 @@
+{# Diálogo "Matricular aluno" (nível CRIAR). POST painel:student_enroll. Sucesso JSON: redirect para a ficha do aluno + toast "Curso liberado. E-mail enviado para {email}". Pré-seleção: data-course no botão que abriu (opcional, ver HANDOFF-v2 8.6). #}
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-enroll" aria-labelledby="dlg-enroll-title">
+  <form method="post" action="{% url 'painel:student_enroll' %}" class="dialog__body" data-async>
+    {% csrf_token %}
+    <span class="dialog__eyebrow">Criar</span>
+    <h2 class="dialog__title" id="dlg-enroll-title">Matricular aluno</h2>
+    <div class="field"><label class="field__label" for="en-email">E-mail do aluno</label><input class="input" id="en-email" name="email" type="email" required autofocus>
+      <span class="hint">Se o e-mail não tiver conta, criamos uma e enviamos o link de primeiro acesso.</span></div>
+    <div class="field"><label class="field__label" for="en-name">Nome completo (opcional)</label><input class="input" id="en-name" name="full_name"></div>
+    <div class="field"><label class="field__label" for="en-course">Curso</label>
+      <select class="select" id="en-course" name="course" required>{% for c in painel_courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select></div>
+    <label class="check"><input type="checkbox" name="send_email" value="1" checked> Enviar e-mail de acesso agora</label>
+    <div class="dialog__actions">
+      <button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Liberar curso</button>
+    </div>
+  </form>
+</dialog>

@@ -1,0 +1,103 @@
+{% extends 'base_admin.html' %}{% load cetremer ui static %}
+{% comment %}
+Curso · Conteúdo (HANDOFF-v2 8.3). Contexto: course, tab, modules (lessons_list), selected, ready_items, ready_count, totais do cabeçalho
+e, com ?aula=, o contexto de painel/_lesson_drawer.html.
+{% endcomment %}
+{% block admin_title %}{{ course.title }}{% endblock %}
+{% block crumbs %}<a href="{% url 'painel:courses' %}">Cursos</a> / {{ course.title }}{% endblock %}
+{% block content %}
+{% include 'painel/_course_head.html' %}
+<div class="split">
+  <main class="split__main stack gap-16">
+    <div class="row row--between gap-12">
+      <span class="text-14 muted">Arraste pela alça para reordenar. A ordem salva sozinha.</span>
+      <button type="button" class="btn btn--ghost btn--xs" data-toggle-all-modules data-label-collapse="Recolher tudo" data-label-expand="Expandir tudo">Recolher tudo</button>
+    </div>
+    <div class="stack gap-16" data-reorder-url="{% url 'painel:course_reorder' course.id %}">
+      {% for module in modules %}
+      <section class="card card--clip" data-module-id="{{ module.id }}" draggable="true" aria-labelledby="module-title-{{ module.id }}">
+        <div class="builder-module__head">
+          <button class="drag-handle" type="button" aria-label="Mover módulo {{ module.title }}">{% include 'partials/icon.html' with name='drag' size=16 %}</button>
+          <button class="module__toggle" type="button" aria-expanded="true" aria-controls="module-list-{{ module.id }}">
+            <span class="module__text"><span class="module__title" id="module-title-{{ module.id }}">Módulo {{ forloop.counter }} · {{ module.title }}</span><span class="module__count" id="module-count-{{ module.id }}">{{ module.lessons_list|length|plural_pt:"aula,aulas" }} · {{ module.published_count|plural_pt:"publicada,publicadas" }}</span></span>
+            {% include 'partials/icon.html' with name='chevron-up' size=18 class='module__chevron' %}
+          </button>
+          <div class="popover" data-popover>
+            <button type="button" class="icon-btn icon-btn--plain" aria-label="Mais ações do módulo {{ module.title }}" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>{% include 'partials/icon.html' with name='more' size=18 %}</button>
+            <div class="menu" data-popover-panel hidden role="menu">
+              <button type="button" role="menuitem" class="menu__item" data-dialog-open="dlg-rename-{{ module.id }}">Renomear</button>
+              <a role="menuitem" class="menu__item" href="{% url 'painel:course_settings' course.id %}#liberacao">Programar liberação</a>
+              <button type="button" role="menuitem" class="menu__item menu__item--danger" data-dialog-open="dlg-delete-module-{{ module.id }}">Excluir módulo</button>
+            </div>
+          </div>
+        </div>
+        <div class="module__list" id="module-list-{{ module.id }}" data-module-id="{{ module.id }}">
+          {% for lesson in module.lessons_list %}{% include 'painel/_lesson_row.html' with is_new=False %}{% endfor %}
+          <div class="inline-create">
+            <form class="grow" method="post" action="{% url 'painel:lesson_quick_create' module.id %}">{% csrf_token %}
+              <label class="sr-only" for="new-lesson-{{ module.id }}">Título da nova aula em {{ module.title }}</label>
+              <input class="input" id="new-lesson-{{ module.id }}" name="title" maxlength="200" autocomplete="off" placeholder="+ Nova aula: digite o título e tecle Enter" data-inline-create-url="{% url 'painel:lesson_quick_create' module.id %}">
+            </form>
+          </div>
+        </div>
+      </section>
+      {% empty %}
+      <div class="empty empty--dashed">Adicione o primeiro módulo para organizar as aulas.</div>
+      {% endfor %}
+    </div>
+    <button type="button" class="btn btn--dashed btn--block" data-dialog-open="dlg-new-module">{% include 'partials/icon.html' with name='plus' size=16 stroke='2.4' %}Adicionar módulo</button>
+  </main>
+
+  <aside class="split__side split__side--320 stack gap-16">
+    <section class="card card--pad-sm stack gap-8" aria-labelledby="pronto">
+      <div class="row row--between"><h2 class="card__title" id="pronto">Pronto para vender?</h2><span class="text-13 fw-600">{{ ready_count }} de {{ ready_items|length }}</span></div>
+      <div>
+        {% for item in ready_items %}
+        <div class="ready-item is-{{ item.state }}">
+          {% if item.state == 'ok' %}{% include 'partials/icon.html' with name='check-circle' size=18 %}{% elif item.state == 'warn' %}{% include 'partials/icon.html' with name='alert' size=18 %}{% else %}{% include 'partials/icon.html' with name='circle' size=18 %}{% endif %}
+          <span class="stack">
+            {% if item.state != 'ok' and item.url %}<a class="fw-600" href="{{ item.url }}">{{ item.title }}</a>{% else %}<span class="fw-600">{{ item.title }}</span>{% endif %}
+            {% if item.show_sub %}<span class="text-13 muted">{{ item.sub }}</span>{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    <section class="card card--pad-sm stack gap-10" aria-labelledby="liberacao-resumo">
+      <h2 class="card__title" id="liberacao-resumo">Liberação do conteúdo</h2>
+      <p class="text-2">{% if course.release_mode == 'scheduled' %}Os módulos são liberados em datas programadas.{% else %}Todas as aulas ficam disponíveis assim que o aluno é matriculado.{% endif %}</p>
+      <a class="btn btn--secondary btn--xs self-start" href="{% url 'painel:course_settings' course.id %}#liberacao">Programar liberação</a>
+    </section>
+  </aside>
+</div>
+
+<dialog class="drawer drawer--600" id="drawer-aula"{% if selected %} data-autoopen="aula"{% endif %} aria-labelledby="drawer-aula-title">
+  <div data-drawer-content>{% if selected %}{% include 'painel/_lesson_drawer.html' %}{% endif %}</div>
+</dialog>
+
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-new-module" aria-labelledby="dlg-new-module-t">
+  <form method="post" action="{% url 'painel:module_create' course.id %}" class="dialog__body" data-async>{% csrf_token %}
+    <h2 class="dialog__title" id="dlg-new-module-t">Novo módulo</h2>
+    <div class="field"><label class="field__label" for="nm-title">Título do módulo</label><input class="input" id="nm-title" name="title" required maxlength="200" autofocus></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--primary">Criar módulo</button></div>
+  </form>
+</dialog>
+{% for module in modules %}
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-rename-{{ module.id }}" aria-labelledby="dlg-rename-{{ module.id }}-t">
+  <form method="post" action="{% url 'painel:module_rename' module.id %}" class="dialog__body" data-async>{% csrf_token %}
+    <h2 class="dialog__title" id="dlg-rename-{{ module.id }}-t">Renomear módulo</h2>
+    <div class="field"><label class="field__label" for="rn-{{ module.id }}">Título do módulo</label><input class="input" id="rn-{{ module.id }}" name="title" value="{{ module.title }}" required maxlength="200"></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--primary">Salvar</button></div>
+  </form>
+</dialog>
+<dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-delete-module-{{ module.id }}" aria-labelledby="dlg-delete-module-{{ module.id }}-t">
+  <form method="post" action="{% url 'painel:module_delete' module.id %}" class="dialog__body" data-async>{% csrf_token %}
+    <span class="dialog__eyebrow">Afeta alunos</span>
+    <h2 class="dialog__title" id="dlg-delete-module-{{ module.id }}-t">Excluir {{ module.title }}?</h2>
+    <p class="dialog__text">{% if module.lessons_list %}As {{ module.lessons_list|length|plural_pt:"aula,aulas" }} do módulo e o progresso dos alunos nelas serão apagados.{% else %}O módulo não tem aulas.{% endif %} Essa ação não tem Desfazer.</p>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger">Excluir módulo</button></div>
+  </form>
+</dialog>
+{% endfor %}
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/painel-grade.js' %}" defer></script>{% endblock %}

@@ -20,16 +20,20 @@ class PanelFlowTests(TestCase):
         self.client.force_login(self.admin)
 
     def test_import_preview_and_confirm_creates_unusable_password_and_enrollment(self):
+        url = reverse('painel:students_import')
         upload = SimpleUploadedFile('alunos.csv', 'nome;email;cpf\nMaria Silva;maria@example.com;52998224725\n'.encode())
-        response = self.client.post(reverse('painel:students_import'), {'courses': [self.course.id], 'file': upload})
-        self.assertContains(response, 'Novo aluno')
+        self.assertEqual(self.client.post(url, {'origin': 'eduzz', 'file': upload}).status_code, 302)
+        self.client.post(url + '?passo=2', {'col_0': 'name', 'col_1': 'email', 'col_2': 'cpf'})
+        self.client.post(url + '?passo=3', {'courses': [self.course.id]})
+        response = self.client.get(url + '?passo=4')
+        self.assertContains(response, 'Importar 1 aluno')
         self.assertFalse(User.objects.filter(email='maria@example.com').exists())
-        response = self.client.post(reverse('painel:students_import'), {'action': 'confirm'})
+        response = self.client.post(url + '?passo=4', {})
         self.assertEqual(response.status_code, 302)
         user = User.objects.get(email='maria@example.com')
         self.assertFalse(user.has_usable_password())
         self.assertTrue(Enrollment.objects.filter(student=user.student_profile, course=self.course, source='import').exists())
-        self.assertNotIn('import_preview', self.client.session)
+        self.assertNotIn('student_import', self.client.session)
 
     def test_reorder_rejects_outsider_id_and_accepts_complete_payload(self):
         url = reverse('painel:course_reorder', args=[self.course.id])
@@ -39,12 +43,16 @@ class PanelFlowTests(TestCase):
         self.assertEqual(good.json(), {'ok': True})
 
     def test_settings_secrets_are_encrypted_and_never_rendered(self):
-        self.client.post(reverse('painel:settings'), {'school_name': 'CETREMER', 'gateway_key': 'supersecret1234', 'email_password': 'secretSMTP'})
+        self.client.post(reverse('painel:settings'), {'section': 'pagamentos', 'gateway_key': 'supersecret1234', 'gateway_sandbox': '1'})
+        self.client.post(reverse('painel:settings'), {'section': 'emails', 'email_port': '587', 'email_password': 'secretSMTP'})
         site = SiteSettings.load()
         self.assertNotIn('supersecret1234', site.gateway_key_encrypted)
-        response = self.client.get(reverse('painel:settings'))
+        self.assertNotIn('secretSMTP', site.email_password_encrypted)
+        response = self.client.get(reverse('painel:settings') + '?secao=pagamentos')
         self.assertNotContains(response, 'supersecret1234')
         self.assertContains(response, '1234')
+        response = self.client.get(reverse('painel:settings') + '?secao=emails')
+        self.assertNotContains(response, 'secretSMTP')
 
     def test_student_cannot_enter_panel(self):
         self.client.force_login(self.student)

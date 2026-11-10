@@ -1,1 +1,98 @@
-﻿{% extends 'base_admin.html' %}{% block page_title %}Comunidade{% endblock %}{% block content %}<div class="chips" role="tablist"><a class="chip" href="?aba=pendentes"{% if tab == 'pendentes' %} aria-current="page"{% endif %}>Sem resposta ({{ pending_count }})</a><a class="chip" href="?aba=respondidos"{% if tab == 'respondidos' %} aria-current="page"{% endif %}>Respondidos</a><a class="chip" href="?aba=ocultos"{% if tab == 'ocultos' %} aria-current="page"{% endif %}>Ocultos</a></div>{% for p in posts %}<article class="card post post--admin"><div class="post__meta"><span class="post__author">{{ p.author.student_profile.full_name|default:p.author.username }}</span><span>· {{ p.created_at|timesince }} atrás</span>{% if p.course %}<span class="badge">{{ p.course.short_name|default:p.course.title }}</span>{% endif %}</div><h2 class="post__title">{{ p.title }}</h2><p class="post__excerpt">{{ p.content }}</p>{% for reply in p.comments.all %}<p class="post__excerpt">{{ reply.author.username }}: {{ reply.content }}</p>{% endfor %}<form class="stack gap-12" method="post">{% csrf_token %}<input type="hidden" name="post_id" value="{{ p.id }}"><div class="field"><label class="field__label" for="reply-{{ p.id }}">Responder como CETREMER</label><textarea class="textarea" id="reply-{{ p.id }}" name="content"></textarea></div><div class="row row--between gap-10"><button class="btn btn--secondary" name="action" value="{% if p.is_hidden %}show{% else %}hide{% endif %}">{% if p.is_hidden %}Mostrar tópico{% else %}Ocultar tópico{% endif %}</button><button class="btn btn--primary" name="action" value="reply">Publicar resposta</button></div></form></article>{% empty %}<p class="empty empty--dashed">{% if tab == 'pendentes' %}Tudo respondido.{% else %}Nenhum tópico nesta aba.{% endif %}</p>{% endfor %}{% endblock %}
+﻿{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Comunidade (HANDOFF-v2 8.10). Contexto: tab, q, posts (author_name, lesson_position, waiting_long), selected, official, others, pending,
+notify_new_questions. Os links ?duvida=<id> recarregam a página (sem painel lateral).
+{% endcomment %}
+{% block admin_title %}Comunidade{% endblock %}
+{% block crumbs %}Comunidade{% endblock %}
+{% block content %}
+<div class="row row--between gap-16">
+  <div class="stack gap-4"><h1 class="page-title">Comunidade</h1><p class="page-intro">Dúvidas dos alunos, respondidas como CETREMER.</p></div>
+  <form method="post" action="{% url 'painel:community_pref' %}" class="row gap-10" data-async data-autosubmit>
+    {% csrf_token %}
+    <span class="fw-600" id="lbl-notify-new">Me avisar por e-mail a cada nova dúvida</span>
+    <button type="button" class="switch" role="switch" aria-checked="{% if notify_new_questions %}true{% else %}false{% endif %}" aria-labelledby="lbl-notify-new" data-switch-input="notify_new_questions"></button>
+    <input type="hidden" name="notify_new_questions" id="notify_new_questions" value="{% if notify_new_questions %}1{% else %}0{% endif %}">
+  </form>
+</div>
+
+<div class="split">
+  <aside class="split__side split__side--380 card card--clip" aria-label="Lista de dúvidas">
+    <div class="card--pad-sm stack gap-12">
+      <div class="seg" role="group" aria-label="Situação das dúvidas">
+        <a class="seg__btn"{% if tab == 'sem-resposta' %} aria-current="page"{% endif %} href="?aba=sem-resposta">Sem resposta ({{ pending }})</a>
+        <a class="seg__btn"{% if tab == 'respondidas' %} aria-current="page"{% endif %} href="?aba=respondidas">Respondidas</a>
+        <a class="seg__btn"{% if tab == 'ocultas' %} aria-current="page"{% endif %} href="?aba=ocultas">Ocultas</a>
+      </div>
+      <form method="get" class="toolbar"><input type="hidden" name="aba" value="{{ tab }}">
+        <label class="sr-only" for="cq">Buscar dúvida</label><input class="input" id="cq" type="search" name="q" value="{{ q }}" placeholder="Buscar por aluno, curso ou palavra"></form>
+    </div>
+    {% for post in posts %}
+    <a class="list-row-link thread{% if selected and selected.id == post.id %} is-selected{% endif %}" href="?aba={{ tab }}&duvida={{ post.id }}{% if q %}&q={{ q|urlencode }}{% endif %}"{% if selected and selected.id == post.id %} aria-current="true"{% endif %}>
+      <span class="avatar avatar--32 avatar--soft" aria-hidden="true">{{ post.author_name|iniciais }}</span>
+      <span class="thread__text">
+        <span class="row gap-8"><span class="fw-600">{{ post.author_name }}</span>{% if post.is_pinned %}{% include 'partials/icon.html' with name='star' size=14 %}{% endif %}<span class="text-13 muted">{{ post.created_at|ago_pt }}</span></span>
+        <span class="thread__title">{{ post.title }}</span>
+        <span class="row gap-8">{% if post.course %}<span class="badge badge--blue">{{ post.course.short_name|default:post.course.title }}{% if post.lesson_position %} · Aula {{ post.lesson_position }}{% endif %}</span>{% endif %}
+          {% if tab == 'sem-resposta' %}<span class="text-13{% if post.waiting_long %} text-danger{% else %} muted{% endif %}">esperando {{ post.created_at|ago_pt }}</span>{% endif %}</span>
+      </span>
+    </a>
+    {% empty %}
+    <div class="empty-state">
+      {% if tab == 'sem-resposta' and not q %}
+      <span class="empty-state__icon">{% include 'partials/icon.html' with name='check-circle' size=24 %}</span>
+      <h2 class="empty-state__title">Nenhuma dúvida esperando resposta</h2>
+      <p class="empty-state__text">Quando um aluno perguntar, ela aparece aqui e você recebe um e-mail se ativou o aviso.</p>
+      {% else %}
+      <h2 class="empty-state__title">Nenhuma dúvida encontrada</h2>
+      {% if q %}<a class="btn btn--secondary" href="?aba={{ tab }}">Limpar busca</a>{% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </aside>
+
+  <main class="split__main card card--pad stack gap-16" aria-live="polite">
+    {% if selected %}
+    <div class="row row--between gap-12">
+      <div class="stack gap-4">
+        <h2 class="card__title card__title--lg">{{ selected.title }}</h2>
+        <span class="text-14 muted">{{ selected.author_name }}{% if selected.course %} · {{ selected.course.short_name|default:selected.course.title }}{% endif %}{% if selected.lesson_position %} · Aula {{ selected.lesson_position }}{% endif %}{% if selected.lesson %} · {% if selected.course %}<a href="{% url 'lesson_detail' selected.course.slug selected.lesson.id %}" target="_blank" rel="noopener">{{ selected.lesson.title }}</a>{% else %}{{ selected.lesson.title }}{% endif %}{% endif %}</span>
+      </div>
+      <div class="row gap-8">
+        <form method="post" action="{% url 'painel:community_action' selected.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="pin"><input type="hidden" name="aba" value="{{ tab }}"><button type="submit" class="btn btn--ghost btn--xs">{% if selected.is_pinned %}Desafixar{% else %}Fixar{% endif %}</button></form>
+        {% if selected.is_hidden %}
+        <form method="post" action="{% url 'painel:community_action' selected.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="unhide"><input type="hidden" name="aba" value="{{ tab }}"><button type="submit" class="btn btn--ghost btn--xs">Mostrar de novo</button></form>
+        {% else %}
+        <form method="post" action="{% url 'painel:community_action' selected.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="hide"><input type="hidden" name="aba" value="{{ tab }}"><button type="submit" class="btn btn--ghost btn--xs">Ocultar</button></form>
+        {% endif %}
+        <a class="btn btn--ghost btn--xs" href="{% url 'painel:student_detail' selected.author_id %}">Ver aluno</a>
+      </div>
+    </div>
+
+    <div class="row gap-12">
+      <span class="avatar avatar--32 avatar--soft" aria-hidden="true">{{ selected.author_name|iniciais }}</span>
+      <div class="stack gap-4"><span class="fw-600">{{ selected.author_name }} <span class="text-13 muted">· {{ selected.created_at|ago_pt }}</span></span><p class="text-2">{{ selected.content|linebreaksbr }}</p></div>
+    </div>
+
+    {% for comment in official %}
+    <div class="answer-box"><div class="answer-box__by">{% include 'partials/icon.html' with name='shield' size=18 %}{{ comment.author_name }} <span class="badge badge--blue">Resposta oficial</span> <span class="text-13 muted">· {{ comment.created_at|ago_pt }}</span></div><p>{{ comment.content|linebreaksbr }}</p></div>
+    {% endfor %}
+    {% for comment in others %}
+    <div class="row gap-12"><span class="avatar avatar--32" aria-hidden="true">{{ comment.author_name|iniciais }}</span><div class="stack gap-4"><span class="fw-600">{{ comment.author_name }} <span class="text-13 muted">· {{ comment.created_at|ago_pt }}</span></span><p class="text-2">{{ comment.content|linebreaksbr }}</p></div></div>
+    {% endfor %}
+
+    <form class="stack gap-8" method="post" action="{% url 'painel:community_action' selected.id %}" data-async>
+      {% csrf_token %}<input type="hidden" name="action" value="reply"><input type="hidden" name="aba" value="{{ tab }}">
+      <label class="field__label" for="reply-content">Responder como CETREMER</label>
+      <textarea class="textarea" id="reply-content" name="content" rows="4" placeholder="Escreva a resposta. O aluno é avisado por e-mail." required></textarea>
+      <div class="row row--between gap-12">
+        <label class="check"><input type="checkbox" name="next_unanswered" value="1" checked> Ir para a próxima sem resposta</label>
+        <button type="submit" class="btn btn--primary">Publicar resposta</button>
+      </div>
+    </form>
+    {% else %}
+    <div class="empty-state"><span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='chat' size=24 %}</span><h2 class="empty-state__title">Escolha uma dúvida</h2><p class="empty-state__text">Clique em uma dúvida da lista para ler e responder.</p></div>
+    {% endif %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{# Incluir UMA vez em base_aluno.html e base_admin.html. O ui.js abre quando há form[data-dirty-form] com mudanças e o usuário clica num link. #}
+<dialog class="dialog dialog--modal" id="leave-dialog" aria-labelledby="leave-title">
+  <div class="dialog__body">
+    <h2 class="dialog__title" id="leave-title">Sair sem salvar?</h2>
+    <p class="dialog__text">Você alterou esta página. Se sair agora, essas alterações se perdem.</p>
+    <div class="dialog__actions">
+      <button type="button" class="btn btn--quiet" data-leave="discard">Descartar e sair</button>
+      <button type="button" class="btn btn--primary" data-leave="save">Salvar e sair</button>
+    </div>
+  </div>
+</dialog>

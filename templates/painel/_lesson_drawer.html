@@ -1,0 +1,50 @@
+{% load cetremer ui %}{% comment %}
+Miolo do painel da aula (HANDOFF-v2 8.3). Devolvido por painel:lesson_drawer (GET parcial) e usado em course_content.html (?aula=).
+Contexto: lesson, lesson_course, position, module_total, prev_lesson, next_lesson, materials, is_youtube, needs_duration, duration_minutes.
+Os formulários "Excluir aula" e "Excluir material" ficam fora do formulário principal e são ligados pelos botões com o atributo form="".
+{% endcomment %}
+<form class="stack gap-0 lesson-drawer" id="lesson-form" method="post" enctype="multipart/form-data" action="{% url 'painel:lesson_drawer' lesson_course.id lesson.id %}" data-dirty-form data-dirtybar="lesson-dirty" data-async>
+  {% csrf_token %}
+  <div class="drawer__head">
+    <div class="stack">
+      <span class="drawer__eyebrow">{{ lesson.module.title }} · Aula {{ position }} de {{ module_total }}</span>
+      <h2 class="drawer__title" id="drawer-aula-title">{{ lesson.title }}</h2>
+    </div>
+    <div class="row gap-4">
+      {% if prev_lesson %}<a class="icon-btn icon-btn--plain" href="?aula={{ prev_lesson.id }}" aria-label="Aula anterior" data-drawer-url="{% url 'painel:lesson_drawer' lesson_course.id prev_lesson.id %}" data-drawer-target="drawer-aula" data-drawer-param="aula" data-drawer-value="{{ prev_lesson.id }}">{% include 'partials/icon.html' with name='chevron-left' size=18 %}</a>{% endif %}
+      {% if next_lesson %}<a class="icon-btn icon-btn--plain" href="?aula={{ next_lesson.id }}" aria-label="Próxima aula" data-drawer-url="{% url 'painel:lesson_drawer' lesson_course.id next_lesson.id %}" data-drawer-target="drawer-aula" data-drawer-param="aula" data-drawer-value="{{ next_lesson.id }}">{% include 'partials/icon.html' with name='chevron-right' size=18 %}</a>{% endif %}
+      <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+    </div>
+  </div>
+  <div class="drawer__body">
+    <div class="row row--between gap-12">
+      <div class="seg" role="radiogroup" aria-label="Situação da aula">
+        <label class="seg__btn"><input type="radio" name="status" value="published"{% if lesson.status == 'published' %} checked{% endif %}>Publicada</label>
+        <label class="seg__btn"><input type="radio" name="status" value="draft"{% if lesson.status != 'published' %} checked{% endif %}>Rascunho</label>
+      </div>
+      <label class="check"><input type="checkbox" name="is_free_preview" value="1"{% if lesson.is_free_preview %} checked{% endif %}> Aula grátis na página de venda</label>
+    </div>
+    <div class="field"><label class="field__label" for="ls-title">Título</label><input class="input" id="ls-title" name="title" value="{{ lesson.title }}" required maxlength="200"></div>
+    <div class="field"><label class="field__label" for="ls-video">Vídeo</label><input class="input" id="ls-video" name="video_url" type="url" value="{{ lesson.video_url }}" placeholder="https://vimeo.com/..." aria-describedby="ls-video-hint">
+      {% if is_youtube %}<div class="alert alert--warning" role="status">Este link é do YouTube. A plataforma usa o Vimeo, com restrição de domínio. Troque antes de abrir as vendas.</div>{% endif %}
+      <span class="hint" id="ls-video-hint">Cole o link do vídeo.{% if needs_duration %} Não foi possível ler a duração do Vimeo; informe em Mais opções.{% endif %}</span></div>
+    <div class="field"><label class="field__label" for="ls-desc">Descrição</label><textarea class="textarea" id="ls-desc" name="description" rows="4">{{ lesson.description }}</textarea><span class="hint">Aparece abaixo do vídeo, para o aluno.</span></div>
+    <div class="field"><span class="field__label">Materiais de apoio</span>
+      {% if materials %}<ul class="list-plain stack gap-8">{% for material in materials %}
+        <li class="row gap-8" id="material-{{ material.id }}"><input class="input" name="material_{{ material.id }}" value="{{ material.title }}" maxlength="120" aria-label="Nome do material"><button type="submit" class="icon-btn icon-btn--plain" form="material-delete-{{ material.id }}" aria-label="Excluir {{ material.title }}">{% include 'partials/icon.html' with name='x' size=18 %}</button></li>{% endfor %}</ul>{% endif %}
+      <label class="dropzone" data-dropzone><input class="sr-only" type="file" name="materials" accept=".pdf" multiple><span data-dropzone-name>Adicionar PDF</span><span class="hint">Arraste para cá · até 20 MB por arquivo</span></label></div>
+    <details class="stack gap-12"><summary class="fw-600">Mais opções</summary>
+      <div class="field"><label class="field__label" for="ls-min">Duração em minutos</label><input class="input" id="ls-min" name="duration_minutes" inputmode="numeric" value="{{ duration_minutes }}"><span class="hint">Se ficar vazio, usamos a duração do Vimeo.</span></div>
+    </details>
+  </div>
+  <div class="drawer__foot drawer__foot--between">
+    <button type="submit" class="btn btn--danger-text" form="lesson-delete-form">Excluir aula</button>
+    <div class="row gap-10">
+      <span class="text-13 fw-600 text-warning" data-dirty-msg hidden>● Alterações não salvas</span>
+      <button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Salvar aula</button>
+    </div>
+  </div>
+</form>
+<form id="lesson-delete-form" method="post" action="{% url 'painel:lesson_delete' lesson.id %}" data-async hidden>{% csrf_token %}</form>
+{% for material in materials %}<form id="material-delete-{{ material.id }}" method="post" action="{% url 'painel:material_delete' material.id %}" data-async hidden>{% csrf_token %}</form>{% endfor %}

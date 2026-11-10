@@ -1,0 +1,26 @@
+{% load cetremer ui %}{% comment %}
+Cabeçalho do curso (HANDOFF-v2 8.3), usado nas 3 abas. Contexto: course, tab (content|sales|settings), modules_total, lessons_total,
+minutes_total, students_total, show_live_link.
+{% endcomment %}
+<div class="card card--clip">
+  <div class="course-head">
+    <span class="course-tile course-tile--56 {{ course.cover_class }}" aria-hidden="true">{{ course.short_name|default:course.title }}</span>
+    <div class="course-head__text">
+      <div class="row gap-8">
+        <h1 class="course-head__title">{{ course.title }}</h1>
+        {% if course.status == 'published' %}<span class="badge badge--success">Publicado</span>{% elif course.status == 'archived' %}<span class="badge badge--warning">Arquivado</span>{% else %}<span class="badge badge--gray">Rascunho</span>{% endif %}
+      </div>
+      <span class="course-head__meta">{{ modules_total|plural_pt:"módulo,módulos" }} · {{ lessons_total|plural_pt:"aula,aulas" }} · {{ minutes_total }} min de vídeo · {{ students_total|plural_pt:"aluno,alunos" }} · {{ course.price|brl }}</span>
+    </div>
+    <div class="row gap-10">
+      <a class="btn btn--secondary btn--sm" href="{% url 'course_preview' course.slug %}?preview=1" target="_blank" rel="noopener">Ver como aluno</a>
+      {% if course.status == 'published' %}<a class="btn btn--ghost btn--sm" href="{% url 'course_preview' course.slug %}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='external' size=16 %}Página de venda ao vivo</a>{% endif %}
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Seções do curso">
+    <a class="tab"{% if tab == 'content' %} aria-current="page"{% endif %} href="{% url 'painel:course_content' course.id %}">Conteúdo</a>
+    <a class="tab"{% if tab == 'sales' %} aria-current="page"{% endif %} href="{% url 'painel:course_sales' course.id %}">Página de venda</a>
+    <a class="tab"{% if tab == 'settings' %} aria-current="page"{% endif %} href="{% url 'painel:course_settings' course.id %}">Configurações</a>
+    <a class="tab" href="{% url 'painel:students' %}?curso={{ course.slug }}">Alunos <span class="tab__count">{{ students_total }}</span></a>
+  </nav>
+</div>

@@ -1,1 +1,115 @@
-﻿{% extends 'base_admin.html' %}{% load cetremer %}{% block page_title %}Cursos{% endblock %}{% block topbar_actions %}<a class="btn btn--primary" href="{% url 'painel:course_new' %}">Novo curso</a>{% endblock %}{% block content %}<form class="toolbar" method="get"><label class="sr-only" for="q">Buscar curso</label><input class="input" id="q" name="q" value="{{ q }}" placeholder="Buscar curso"><label class="sr-only" for="categoria">Categoria</label><select class="select" id="categoria" name="categoria"><option value="">Todas as categorias</option>{% for cat in categories %}<option value="{{ cat.slug }}"{% if cat.slug == category %} selected{% endif %}>{{ cat.name }}</option>{% endfor %}</select><button class="btn btn--secondary">Filtrar</button></form><div class="table-wrap"><table class="table table--w860"><thead><tr><th>Curso</th><th>Categoria</th><th>Preço</th><th>Aulas</th><th>Alunos</th><th>Status</th><th><span class="sr-only">Ações</span></th></tr></thead><tbody>{% for c in courses %}<tr><td><div class="cell-media"><span class="course-tile course-tile--thumb {{ c.cover_class }}">{{ c.short_name|default:c.title }}</span><span class="fw-600">{{ c.title }}</span></div></td><td>{{ c.category.name|default:'—' }}</td><td>{{ c.price|brl }}</td><td>{{ c.lessons_count }}</td><td>{{ c.students_count }}</td><td><span class="badge badge--md {% if c.is_published %}badge--success{% else %}badge--gray{% endif %}">{% if c.is_published %}Publicado{% else %}Rascunho{% endif %}</span></td><td><a class="link-strong" href="{% url 'painel:course_edit' c.id %}">Editar</a> · <a class="link-strong" href="{% url 'painel:course_lessons' c.id %}">Aulas</a></td></tr>{% empty %}<tr><td colspan="7" class="empty">Nenhum curso encontrado.</td></tr>{% endfor %}</tbody></table></div>{% endblock %}
+﻿{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Cursos (HANDOFF-v2 8.2). Contexto: cards (course, lessons, minutes, youtube, no_workload, students, avg_pct, sales_url), counts,
+status, q, category, categories, has_any, filtered.
+{% endcomment %}
+{% block admin_title %}Cursos{% endblock %}
+{% block crumbs %}Cursos{% endblock %}
+{% block content %}
+<div class="row row--between gap-16">
+  <div class="stack gap-4">
+    <h1 class="page-title">Cursos</h1>
+    <p class="page-intro">Conteúdo, página de venda e configurações de cada treinamento.</p>
+  </div>
+  <button type="button" class="btn btn--primary" data-dialog-open="dlg-new-course">{% include 'partials/icon.html' with name='plus' size=16 stroke='2.4' %}Novo curso</button>
+</div>
+
+<div class="row row--between gap-12">
+  <div class="seg" role="group" aria-label="Status do curso">
+    <a class="seg__btn"{% if not status %} aria-current="page"{% endif %} href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if category %}categoria={{ category|urlencode }}{% endif %}">Todos <span class="seg__count">{{ counts.all }}</span></a>
+    <a class="seg__btn"{% if status == 'publicados' %} aria-current="page"{% endif %} href="?status=publicados{% if q %}&q={{ q|urlencode }}{% endif %}{% if category %}&categoria={{ category|urlencode }}{% endif %}">Publicados <span class="seg__count">{{ counts.published }}</span></a>
+    <a class="seg__btn"{% if status == 'rascunhos' %} aria-current="page"{% endif %} href="?status=rascunhos{% if q %}&q={{ q|urlencode }}{% endif %}{% if category %}&categoria={{ category|urlencode }}{% endif %}">Rascunhos <span class="seg__count">{{ counts.draft }}</span></a>
+    <a class="seg__btn"{% if status == 'arquivados' %} aria-current="page"{% endif %} href="?status=arquivados{% if q %}&q={{ q|urlencode }}{% endif %}{% if category %}&categoria={{ category|urlencode }}{% endif %}">Arquivados <span class="seg__count">{{ counts.archived }}</span></a>
+  </div>
+  <form class="toolbar" method="get">
+    {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+    <label class="sr-only" for="q">Buscar curso</label>
+    <input class="input" id="q" type="search" name="q" value="{{ q }}" placeholder="Buscar curso">
+    <label class="sr-only" for="categoria">Categoria</label>
+    <select class="select" id="categoria" name="categoria">
+      <option value="">Todas as categorias</option>
+      {% for cat in categories %}<option value="{{ cat.slug }}"{% if cat.slug == category %} selected{% endif %}>{{ cat.name }}</option>{% endfor %}
+    </select>
+    <button class="btn btn--secondary" type="submit">Filtrar</button>
+  </form>
+</div>
+
+{% if cards %}
+<div class="stack gap-16">
+  {% for card in cards %}{% with c=card.course %}
+  <article class="card card--pad-sm row gap-16">
+    <span class="course-tile course-tile--64 {{ c.cover_class }}" aria-hidden="true">{{ c.short_name|default:c.title }}</span>
+    <div class="stack gap-4 grow">
+      <div class="row gap-8">
+        {% if c.status == 'published' %}<span class="badge badge--success">Publicado</span>{% elif c.status == 'archived' %}<span class="badge badge--warning">Arquivado</span>{% else %}<span class="badge badge--gray">Rascunho</span>{% endif %}
+      </div>
+      <a class="cell-title card__title" href="{% url 'painel:course_content' c.id %}">{{ c.title }}</a>
+      <span class="text-13 muted">{% if c.category %}{{ c.category.name }} · {% endif %}{{ c.modules_count|plural_pt:"módulo,módulos" }} · {{ card.lessons|plural_pt:"aula,aulas" }} · {{ card.minutes }} min</span>
+      {% if card.youtube or card.no_workload %}
+      <div class="row gap-16">
+        {% if card.youtube %}<span class="text-13 text-danger">{% include 'partials/icon.html' with name='alert' size=14 %} {% if card.youtube == 1 %}1 aula ainda usa YouTube{% else %}{{ card.youtube }} aulas ainda usam YouTube{% endif %}</span>{% endif %}
+        {% if card.no_workload %}<span class="text-13 text-danger">{% include 'partials/icon.html' with name='alert' size=14 %} Carga horária não informada</span>{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <dl class="row gap-24">
+      <div class="stack"><dt class="text-13 muted">Alunos</dt><dd class="fw-600">{{ card.students }}</dd></div>
+      <div class="stack"><dt class="text-13 muted">Progresso médio</dt><dd class="fw-600">{% if card.avg_pct is None %}–{% else %}{{ card.avg_pct }}%{% endif %}</dd></div>
+      <div class="stack"><dt class="text-13 muted">Preço</dt><dd class="fw-600">{{ c.price|brl }}</dd></div>
+    </dl>
+    <div class="row gap-8">
+      <a class="btn btn--secondary btn--sm" href="{% url 'painel:course_content' c.id %}">Abrir curso</a>
+      <div class="popover" data-popover>
+        <button type="button" class="icon-btn" aria-label="Mais ações para {{ c.title }}" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>{% include 'partials/icon.html' with name='more' size=18 %}</button>
+        <div class="menu" data-popover-panel hidden role="menu">
+          <a role="menuitem" class="menu__item" href="{% url 'painel:course_content' c.id %}">Abrir curso</a>
+          <a role="menuitem" class="menu__item" href="{% url 'course_preview' c.slug %}?preview=1" target="_blank" rel="noopener">Ver como aluno</a>
+          <a role="menuitem" class="menu__item" href="{% url 'painel:course_sales' c.id %}">Abrir página de venda</a>
+          <button type="button" role="menuitem" class="menu__item" data-copy="{{ card.sales_url }}" data-copy-toast="Link de venda copiado">Copiar link de venda</button>
+          <form method="post" action="{% url 'painel:course_duplicate' c.id %}" data-async>{% csrf_token %}<button type="submit" role="menuitem" class="menu__item">Duplicar curso</button></form>
+          <div class="menu__sep"></div>
+          {% if c.status == 'published' %}
+          <form method="post" action="{% url 'painel:course_status' c.id %}" data-async>{% csrf_token %}<input type="hidden" name="para" value="draft"><button type="submit" role="menuitem" class="menu__item">Mover para rascunho</button></form>
+          {% elif c.status == 'archived' %}
+          <form method="post" action="{% url 'painel:course_status' c.id %}" data-async>{% csrf_token %}<input type="hidden" name="para" value="draft"><button type="submit" role="menuitem" class="menu__item">Restaurar como rascunho</button></form>
+          {% endif %}
+          {% if c.status != 'archived' %}<button type="button" role="menuitem" class="menu__item menu__item--danger" data-dialog-open="dlg-archive-{{ c.id }}">Arquivar curso</button>{% endif %}
+        </div>
+      </div>
+    </div>
+  </article>
+  {% endwith %}{% endfor %}
+  <button type="button" class="card card--dashed card--pad-lg empty-state" data-dialog-open="dlg-new-course">
+    {% include 'partials/icon.html' with name='plus' size=24 %}
+    <span class="fw-600">Novo curso</span>
+    <span class="text-13 muted">Começa como rascunho, só você vê</span>
+  </button>
+</div>
+{% elif not has_any %}
+<div class="empty-state card">
+  <span class="empty-state__icon">{% include 'partials/icon.html' with name='course' size=24 %}</span>
+  <h2 class="empty-state__title">Crie seu primeiro curso</h2>
+  <p class="empty-state__text">Ele começa como rascunho, só você vê. Depois você adiciona módulos, aulas e a página de venda.</p>
+  <button type="button" class="btn btn--primary" data-dialog-open="dlg-new-course">Novo curso</button>
+</div>
+{% else %}
+<div class="empty-state card">
+  <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='course' size=24 %}</span>
+  <h2 class="empty-state__title">{% if status == 'arquivados' %}Nenhum curso arquivado{% elif status == 'rascunhos' %}Nenhum curso em rascunho{% else %}Nenhum curso encontrado{% endif %}</h2>
+  {% if filtered %}<a class="btn btn--secondary" href="{% url 'painel:courses' %}">Limpar filtros</a>{% endif %}
+</div>
+{% endif %}
+
+{% for card in cards %}{% with c=card.course %}{% if c.status != 'archived' %}
+<dialog class="dialog dialog--520 dialog--modal dialog--danger" id="dlg-archive-{{ c.id }}" aria-labelledby="dlg-archive-{{ c.id }}-t">
+  <form method="post" action="{% url 'painel:course_status' c.id %}" class="dialog__body" data-async>
+    {% csrf_token %}<input type="hidden" name="para" value="archived">
+    <span class="dialog__eyebrow">Alto risco</span>
+    <h2 class="dialog__title" id="dlg-archive-{{ c.id }}-t">Arquivar {% if c.short_name %}{{ c.short_name }} · {% endif %}{{ c.title }}?</h2>
+    <p class="dialog__text">O curso sai do site e da área {% if card.students == 1 %}do aluno matriculado{% else %}dos {{ card.students }} alunos matriculados{% endif %}. Pedidos e certificados emitidos continuam válidos.</p>
+    <div class="field"><label class="field__label" for="arch-{{ c.id }}">Digite {{ c.short_name|default:c.title }} para confirmar</label><input class="input" id="arch-{{ c.id }}" name="confirmar" data-confirm-text="{{ c.short_name|default:c.title }}" autocomplete="off"></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger" data-confirm-submit disabled>Arquivar curso</button></div>
+  </form>
+</dialog>
+{% endif %}{% endwith %}{% endfor %}
+{% endblock %}

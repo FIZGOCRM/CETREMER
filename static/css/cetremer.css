@@ -907,3 +907,563 @@ a.builder-add { display: flex; align-items: center; justify-content: center; tex
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
+
+/* =====================================================================
+   CETREMER · Design system v2 · complemento do cetremer.css (v1)
+   COMO APLICAR: colar este arquivo inteiro NO FIM de static/css/cetremer.css,
+   depois da seção 28 (e depois da 29. Extras, se ela existir).
+   Não altera nenhuma classe do v1. Só acrescenta.
+   Fonte da verdade visual: referencia-v2/*.dc.html e capturas/*.png.
+   Regra mantida: nada de style="" nos templates, exceto largura de barra
+   de progresso (style="width: N%") e as duas exceções do v1.
+   ===================================================================== */
+
+/* ---------- 30. Tokens v2 ---------- */
+:root {
+  --c-toast-bg: #0F1B2D;
+  --c-toast-ok: #5FD08A;      /* ícone de sucesso sobre o toast escuro */
+  --c-toast-info: #9FD3FF;    /* ícone de informação sobre fundo escuro */
+  --c-overlay: rgba(15, 27, 45, 0.35);
+  --c-overlay-strong: rgba(15, 27, 45, 0.45);
+  --c-row-unread: #F5F9FE;    /* linha não lida (avisos, dúvidas) */
+  --c-answer-bg: #F4F9FF;     /* resposta oficial do instrutor */
+  --c-answer-border: #CFE3F8;
+  --c-seg-bg: #E9EDF2;        /* fundo do controle segmentado e das abas verticais */
+  --c-icon-faint: #9AA6B5;    /* círculo de pendente */
+  --shadow-pop: 0 12px 32px rgba(15, 27, 45, 0.16);   /* menus e avisos do sino */
+  --shadow-float: 0 16px 40px rgba(15, 27, 45, 0.28); /* toast e barra de alterações */
+  --shadow-drawer: -16px 0 40px rgba(15, 27, 45, 0.18);
+  --shadow-modal: 0 24px 60px rgba(15, 27, 45, 0.30);
+  --topbar-search-w: 300px;
+  --drawer-w: 520px;
+  --z-topbar: 20; --z-menu: 30; --z-dirtybar: 40; --z-drawer: 50; --z-toast: 60;
+}
+
+/* ---------- 31. Topo v2 (aluno e admin) ---------- */
+/* Estrutura: .topbar > .topbar__heading (.crumbs + .topbar__title) e .topbar__actions
+   (.topbar-search, .bell, .user-menu). O <h1> continua sendo .topbar__title. */
+.topbar { position: relative; z-index: var(--z-topbar); }
+.topbar--v2 { padding: 14px 40px; }
+.crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: var(--c-muted); }
+.crumbs a { color: var(--c-muted); text-decoration: none; }
+.crumbs a:hover { color: var(--c-primary); text-decoration: underline; }
+.crumbs__sep { color: var(--c-border-strong); }
+
+.topbar-search {
+  display: inline-flex; align-items: center; gap: 10px;
+  min-width: var(--topbar-search-w); min-height: 42px; padding: 0 10px 0 12px;
+  border: 1px solid var(--c-border); border-radius: var(--r-md); background: var(--c-surface-2);
+  color: var(--c-muted); font: inherit; font-size: 14px; cursor: pointer; text-align: left;
+}
+.topbar-search:hover { border-color: var(--c-border-strong); color: var(--c-text-2); }
+.topbar-search__text { flex: 1; }
+.kbd {
+  display: inline-block; font-family: var(--font-sans); font-size: 12px; font-weight: 600; line-height: 1.4;
+  color: var(--c-muted); border: 1px solid var(--c-border); border-radius: var(--r-xs);
+  padding: 1px 6px; background: var(--c-surface-2); white-space: nowrap;
+}
+
+/* Botão só ícone sem borda (sino, buscar no topo da aula, fechar de painel) */
+.icon-btn--plain { border: 0; background: transparent; color: var(--c-text-2); width: 40px; min-height: 40px; position: relative; }
+.icon-btn--plain:hover { background: var(--c-gray-soft); color: var(--c-ink); }
+.bell__count {
+  position: absolute; top: 4px; right: 3px; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--r-pill); background: var(--c-danger); color: #FFFFFF; border: 2px solid var(--c-surface);
+  font-size: 11px; font-weight: 700; line-height: 14px; text-align: center;
+}
+.bell__count[data-count="0"] { display: none; }
+
+/* Botão da conta no topo (avatar + primeiro nome + seta) */
+.user-btn {
+  display: flex; align-items: center; gap: 8px; min-height: var(--h-md); padding: 0 8px 0 4px;
+  border: 1px solid var(--c-border); border-radius: var(--r-pill); background: var(--c-surface);
+  font: inherit; color: var(--c-ink); cursor: pointer;
+}
+.user-btn:hover { background: var(--c-bg); }
+.user-btn .avatar { width: 34px; height: 34px; }
+.user-btn__name { font-size: 14px; font-weight: 600; }
+
+/* ---------- 32. Menus suspensos e avisos do sino ---------- */
+/* Contrato: <div class="popover" data-popover> <button aria-expanded data-popover-toggle> <div class="menu" data-popover-panel hidden> */
+.popover { position: relative; }
+.menu {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: var(--z-menu);
+  width: 260px; padding: 6px; background: var(--c-surface);
+  border: 1px solid var(--c-border); border-radius: var(--r-lg); box-shadow: var(--shadow-pop);
+}
+.menu--left { right: auto; left: 0; }
+.menu--wide { width: 380px; padding: 0; border-radius: var(--r-xl); overflow: hidden; }
+.menu__head { padding: 10px 12px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--c-border-soft); display: flex; flex-direction: column; }
+.menu__item {
+  display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: var(--r-sm);
+  background: none; color: var(--c-ink); font: inherit; font-size: 14px; text-align: left; text-decoration: none; cursor: pointer;
+}
+.menu__item:hover, .menu__item:focus-visible { background: var(--c-bg); color: var(--c-ink); }
+.menu__item .icon { color: var(--c-primary); }
+.menu__item--danger, .menu__item--danger .icon { color: var(--c-danger); }
+.menu__item-text { display: flex; flex-direction: column; }
+.menu__item-sub { font-size: 12px; color: var(--c-muted); }
+.menu__sep { height: 1px; background: var(--c-border-soft); margin: 4px 0; }
+
+.notif__head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--c-border-soft); font-weight: 700; }
+.notif__item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--c-border-soft); color: var(--c-ink); text-decoration: none; }
+.notif__item:hover { background: var(--c-surface-2); color: var(--c-ink); }
+.notif__item.is-unread { background: var(--c-row-unread); }
+.notif__dot { width: 8px; height: 8px; margin-top: 7px; border-radius: var(--r-pill); background: var(--c-border); flex: none; }
+.notif__item.is-unread .notif__dot { background: var(--c-primary); }
+.notif__title { font-size: 14px; font-weight: 600; }
+.notif__meta { font-size: 13px; color: var(--c-muted); }
+.notif__foot { display: block; padding: 12px 16px; font-size: 13px; font-weight: 600; text-decoration: none; }
+.notif__empty { padding: 28px 16px; text-align: center; color: var(--c-muted); font-size: 14px; }
+
+/* ---------- 33. Avisos (toast) ---------- */
+/* Pilha fixa no canto inferior direito. No celular (<= 720px) fica centralizada acima da barra inferior.
+   Some em 5 s; em 8 s quando tem Desfazer; erro não some sozinho. */
+.toast-stack {
+  position: fixed; right: 24px; bottom: 24px; z-index: var(--z-toast);
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none;
+}
+.toast {
+  pointer-events: auto; display: flex; align-items: center; gap: 12px;
+  min-width: 320px; max-width: 440px; padding: 12px 12px 12px 16px;
+  border-radius: var(--r-lg); background: var(--c-toast-bg); color: #FFFFFF; box-shadow: var(--shadow-float);
+  animation: toast-in .18s ease-out;
+}
+.toast__icon { color: var(--c-toast-ok); flex: none; }
+.toast--error .toast__icon { color: #FF9C94; }
+.toast--info .toast__icon { color: var(--c-toast-info); }
+.toast__msg { flex: 1; font-size: 14px; font-weight: 500; }
+.toast__action {
+  min-height: 34px; padding: 0 10px; border: 0; border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.12); color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; white-space: nowrap;
+}
+.toast__action:hover { background: rgba(255, 255, 255, 0.2); color: #FFFFFF; }
+.toast__close {
+  width: 32px; height: 32px; border: 0; border-radius: var(--r-sm); background: transparent; color: var(--c-on-dark-3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center; flex: none;
+}
+.toast__close:hover { background: rgba(255, 255, 255, 0.1); color: #FFFFFF; }
+.toast.is-leaving { opacity: 0; transform: translateY(8px); transition: opacity .15s ease, transform .15s ease; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 34. Painel lateral (drawer) ---------- */
+/* Usar <dialog class="drawer"> aberto com showModal(). Fecha com Esc, clique no fundo e botão Fechar. */
+.drawer {
+  margin: 0 0 0 auto; height: 100vh; max-height: none; width: min(var(--drawer-w), 100vw); max-width: 100vw;
+  padding: 0; border: 0; background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-drawer);
+  display: flex; flex-direction: column;
+}
+.drawer:not([open]) { display: none; }
+.drawer::backdrop { background: var(--c-overlay); }
+.drawer--600 { --drawer-w: 600px; }
+.drawer--560 { --drawer-w: 560px; }
+.drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 20px 24px; border-bottom: 1px solid var(--c-border); }
+.drawer__eyebrow { font-size: 13px; color: var(--c-muted); }
+.drawer__title { font-family: var(--font-display); font-weight: 700; font-size: 18px; line-height: 1.3; }
+.drawer__body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.drawer__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--c-border); }
+.drawer__foot--between { justify-content: space-between; }
+
+/* ---------- 35. Diálogos por nível de risco ---------- */
+/* Base .dialog do v1. Acrescenta: rótulo de risco, campo de confirmação e larguras. */
+.dialog--520 { width: min(520px, calc(100vw - 32px)); }
+.dialog--modal { box-shadow: var(--shadow-modal); }
+.dialog__eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--c-primary); }
+.dialog--warn .dialog__eyebrow { color: var(--c-warning-text); }
+.dialog--danger .dialog__eyebrow { color: var(--c-danger); }
+.dialog__text { color: var(--c-text-2); }
+.btn--danger { background: var(--c-danger); color: #FFFFFF; }
+.btn--danger:hover { background: var(--c-danger-text); color: #FFFFFF; }
+.btn--danger-outline { background: var(--c-surface); border-color: #F3B8B2; color: var(--c-danger); }
+.btn--danger-outline:hover { background: var(--c-danger-soft); color: var(--c-danger-text); }
+/* Comemoração de fim de curso */
+.dialog--celebrate .dialog__body { align-items: center; text-align: center; padding: 32px; gap: 12px; }
+.celebrate__icon { width: 72px; height: 72px; border-radius: var(--r-pill); background: var(--c-success-soft); color: var(--c-success-text); display: flex; align-items: center; justify-content: center; }
+.celebrate__title { font-family: var(--font-display); font-weight: 800; font-size: 24px; }
+
+/* ---------- 36. Barra de alterações não salvas ---------- */
+/* Fica fixa no rodapé da área de conteúdo enquanto o formulário [data-dirty-form] tiver mudanças. */
+.dirtybar {
+  position: sticky; bottom: 24px; z-index: var(--z-dirtybar);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 12px 12px 12px 20px; border-radius: var(--r-xl);
+  background: var(--c-toast-bg); color: #FFFFFF; box-shadow: var(--shadow-float);
+}
+.dirtybar[hidden] { display: none; }
+.dirtybar__icon { color: var(--c-toast-info); flex: none; }
+.dirtybar__msg { flex: 1; font-weight: 500; }
+.dirtybar__discard {
+  min-height: 40px; padding: 0 14px; border: 0; border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.12); color: #FFFFFF; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+.dirtybar__discard:hover { background: rgba(255, 255, 255, 0.2); }
+.dirtybar .btn { min-height: 40px; }
+.form-errors { display: flex; gap: 10px; padding: 12px 14px; border-radius: var(--r-md); background: var(--c-danger-soft); color: var(--c-danger-text); font-size: 14px; font-weight: 600; }
+
+/* ---------- 37. Controle segmentado, abas e abas verticais ---------- */
+.seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--r-md); background: var(--c-seg-bg); }
+.seg__btn {
+  min-height: 36px; padding: 0 14px; border: 0; border-radius: var(--r-sm); background: transparent;
+  color: var(--c-text-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.seg__btn:hover { color: var(--c-ink); }
+.seg__btn[aria-pressed="true"], .seg__btn[aria-current="page"], .seg__btn[aria-selected="true"] {
+  background: var(--c-surface); color: var(--c-ink); box-shadow: 0 1px 2px rgba(15, 27, 45, 0.12);
+}
+.seg__count { color: var(--c-muted); font-weight: 600; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 24px; padding: 0 20px; border-bottom: 1px solid var(--c-border); }
+.tabs--flush { padding: 0; }
+.tab {
+  min-height: 44px; padding: 0 4px; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent;
+  color: var(--c-muted); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.tab:hover { color: var(--c-ink); }
+.tab[aria-selected="true"], .tab[aria-current="page"] { color: var(--c-primary); border-bottom-color: var(--c-primary); }
+.tab__count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--r-pill); background: var(--c-gray-soft); color: var(--c-text-2); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.tab-panel { padding: 20px; }
+.tab-panel--flush { padding: 0; }
+
+.vtabs { flex: 1 1 220px; max-width: 260px; display: flex; flex-direction: column; gap: 4px; padding: 6px; border-radius: var(--r-xl); background: var(--c-seg-bg); align-self: flex-start; }
+.vtab {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--h-md); padding: 0 12px;
+  border: 0; border-radius: var(--r-md); background: transparent; color: var(--c-text-2);
+  font: inherit; font-size: 14px; font-weight: 500; text-align: left; text-decoration: none; cursor: pointer;
+}
+.vtab:hover { background: var(--c-gray-soft); color: var(--c-ink); }
+.vtab[aria-selected="true"], .vtab[aria-current="page"] { background: var(--c-surface); color: var(--c-primary-strong); font-weight: 600; box-shadow: 0 1px 2px rgba(15, 27, 45, 0.1); }
+.vtab__label { flex: 1; }
+
+/* ---------- 38. Liga e desliga (switch) ---------- */
+/* <button type="button" class="switch" role="switch" aria-checked="true|false" aria-label="..."> ou
+   <input type="checkbox" class="switch" role="switch"> (os dois funcionam). */
+.switch { appearance: none; -webkit-appearance: none; width: 44px; height: 26px; margin: 0; padding: 0; border: 0; border-radius: var(--r-pill); background: var(--c-border-strong); position: relative; cursor: pointer; flex: none; transition: background-color .15s ease; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: var(--r-pill); background: #FFFFFF; transition: left .15s ease; box-shadow: 0 1px 2px rgba(15, 27, 45, 0.2); }
+.switch[aria-checked="true"], .switch:checked { background: var(--c-primary); }
+.switch[aria-checked="true"]::after, .switch:checked::after { left: 21px; }
+.switch-row { display: flex; align-items: center; gap: 14px; padding: 16px 24px; border-top: 1px solid var(--c-border-soft); }
+.switch-row__text { flex: 1; display: flex; flex-direction: column; }
+.switch-row__title { font-weight: 600; }
+.switch-row__hint { font-size: 13px; color: var(--c-muted); }
+
+/* ---------- 39. Busca global (Ctrl K) ---------- */
+.cmdk { width: min(640px, calc(100vw - 32px)); margin-top: 90px; padding: 0; border: 0; border-radius: var(--r-2xl); background: var(--c-surface); color: var(--c-ink); box-shadow: var(--shadow-modal); overflow: hidden; }
+.cmdk::backdrop { background: var(--c-overlay); }
+.cmdk__field { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--c-border-soft); color: var(--c-muted); }
+.cmdk__input { flex: 1; min-height: 32px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--c-ink); }
+.cmdk__results { max-height: 420px; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; }
+.cmdk__group { padding: 12px 12px 4px; font-size: 12px; font-weight: 600; color: var(--c-muted); text-transform: uppercase; letter-spacing: .06em; }
+.cmdk__group:first-child { padding-top: 8px; }
+.cmdk__item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--r-sm); color: var(--c-ink); text-decoration: none; }
+.cmdk__item .icon { color: var(--c-primary); }
+.cmdk__item[aria-selected="true"], .cmdk__item:hover { background: var(--c-primary-soft); color: var(--c-ink); }
+.cmdk__item-text { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.cmdk__item-title { font-weight: 600; }
+.cmdk__item-sub { font-size: 13px; color: var(--c-muted); }
+.cmdk__item .kbd { visibility: hidden; }
+.cmdk__item[aria-selected="true"] .kbd { visibility: visible; }
+.cmdk__foot { display: flex; flex-wrap: wrap; gap: 16px; padding: 10px 18px; border-top: 1px solid var(--c-border-soft); font-size: 12px; color: var(--c-muted); }
+.cmdk__empty { padding: 28px 16px; text-align: center; color: var(--c-muted); }
+
+/* ---------- 40. Listas de tarefas e linhas clicáveis ---------- */
+/* "Próximos passos" (aluno) e "Precisa da sua atenção" (admin) */
+.task-list__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; }
+.task { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--c-border-soft); color: var(--c-ink); text-decoration: none; }
+a.task:hover { background: var(--c-surface-2); color: var(--c-ink); }
+.task__icon { width: 40px; height: 40px; border-radius: var(--r-md); flex: none; display: flex; align-items: center; justify-content: center; background: var(--c-primary-soft); color: var(--c-primary); }
+.task__icon--warn { background: var(--c-warning-soft); color: var(--c-warning-text); }
+.task__icon--ok { background: var(--c-success-soft); color: var(--c-success-text); }
+.task__icon--danger { background: var(--c-danger-soft); color: var(--c-danger); }
+.task__text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.task__title { font-weight: 600; }
+.task__meta { font-size: 13px; color: var(--c-muted); }
+.task-list__done { display: flex; align-items: center; gap: 12px; padding: 28px 20px; border-top: 1px solid var(--c-border-soft); color: var(--c-success-text); font-weight: 600; }
+
+.list-row-link { display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-top: 1px solid var(--c-border-soft); color: var(--c-ink); text-decoration: none; width: 100%; border-left: 0; border-right: 0; border-bottom: 0; background: var(--c-surface); font: inherit; text-align: left; cursor: pointer; }
+.list-row-link:hover { background: var(--c-surface-2); color: var(--c-ink); }
+.list-row-link.is-unread { background: var(--c-row-unread); }
+.list-row-link.is-selected { background: var(--c-primary-soft); }
+.list-row-link.is-new { animation: row-new 2s ease-out; }
+@keyframes row-new { from { background: #FFF3C4; } to { background: var(--c-surface); } }
+
+/* ---------- 41. Estados: carregando e vazio com ação ---------- */
+.sk { display: block; background: var(--c-seg-bg); border-radius: var(--r-sm); animation: sk-pulse 1.4s ease-in-out infinite; }
+.sk--line { height: 12px; }
+.sk--title { height: 16px; }
+.sk--bar { height: 6px; }
+.sk--thumb { width: 120px; height: 68px; flex: none; }
+.sk--w40 { width: 40%; } .sk--w60 { width: 60%; } .sk--w80 { width: 80%; }
+@keyframes sk-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+.btn.is-busy { position: relative; color: transparent !important; pointer-events: none; }
+.btn.is-busy::after { content: ""; position: absolute; width: 18px; height: 18px; border-radius: var(--r-pill); border: 2px solid currentColor; border-color: #FFFFFF #FFFFFF transparent transparent; animation: spin .7s linear infinite; }
+.btn--secondary.is-busy::after, .btn--quiet.is-busy::after { border-color: var(--c-primary) var(--c-primary) transparent transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 24px; text-align: center; }
+.empty-state__icon { width: 52px; height: 52px; border-radius: var(--r-pill); background: var(--c-primary-soft); color: var(--c-primary); display: flex; align-items: center; justify-content: center; }
+.empty-state__icon--neutral { background: var(--c-gray-soft); color: var(--c-text-2); }
+.empty-state__title { font-weight: 700; font-size: 16px; }
+.empty-state__text { font-size: 14px; color: var(--c-muted); max-width: 440px; }
+
+/* ---------- 42. Aluno · Início e página do curso ---------- */
+.greeting { display: flex; flex-direction: column; gap: 4px; }
+.continue-v2 { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px; }
+.continue-v2__cover { position: relative; flex: 1 1 320px; max-width: 420px; aspect-ratio: 16 / 9; border-radius: var(--r-lg); overflow: hidden; color: #FFFFFF; display: flex; align-items: flex-end; padding: 14px; font-family: var(--font-display); font-weight: 800; font-size: 28px; text-decoration: none; }
+.continue-v2__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.continue-v2__play { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.continue-v2__play span { width: 64px; height: 64px; border-radius: var(--r-pill); background: #FFFFFF; color: var(--c-primary); display: flex; align-items: center; justify-content: center; }
+.continue-v2__time { position: absolute; right: 12px; top: 12px; font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: var(--r-pill); background: rgba(15, 27, 45, 0.7); color: #FFFFFF; }
+.continue-v2__bar { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255, 255, 255, 0.25); }
+.continue-v2__bar span { display: block; height: 100%; background: var(--c-progress); }
+.continue-v2__body { flex: 999 1 360px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--c-primary); }
+
+.course-card-v2__cover { position: relative; aspect-ratio: 16 / 9; display: flex; align-items: flex-end; padding: 14px; color: #FFFFFF; font-family: var(--font-display); font-weight: 800; font-size: 22px; text-decoration: none; overflow: hidden; }
+.course-card-v2__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.course-card-v2__cover .badge { position: absolute; top: 12px; right: 12px; font-family: var(--font-sans); }
+.course-card-v2__body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.course-card-v2__title { font-weight: 700; font-size: 16px; color: var(--c-ink); text-decoration: none; }
+.course-card-v2__actions { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+.course-card-v2 { display: flex; flex-direction: column; overflow: hidden; }
+
+.course-hero-v2 { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px; }
+.course-hero-v2__cover { flex: 1 1 280px; max-width: 360px; aspect-ratio: 16 / 9; border-radius: var(--r-lg); position: relative; overflow: hidden; color: #FFFFFF; display: flex; align-items: flex-end; padding: 14px; font-family: var(--font-display); font-weight: 800; font-size: 30px; }
+.course-hero-v2__cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.course-hero-v2__body { flex: 999 1 380px; display: flex; flex-direction: column; gap: 10px; }
+.course-hero-v2__title { font-family: var(--font-display); font-weight: 800; font-size: 28px; line-height: 1.25; }
+
+/* Módulo em card dentro da aba Conteúdo (página do curso) */
+.module-card { margin: 10px 14px; border: 1px solid var(--c-border); border-radius: var(--r-lg); overflow: hidden; }
+.module-card .module__toggle { min-height: 60px; padding: 14px 16px; }
+.lesson-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-top: 1px solid var(--c-border-soft); color: var(--c-ink); text-decoration: none; }
+.lesson-row:hover { background: var(--c-surface-2); color: var(--c-ink); }
+.lesson-row__mark { width: 18px; text-align: center; font-weight: 700; flex: none; }
+.mark-done { color: var(--c-success-text); }
+.mark-current { color: var(--c-primary); }
+.mark-todo { color: var(--c-icon-faint); }
+
+/* Requisitos em lista compacta (card "Seu certificado") */
+.req-mini { display: flex; gap: 10px; align-items: flex-start; }
+.req-mini__icon { flex: none; color: var(--c-icon-faint); margin-top: 1px; }
+.req-mini.is-ok .req-mini__icon { color: var(--c-success-text); }
+.req-mini__title { font-weight: 600; font-size: 14px; }
+
+/* ---------- 43. Aluno · Player da aula v2 ---------- */
+.lesson-topbar__progress { display: flex; align-items: center; gap: 10px; }
+.lesson-topbar__progress .progress { width: 160px; }
+.lesson-topbar__progress-text { font-size: 13px; font-weight: 600; color: var(--c-text-2); white-space: nowrap; }
+/* Modo foco: esconde a coluna de aulas */
+.lesson-page.is-focus .lesson-side { display: none; }
+/* Aviso de retomada sobre o player (o iframe do Vimeo fica por baixo) */
+.resume-chip {
+  position: absolute; left: 20px; bottom: 64px; z-index: 2;
+  display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 14px;
+  border-radius: var(--r-md); background: rgba(15, 27, 45, 0.85); color: #FFFFFF; font-size: 13px;
+}
+.resume-chip .icon { color: var(--c-toast-info); }
+.resume-chip__btn { min-height: 30px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.14); color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.resume-chip__btn:hover { background: rgba(255, 255, 255, 0.24); }
+.resume-chip__close { width: 30px; height: 30px; border: 0; background: transparent; color: var(--c-on-dark-3); cursor: pointer; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; }
+/* Faixa "Aula concluída · Próxima: ..." */
+.done-banner { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px 18px; border-radius: var(--r-xl); background: var(--c-success-soft); border: 1px solid var(--c-success-border); color: var(--c-success-text); }
+.done-banner[hidden] { display: none; }
+.done-banner__text { flex: 1; min-width: 220px; display: flex; flex-direction: column; }
+.done-banner__title { font-weight: 700; }
+.done-banner__sub { font-size: 14px; }
+.auto-note { display: flex; align-items: center; gap: 6px; margin-top: -8px; font-size: 13px; color: var(--c-muted); }
+/* Card do certificado na lateral da aula */
+.cert-mini { display: flex; gap: 12px; align-items: flex-start; padding: 16px; }
+.cert-mini.is-ready .icon-tile { background: var(--c-success-soft); color: var(--c-success-text); }
+/* Dúvida da aula com resposta oficial */
+.answer-official { padding: 12px 14px; border-radius: var(--r-md); background: var(--c-answer-bg); border-left: 3px solid var(--c-primary); font-size: 14px; color: var(--c-text-2); }
+.answer-official strong { color: var(--c-primary-strong); }
+
+/* ---------- 44. Aluno · Aulas ao vivo ---------- */
+.live-next { display: flex; flex-wrap: wrap; gap: 28px; padding: 24px; }
+.live-next__body { flex: 999 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.live-next.is-soon { border-color: #F2C98A; }
+.live-next.is-live { border-color: #F3B8B2; }
+.date-tile { flex: 0 0 120px; height: 120px; border-radius: var(--r-xl); background: var(--c-ink); color: #FFFFFF; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+.date-tile__wd { font-size: 13px; font-weight: 600; color: var(--c-on-dark-muted); text-transform: uppercase; letter-spacing: .08em; }
+.date-tile__day { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; }
+.date-tile__mon { font-size: 13px; color: var(--c-on-dark-3); }
+.date-mini { width: 56px; flex: none; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+.date-mini__wd, .date-mini__mon { font-size: 12px; color: var(--c-muted); text-transform: uppercase; }
+.date-mini__day { font-family: var(--font-display); font-weight: 800; font-size: 20px; }
+.meta-line { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--c-text-2); }
+.meta-line__item { display: inline-flex; align-items: center; gap: 6px; }
+.meta-line__item .icon { color: var(--c-muted); }
+.badge--live { color: var(--c-danger-text); background: var(--c-danger-soft); }
+.recording { display: flex; flex-direction: column; overflow: hidden; }
+.recording__cover { position: relative; aspect-ratio: 16 / 9; background: var(--c-ink); color: #FFFFFF; display: flex; align-items: flex-end; padding: 14px; font-family: var(--font-display); font-weight: 800; font-size: 18px; text-decoration: none; }
+.recording__len { position: absolute; right: 12px; bottom: 12px; font-family: var(--font-sans); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-xs); background: rgba(0, 0, 0, 0.6); }
+
+/* ---------- 45. Aluno · Certificados ---------- */
+.stat { padding: 16px 18px; display: flex; flex-direction: column; flex: 1 1 200px; }
+.stat__label { font-size: 14px; color: var(--c-muted); }
+.stat__value { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1.25; }
+.cert-row { display: flex; flex-wrap: wrap; gap: 24px; padding: 22px; }
+.cert-row.is-ready { border-color: var(--c-success-border); }
+.cert-row__thumb { flex: 0 0 200px; aspect-ratio: 16 / 10; border-radius: var(--r-lg); position: relative; overflow: hidden; color: #FFFFFF; display: flex; align-items: flex-end; padding: 14px; font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.cert-row__thumb--doc { background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-ink); flex-direction: column; align-items: stretch; justify-content: space-between; font-family: var(--font-sans); font-weight: 400; font-size: 10px; }
+.cert-row__body { flex: 999 1 360px; display: flex; flex-direction: column; gap: 10px; }
+.cert-row__title { font-weight: 700; font-size: 18px; }
+.cert-preview-text { padding: 16px; border-radius: var(--r-lg); background: var(--c-bg); display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.field-ok { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--c-success-text); }
+.input.is-valid { border-color: #3FA36B; }
+
+/* ---------- 46. Aluno · Comunidade ---------- */
+.thread { align-items: flex-start; padding: 16px 20px; }
+.thread__text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.thread__title { font-weight: 600; }
+.thread__preview { font-size: 14px; color: var(--c-text-2); }
+.thread__replies { display: flex; align-items: center; gap: 6px; color: var(--c-muted); font-size: 13px; white-space: nowrap; }
+.answer-box { padding: 16px; border-radius: var(--r-lg); background: var(--c-answer-bg); border: 1px solid var(--c-answer-border); display: flex; flex-direction: column; gap: 8px; }
+.answer-box__by { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 700; color: var(--c-primary-strong); }
+.waiting-box { display: flex; gap: 10px; padding: 14px 16px; border-radius: var(--r-lg); background: var(--c-warning-soft); color: var(--c-warning-text); font-size: 14px; }
+.suggest-box { padding: 12px 14px; border-radius: var(--r-lg); background: var(--c-bg); display: flex; flex-direction: column; gap: 6px; }
+.suggest-box a { font-size: 14px; font-weight: 600; }
+
+/* ---------- 47. Aluno · Minha conta ---------- */
+.settings-layout { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; }
+.settings-layout__main { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.input-wrap { position: relative; }
+.input-wrap .input { padding-right: 96px; }
+.input-wrap__btn { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); min-height: 34px; padding: 0 10px; border: 0; border-radius: var(--r-sm); background: var(--c-gray-soft); color: var(--c-text-2); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.pw-rules { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+.pw-rules li { list-style: none; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--c-muted); }
+.pw-rules li.is-ok { color: var(--c-success-text); }
+.danger-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--c-border-soft); }
+
+/* ---------- 48. Celular: barra inferior e folha inferior ---------- */
+.bottom-nav { display: none; }
+.sheet { margin: auto 0 0; width: 100%; max-width: 100vw; padding: 10px 20px 28px; border: 0; border-radius: 20px 20px 0 0; background: var(--c-surface); color: var(--c-ink); }
+.sheet::backdrop { background: rgba(15, 27, 45, 0.4); }
+.sheet__grip { display: block; width: 40px; height: 4px; margin: 0 auto 12px; border-radius: var(--r-pill); background: var(--c-border-strong); }
+@media (max-width: 720px) {
+  .app--aluno .sidebar { display: none; }
+  .bottom-nav {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-topbar);
+    background: var(--c-surface); border-top: 1px solid var(--c-border); padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .bottom-nav__link { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 8px; font-size: 11px; font-weight: 600; color: var(--c-muted); text-decoration: none; min-height: 56px; }
+  .bottom-nav__link[aria-current="page"] { color: var(--c-primary); }
+  .app--aluno .app__content { padding-bottom: 72px; }
+  .topbar-search { min-width: 0; width: 44px; padding: 0; justify-content: center; }
+  .topbar-search__text, .topbar-search .kbd, .user-btn__name { display: none; }
+  .toast-stack { left: 16px; right: 16px; bottom: 84px; align-items: stretch; }
+  .toast { min-width: 0; max-width: none; }
+  .drawer { --drawer-w: 100vw; }
+  .lesson-page .player { border-radius: 0; }
+  .lesson-layout { padding: 0 0 40px; }
+  .lesson-main > :not(.player) { margin-left: 16px; margin-right: 16px; }
+  .lesson-head .btn { width: 100%; }
+  .dirtybar { bottom: 84px; }
+}
+
+/* ---------- 49. Admin v2 ---------- */
+/* Menu lateral agrupado */
+.sidenav__group { padding: 16px 12px 6px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--c-on-dark-muted); }
+.sidenav__badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--r-pill); background: var(--c-primary); color: #FFFFFF; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.sidenav__pill { margin-left: auto; align-self: center; }
+.admin-user { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: var(--r-lg); border: 1px solid var(--c-admin-border); }
+.admin-user__text { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.admin-user__name { color: #FFFFFF; font-size: 14px; font-weight: 600; }
+.admin-user__mail { color: var(--c-on-dark-muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Cabeçalho do curso com abas */
+.course-head { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 20px 24px 0; }
+.course-head__text { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 4px; }
+.course-head__title { font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1.25; }
+.course-head__meta { font-size: 14px; color: var(--c-muted); }
+/* Lista "Pronto para vender?" */
+.ready-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--c-border-soft); font-size: 14px; }
+.ready-item:last-child { border-bottom: 0; }
+.ready-item .icon { flex: none; color: var(--c-icon-faint); margin-top: 1px; }
+.ready-item.is-ok .icon { color: var(--c-success-text); }
+.ready-item.is-warn .icon { color: var(--c-danger); }
+/* Barra de ações em massa */
+.bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--r-lg); background: var(--c-primary-soft); color: var(--c-primary-strong); font-weight: 600; }
+.bulkbar[hidden] { display: none; }
+.table .col-check { width: 44px; }
+.table input[type="checkbox"] { width: 18px; height: 18px; }
+/* Criação rápida dentro da lista (Enter no título) */
+.inline-create { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-top: 1px solid var(--c-border-soft); }
+.inline-create .input { min-height: 40px; }
+/* Linha do tempo (pedido, atividade do aluno) */
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.timeline__item { position: relative; padding: 0 0 16px 22px; font-size: 14px; }
+.timeline__item::before { content: ""; position: absolute; left: 4px; top: 7px; width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--c-primary); }
+.timeline__item::after { content: ""; position: absolute; left: 7px; top: 18px; bottom: 0; width: 2px; background: var(--c-border); }
+.timeline__item:last-child::after { display: none; }
+.timeline__when { display: block; font-size: 12px; color: var(--c-muted); }
+/* Zona de risco */
+.risk-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; border-top: 1px solid var(--c-border-soft); }
+.risk-row__text { display: flex; flex-direction: column; flex: 1; min-width: 240px; }
+.card--danger { border-color: #F3B8B2; }
+/* Importação: mapeamento de colunas */
+.stepper { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.stepper__item { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--c-muted); }
+.stepper__num { width: 26px; height: 26px; border-radius: var(--r-pill); border: 2px solid var(--c-border-strong); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+.stepper__item.is-done .stepper__num { background: var(--c-success); border-color: var(--c-success); color: #FFFFFF; }
+.stepper__item.is-current { color: var(--c-ink); }
+.stepper__item.is-current .stepper__num { background: var(--c-primary); border-color: var(--c-primary); color: #FFFFFF; }
+.stepper__line { width: 32px; height: 2px; background: var(--c-border); }
+/* Pré-visualização da página de venda */
+.preview-frame { border: 1px solid var(--c-border); border-radius: var(--r-xl); overflow: hidden; background: var(--c-surface); }
+.preview-frame--mobile { max-width: 390px; margin: 0 auto; }
+.preview-frame__bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--c-border); background: var(--c-surface-2); font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--c-muted); text-transform: uppercase; }
+/* Anotações internas com salvamento automático */
+.autosave-state { font-size: 12px; color: var(--c-muted); }
+.autosave-state.is-saving::before { content: "Salvando…"; }
+.autosave-state.is-saved::before { content: "Salvo"; color: var(--c-success-text); }
+/* Tabela de liberação por módulo */
+.release-table td { vertical-align: middle; }
+.option-card { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border: 1px solid var(--c-border-strong); border-radius: var(--r-lg); cursor: pointer; }
+.option-card:has(input:checked) { border: 2px solid var(--c-primary); padding: 15px; background: var(--c-primary-soft); }
+
+@media (max-width: 960px) {
+  .topbar--v2 { padding: 12px 16px; }
+  .topbar-search { min-width: 0; }
+  .course-head { padding: 16px 16px 0; }
+}
+
+/* ---------- 50. Complementos v2 ---------- */
+.menu--up { top: auto; bottom: calc(100% + 8px); }
+.only-mobile { display: none; }
+@media (max-width: 720px) {
+  .only-mobile { display: revert; }
+  .only-desktop { display: none !important; }
+  .lesson-page .lesson-side { display: none; }
+  .done-banner { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-dirtybar); border-radius: 20px 20px 0 0; border-width: 1px 0 0; padding: 20px 20px 28px; box-shadow: var(--shadow-float); }
+  .done-banner .btn { width: 100%; }
+}
+.text-warning { color: var(--c-warning-text); }
+.text-24 { font-size: 24px; }
+
+/* ---------- B3 · Conteúdo do curso (HANDOFF-v2 8.3) ---------- */
+.seg__btn input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.seg__btn:has(input:checked) { background: var(--c-surface); color: var(--c-ink); box-shadow: 0 1px 2px rgba(15, 27, 45, 0.12); }
+.seg__btn:has(input:focus-visible) { outline: 2px solid var(--c-primary); outline-offset: 1px; }
+.icon-tile--danger { background: var(--c-danger-soft); color: var(--c-danger); }
+.builder-lesson.is-new { animation: row-new 2s ease-out; }
+.drawer [data-drawer-content], .drawer [data-drawer-content] > form, .drawer [data-drawer-content] > div { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.builder-module__head .module__toggle { flex: 1; min-height: 44px; padding: 0 4px; background: transparent; }
+.module__list .inline-create .grow { flex: 1; }
+
+/* ---------- B4 · Página de venda e Configurações do curso (HANDOFF-v2 8.4 e 8.5) ---------- */
+.input-affix { display: flex; align-items: stretch; }
+.input-affix .input { flex: 1; min-width: 0; }
+.input-affix__text { display: flex; align-items: center; padding: 0 12px; background: var(--c-bg); border: 1px solid var(--c-border-strong); color: var(--c-muted); font-size: 14px; white-space: nowrap; }
+.input-affix__text:first-child { border-right: 0; border-radius: var(--r-md) 0 0 var(--r-md); }
+.input-affix__text:last-child { border-left: 0; border-radius: 0 var(--r-md) var(--r-md) 0; }
+.input-affix .input:not(:first-child) { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.input-affix .input:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.release-box { display: none; }
+.release-section:has(input[value="scheduled"]:checked) .release-box { display: flex; }
+.release-value { display: none; max-width: 180px; }
+.release-row:has(option[value="days"]:checked) .release-value--days, .release-row:has(option[value="date"]:checked) .release-value--date { display: block; }
+
+/* ---------- B6 · Pedidos, Comunidade e Configurações ---------- */
+.signature-preview { max-height: 56px; width: auto; align-self: flex-start; }

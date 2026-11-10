@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>BLS · Configurações · Admin CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.bd{background:#FFFFFF;border-color:#F0B4AE;color:#B42318}.bd:hover{background:#FDECEC;color:#B42318}
+.nl{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:10px;color:#C9D3DF;font-size:14px;font-weight:500;text-decoration:none}
+.nl:hover{background:#1E2E45;color:#FFFFFF}.nl[aria-current]{background:#1E2E45;color:#FFFFFF;font-weight:600}
+.ng{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9FB0C4}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:2px solid transparent;color:#5B6472;font-size:14px;font-weight:600;text-decoration:none}
+.tab:hover{color:#0F1B2D}.tab[aria-current]{color:#0F1B2D;border-bottom-color:#0B63C4}
+.cnt{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:#EEF1F5;color:#3A4556}
+.lb{font-size:13px;font-weight:600;color:#0F1B2D}
+.hint{font-size:12px;color:#5B6472}
+.in{width:100%;font:inherit;font-size:14px;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box}
+.sec{padding:22px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:16px 32px}
+.sec h2{margin:0;font-size:16px;font-weight:600}
+.side{display:flex;flex-direction:column;gap:4px}
+.fields{display:flex;flex-direction:column;gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:12px;border:1px solid #C9D3DF;cursor:pointer}
+.opt.on{border:2px solid #0B63C4;background:#E8F2FC;padding:13px}
+.opt input{width:18px;height:18px;margin:2px 0 0;accent-color:#0B63C4;flex:none}
+.anchor{display:block;padding:8px 12px;border-radius:8px;color:#3A4556;font-size:14px;font-weight:500;text-decoration:none}
+.anchor:hover{background:#EEF1F5;color:#0F1B2D}
+.prefix{display:flex;align-items:center;border:1px solid #C9D3DF;border-radius:10px;overflow:hidden;background:#FFFFFF}
+.prefix span{padding:0 12px;min-height:42px;display:flex;align-items:center;background:#F8FAFC;color:#5B6472;font-size:14px;border-right:1px solid #E3E8EF}
+.prefix input{flex:1;min-width:0;border:0;min-height:42px;padding:0 12px;font:inherit;font-size:14px;outline:none}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<aside style="flex: 1 1 240px; max-width: 100%; background: #0F1B2D; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+<a href="AdminV2Inicio.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; text-decoration: none">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 9px; background: #0B63C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px">C</span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #FFFFFF">CETREMER</span><span style="font-size: 12px; color: #9FB0C4">Painel administrativo</span></span>
+</a>
+<nav aria-label="Menu administrativo" style="display: flex; flex-direction: column; gap: 2px">
+<span class="ng">Visão geral</span>
+<a class="nl" href="AdminV2Inicio.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<span class="ng">Conteúdo</span>
+<a class="nl" href="AdminV2Cursos.dc.html" aria-current="page"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg>Cursos</a>
+<span class="ng">Pessoas</span>
+<a class="nl" href="AdminV2Alunos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-6 7-6s7 2 7 6"></path><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-6"></path></svg>Alunos</a>
+<a class="nl" href="AdminV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="nb" aria-label="3 dúvidas sem resposta">3</span></a>
+<span class="ng">Vendas</span>
+<a class="nl" href="AdminV2Pedidos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>Pedidos</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px">
+<a class="nl" href="AdminV2Config.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>Configurações</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid #2D3F58">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #1E2E45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: none">AD</span>
+<span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.3"><span style="color: #FFFFFF; font-size: 14px; font-weight: 600">Administrador</span><span style="color: #9FB0C4; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">admin@cetremer.com.br</span></span>
+</div>
+</div>
+</aside>
+
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; position: relative">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 32px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<nav aria-label="Trilha" style="flex: 1 1 200px; display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: #5B6472"><a href="AdminV2Cursos.dc.html" style="color: #5B6472">Cursos</a><span aria-hidden="true">/</span><span style="color: #0F1B2D; font-weight: 600">BLS · Suporte Básico de Vida</span></nav>
+<label style="flex: 0 1 320px; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #E3E8EF; background: #F8FAFC; color: #5B6472; box-sizing: border-box">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar no painel</span>
+<input type="search" placeholder="Buscar aluno, curso ou pedido" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: #0F1B2D; outline: none">
+<span class="kbd">Ctrl K</span>
+</label>
+<a class="b bp" href="AdminV2Padroes.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Criar</a>
+</header>
+
+<section style="background: #FFFFFF; border-bottom: 1px solid #E3E8EF; padding: 20px 32px 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; align-items: center; gap: 16px; min-width: 0">
+<span aria-hidden="true" style="width: 72px; height: 48px; border-radius: 10px; background: #034C8C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; flex: none">BLS</span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; line-height: 1.25">BLS · Suporte Básico de Vida</h1>
+<span class="pill" style="color: #145C33; background: #E9F6EE"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: #1F8A4C"></span>Publicado</span>
+</div>
+<span style="font-size: 13px; color: #5B6472">2 módulos · 4 aulas · 28 min de vídeo · 3 alunos · R$ 150,00</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a class="b bs" href="Aula.dc.html">Ver como aluno</a>
+<a class="b bs" href="CursoPreview.dc.html">Página de venda ao vivo</a>
+</div>
+</div>
+<nav aria-label="Seções do curso" style="display: flex; gap: 28px; margin-top: 16px; overflow-x: auto">
+<a class="tab" href="AdminV2CursoConteudo.dc.html">Conteúdo</a>
+<a class="tab" href="AdminV2CursoVenda.dc.html">Página de venda</a>
+<a class="tab" href="AdminV2CursoConfig.dc.html" aria-current="page">Configurações</a>
+<a class="tab" href="AdminV2Alunos.dc.html">Alunos<span class="cnt">3</span></a>
+</nav>
+</section>
+
+<main style="padding: 24px 32px 120px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; max-width: 1280px; width: 100%; box-sizing: border-box">
+
+<nav aria-label="Nesta página" style="flex: 0 0 190px; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 2px">
+<a class="anchor" href="#geral">Geral</a>
+<a class="anchor" href="#preco">Preço e acesso</a>
+<a class="anchor" href="#liberacao">Liberação do conteúdo</a>
+<a class="anchor" href="#vivo">Aulas ao vivo</a>
+<a class="anchor" href="#certificado">Certificado</a>
+<a class="anchor" href="#perigo" style="color: #B42318">Zona de risco</a>
+</nav>
+
+<form style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section id="geral" class="card sec">
+<div class="side"><h2>Geral</h2><span class="hint">Nome e identificação do curso no site e no painel.</span></div>
+<div class="fields">
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-titulo">Título</label><input id="c-titulo" class="in" type="text" value="BLS · Suporte Básico de Vida"></div>
+<div class="grid2">
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-cat">Categoria</label><select id="c-cat" class="in"><option>Essenciais AHA</option><option>Especialidades médicas</option><option>Para leigos</option></select></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-sigla">Sigla da capa</label><input id="c-sigla" class="in" type="text" value="BLS" maxlength="12"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-url">Endereço da página</label><div class="prefix"><span>cetremer.com.br/cursos/</span><input id="c-url" type="text" value="suporte-basico-vida-bls"></div><span class="hint">Trocar o endereço quebra links já divulgados. O antigo redireciona por 90 dias.</span></div>
+</div>
+</section>
+
+<section id="preco" class="card sec">
+<div class="side"><h2>Preço e acesso</h2><span class="hint">Usado no checkout e no certificado.</span></div>
+<div class="fields">
+<div class="grid2">
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-preco">Preço</label><div class="prefix"><span>R$</span><input id="c-preco" type="text" inputmode="decimal" value="150,00"></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-carga">Carga horária</label><div class="prefix"><input id="c-carga" type="number" value="8" min="1"><span style="border-right: 0; border-left: 1px solid #E3E8EF">horas</span></div></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-prazo">Prazo de acesso</label><select id="c-prazo" class="in"><option>Vitalício</option><option>6 meses após a matrícula</option><option>12 meses após a matrícula</option><option>24 meses após a matrícula</option></select><span class="hint">Alunos importados contam o prazo a partir da importação.</span></div>
+</div>
+</section>
+
+<section id="liberacao" class="card sec">
+<div class="side"><h2>Liberação do conteúdo</h2><span class="hint">Escolha quando cada parte fica disponível para o aluno.</span></div>
+<div class="fields">
+<div role="radiogroup" aria-label="Modo de liberação" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+<label class="{{ optAll }}"><input type="radio" name="lib" checked="{{ isAll }}" onClick="{{ setAll }}"><span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Tudo na matrícula</span><span class="hint">O aluno vê todas as aulas no primeiro acesso.</span></span></label>
+<label class="{{ optDrip }}"><input type="radio" name="lib" checked="{{ isDrip }}" onClick="{{ setDrip }}"><span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Programada por módulo</span><span class="hint">Libera em dias após a matrícula ou numa data.</span></span></label>
+</div>
+<sc-if value="{{ isDrip }}" hint-placeholder-val="{{ true }}">
+<div style="border: 1px solid #E3E8EF; border-radius: 12px; overflow: hidden">
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; padding: 10px 14px; background: #F8FAFC; font-size: 13px; font-weight: 600; color: #5B6472"><span>Módulo</span><span>Libera</span><span>Valor</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid #EEF1F5; font-size: 14px"><span>1 · Introdução ao Suporte Básico</span><select class="in" aria-label="Quando liberar o módulo 1"><option>Na matrícula</option><option>Dias após a matrícula</option><option>Em uma data</option></select><span class="hint">Imediato</span></div>
+<div style="display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; align-items: center; padding: 10px 14px; border-top: 1px solid #EEF1F5; font-size: 14px"><span>2 · Desfibrilação e Técnicas Especiais</span><select class="in" aria-label="Quando liberar o módulo 2"><option>Dias após a matrícula</option><option>Na matrícula</option><option>Em uma data</option></select><div class="prefix"><input type="number" value="7" aria-label="Dias após a matrícula para o módulo 2"><span style="border-right: 0; border-left: 1px solid #E3E8EF">dias</span></div></div>
+</div>
+<label style="display: flex; gap: 10px; align-items: center; font-size: 14px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #0B63C4; margin: 0">Avisar o aluno por e-mail quando um módulo for liberado</label>
+</sc-if>
+</div>
+</section>
+
+<section id="vivo" class="card sec">
+<div class="side"><h2>Aulas ao vivo</h2><span class="hint">Aparecem em Aulas ao vivo, na área do aluno.</span></div>
+<div class="fields">
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-meet">Link do Google Meet</label><input id="c-meet" class="in" type="url" placeholder="https://meet.google.com/..."></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label class="lb" for="c-agenda">Agenda pública do Google</label><input id="c-agenda" class="in" type="url" placeholder="https://calendar.google.com/..."><span class="hint">A plataforma monta a agenda sozinha. Não cole código HTML.</span></div>
+</div>
+</section>
+
+<section id="certificado" class="card sec">
+<div class="side"><h2>Certificado</h2><span class="hint">Assinatura e logo ficam em Configurações da escola.</span></div>
+<div class="fields">
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #0B63C4; margin: 2px 0 0"><span><span style="font-weight: 600">Emitir certificado neste curso</span><br><span class="hint">Liberado com 100% das aulas publicadas concluídas e nome e CPF preenchidos.</span></span></label>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #FFF6E5; color: #6B4500; font-size: 14px"><span>Responsável técnico ainda não definido.</span><a href="AdminV2Config.dc.html" style="color: #6B4500; font-weight: 600">Definir</a></div>
+<a href="Certificado.dc.html" style="font-size: 14px; font-weight: 600">Ver certificado de exemplo</a>
+</div>
+</section>
+
+<section id="perigo" class="card sec" style="border-color: #F0B4AE">
+<div class="side"><h2 style="color: #B42318">Zona de risco</h2><span class="hint">Ações que mudam o acesso dos alunos.</span></div>
+<div class="fields">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #EEF1F5">
+<span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Mover para rascunho</span><span class="hint">Sai do site. Os 3 alunos matriculados continuam assistindo.</span></span>
+<button type="button" class="b bs">Mover para rascunho</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid #EEF1F5">
+<span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Arquivar curso</span><span class="hint">Some do site e da área do aluno. Pode ser restaurado depois.</span></span>
+<a class="b bd" href="AdminV2Padroes.dc.html">Arquivar</a>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Excluir definitivamente</span><span class="hint">Só disponível para cursos sem alunos e sem pedidos.</span></span>
+<button type="button" class="b bd" disabled style="opacity: .5; cursor: not-allowed">Excluir</button>
+</div>
+</div>
+</section>
+
+</form>
+</main>
+
+<div role="region" aria-label="Alterações não salvas" style="position: sticky; bottom: 0; margin-top: auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 32px; background: #0F1B2D; color: #FFFFFF">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #E0A100"></span>
+<span style="flex: 1; min-width: 200px; font-size: 14px">2 alterações não salvas: liberação do conteúdo e prazo de acesso.</span>
+<button type="button" class="b" style="background: transparent; color: #DCE3EC; border-color: #2D3F58">Descartar</button>
+<button type="button" class="b" style="background: #FFFFFF; color: #0F1B2D">Salvar alterações</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { mode: 'drip' }; }
+  renderVals() {
+    const drip = this.state.mode === 'drip';
+    return {
+      isDrip: drip, isAll: !drip,
+      optAll: 'opt' + (drip ? '' : ' on'), optDrip: 'opt' + (drip ? ' on' : ''),
+      setAll: () => this.setState({ mode: 'all' }), setDrip: () => this.setState({ mode: 'drip' })
+    };
+  }
+}
+</script>
+</body>
+</html>

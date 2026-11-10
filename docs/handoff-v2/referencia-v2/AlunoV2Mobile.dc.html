@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Celular · Aluno CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+svg{flex:none}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.bok{background:#E9F6EE;border-color:#B7E0C5;color:#145C33}.bok:hover{background:#DDF1E4;color:#145C33}
+.bd{background:#FFFFFF;border-color:#F3B8B2;color:#B42318}.bd:hover{background:#FDECEC;color:#8A1C1C}
+.sm{min-height:36px;padding:0 12px;font-size:13px}
+.bi{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:#3A4556;cursor:pointer;position:relative;flex:none}
+.bi:hover{background:#EEF1F5;color:#0F1B2D}
+.nl{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:#3A4556;font-weight:500;text-decoration:none}
+.nl:hover{background:#F4F6F9;color:#0F1B2D}.nl[aria-current]{background:#E8F2FC;color:#034C8C;font-weight:600}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.ok{color:#145C33;background:#E9F6EE}.warn{color:#6B4500;background:#FFF6E5}.bad{color:#8A1C1C;background:#FDECEC}.blue{color:#034C8C;background:#E8F2FC}.gray{color:#3A4556;background:#EEF1F5}.teal{color:#0E5A66;background:#E3F4F6}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.seg{min-height:36px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"]{background:#FFFFFF;color:#0F1B2D;box-shadow:0 1px 2px rgba(15,27,45,.12)}
+.tab{min-height:44px;padding:0 4px;border:0;border-bottom:2px solid transparent;background:transparent;color:#5B6472;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:#0B63C4;border-bottom-color:#0B63C4}
+.chip{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #C9D3DF;background:#FFFFFF;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:#0F1B2D;border-color:#0F1B2D;color:#FFFFFF}
+.in{width:100%;min-height:44px;padding:0 12px;border:1px solid #C9D3DF;border-radius:10px;background:#FFFFFF;font:inherit;font-size:15px;color:#0F1B2D;box-sizing:border-box}
+.lbl{font-size:14px;font-weight:600;color:#0F1B2D}
+.hint{font-size:13px;color:#5B6472}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:#0F1B2D;text-decoration:none;font-size:14px;border:0;background:none;font:inherit;width:100%;text-align:left;cursor:pointer;box-sizing:border-box}
+.menu-item:hover{background:#F4F6F9;color:#0F1B2D}
+.row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-top:1px solid #EEF1F5;color:#0F1B2D;text-decoration:none}
+.row:hover{background:#F8FAFC;color:#0F1B2D}
+.h2{margin:0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:20px}
+.thumb{display:flex;align-items:flex-end;padding:14px;box-sizing:border-box;color:#FFFFFF;font-family:'Montserrat',sans-serif;font-weight:800}
+.bar{height:6px;border-radius:999px;background:#E3E8EF;overflow:hidden}.bar>span{display:block;height:100%;background:#0099FF;border-radius:999px}
+.sw{width:44px;height:26px;border-radius:999px;border:0;background:#C9D3DF;position:relative;cursor:pointer;flex:none;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:#FFFFFF;transition:left .15s}
+.sw[aria-checked="true"]{background:#0B63C4}.sw[aria-checked="true"]::after{left:21px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.ph{width:390px;height:800px;border-radius:40px;border:10px solid #0F1B2D;background:#F4F6F9;overflow:hidden;position:relative;display:flex;flex-direction:column;box-sizing:content-box;flex:none}
+.bn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 6px;font-size:11px;font-weight:600;color:#5B6472;text-decoration:none;border:0;background:none}
+.bn[aria-current]{color:#0B63C4}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; position: relative">
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; top: 92px; right: 32px; z-index: 30; display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 440px; padding: 12px 12px 12px 16px; border-radius: 12px; background: #0F1B2D; color: #FFFFFF; box-shadow: 0 16px 40px rgba(15,27,45,.28)">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5FD08A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>
+<span style="flex: 1; font-size: 14px; font-weight: 500">{{ toastMsg }}</span>
+<sc-if value="{{ hasUndo }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ undo }}" style="min-height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background: rgba(255,255,255,.12); color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Desfazer</button></sc-if>
+<button type="button" aria-label="Fechar aviso" onClick="{{ closeToast }}" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #C9D3DF; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-if>
+<sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 90px">
+<button type="button" aria-label="Fechar busca" onClick="{{ closeSearch }}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(15,27,45,.35); cursor: default"></button>
+<div role="dialog" aria-label="Buscar" style="position: relative; width: 640px; max-width: calc(100% - 32px); background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 60px rgba(15,27,45,.3); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid #EEF1F5"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6472" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; font-size: 16px; color: #0F1B2D">compress<span style="border-left: 2px solid #0B63C4; margin-left: 1px"></span></span><span class="kbd">Esc</span></div>
+<div style="padding: 8px; display: flex; flex-direction: column">
+<span style="padding: 8px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Aulas</span>
+<a class="menu-item" href="AlunoV2Aula.dc.html" style="background: #E8F2FC"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="10 8.5 15.5 12 10 15.5 10 8.5"></polygon></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Compressões Torácicas em Adultos</span><span style="font-size: 13px; color: #5B6472">BLS · Módulo 1 · Aula 2 · você parou em 03:12</span></span><span class="kbd" style="margin-left: auto">Enter</span></a>
+<span style="padding: 12px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Dúvidas na comunidade</span>
+<a class="menu-item" href="AlunoV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Profundidade da compressão em adulto obeso</span><span style="font-size: 13px; color: #5B6472">BLS · respondida pelo instrutor</span></span></a>
+<span style="padding: 12px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Materiais</span>
+<a class="menu-item" href="AlunoV2Curso.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">AHA BLS Algoritmo de PCR em Adultos (PDF)</span><span style="font-size: 13px; color: #5B6472">BLS · Aula 1</span></span></a>
+</div>
+<div style="padding: 10px 18px; border-top: 1px solid #EEF1F5; font-size: 12px; color: #5B6472; display: flex; gap: 16px"><span><span class="kbd">↑</span> <span class="kbd">↓</span> navegar</span><span><span class="kbd">Enter</span> abrir</span><span>Busca só nos cursos que você tem</span></div>
+</div>
+</div>
+</sc-if>
+<div style="padding: 40px; display: flex; flex-direction: column; gap: 28px">
+<div style="display: flex; flex-direction: column; gap: 6px; max-width: 900px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 28px">No celular</h1>
+<p style="margin: 0; color: #3A4556">A maior parte dos alunos assiste pelo celular entre plantões. Abaixo de 720 px o menu lateral vira barra inferior, o player fica fixo no topo e a lista de aulas vira uma aba.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start">
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px; align-items: center">
+<div class="ph">
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 44px 16px 12px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF"><span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 18px; color: #034C8C">CETREMER</span><span style="display: flex; gap: 4px"><span class="bi"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg></span><span class="bi"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg><span style="position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 999px; background: #B42318"></span></span></span></header>
+<div style="flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px">Boa noite, Jane</span>
+<div class="card" style="overflow: hidden"><div class="thumb" style="aspect-ratio: 16 / 9; background: #034C8C; font-size: 20px; position: relative">BLS<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255,255,255,.25)"><span style="display: block; width: 45%; height: 100%; background: #0099FF"></span></span></div>
+<div style="padding: 14px; display: flex; flex-direction: column; gap: 8px"><span style="font-size: 11px; font-weight: 700; letter-spacing: .08em; color: #0B63C4">CONTINUE DE ONDE PAROU</span><span style="font-weight: 700">Compressões Torácicas em Adultos</span><span class="hint">Aula 2 de 4 · parou em 03:12</span><a class="b bp" href="AlunoV2Aula.dc.html" style="width: 100%"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>Continuar aula</a></div></div>
+<div class="card" style="padding: 12px 14px; display: flex; gap: 12px; align-items: center"><span style="width: 36px; height: 36px; border-radius: 10px; background: #FFF6E5; color: #6B4500; display: flex; align-items: center; justify-content: center; font-weight: 700">!</span><span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Informe nome e CPF</span><span class="hint">Para emitir certificados</span></span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B6472" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+<div class="card" style="padding: 12px 14px; display: flex; gap: 12px; align-items: center"><span style="width: 36px; height: 36px; border-radius: 10px; background: #E8F2FC; color: #0B63C4; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg></span><span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 14px">Ao vivo · qui, 12/11 · 20h</span><span class="hint">Plantão Sem GPT</span></span><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5B6472" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></div>
+</div>
+<nav aria-label="Menu" style="display: flex; background: #FFFFFF; border-top: 1px solid #E3E8EF; padding-bottom: 14px">
+<a class="bn" href="AlunoV2Inicio.dc.html" aria-current="page"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<a class="bn" href="AlunoV2AoVivo.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Ao vivo</a>
+<a class="bn" href="AlunoV2Comunidade.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade</a>
+<a class="bn" href="AlunoV2Certificados.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Certificados</a>
+<a class="bn" href="AlunoV2Conta.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Conta</a>
+</nav>
+</div>
+<figcaption class="hint">Início · barra inferior com 5 atalhos</figcaption>
+</figure>
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px; align-items: center">
+<div class="ph">
+<div style="background: #0B1220; padding-top: 34px"><div style="display: flex; align-items: center; gap: 8px; padding: 6px 8px; color: #FFFFFF"><span class="bi" style="color: #FFFFFF"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span><span style="font-size: 13px; font-weight: 600; flex: 1">BLS · Aula 2 de 4</span><span style="font-size: 12px; color: #9FB0C4; padding-right: 8px">25%</span></div>
+<div style="aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; position: relative"><span style="width: 56px; height: 56px; border-radius: 999px; background: #FFFFFF; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="#0B63C4"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg></span><span style="position: absolute; left: 12px; right: 12px; bottom: 10px; height: 3px; background: rgba(255,255,255,.2)"><span style="display: block; width: 45%; height: 100%; background: #0099FF"></span></span></div></div>
+<div style="flex: 1; overflow: hidden; display: flex; flex-direction: column">
+<div style="padding: 14px 16px; background: #FFFFFF; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #E3E8EF">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 18px; line-height: 1.3">Compressões Torácicas em Adultos</span>
+<button type="button" class="b bp" onClick="{{ showSheet }}" style="width: 100%"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Marcar como concluída</button>
+</div>
+<div role="tablist" style="display: flex; gap: 18px; padding: 0 16px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<sc-for list="{{ mtabs }}" as="t" hint-placeholder-count="4"><button type="button" role="tab" class="tab" aria-selected="{{ t.sel }}" onClick="{{ t.pick }}" style="font-size: 13px">{{ t.label }}</button></sc-for>
+</div>
+<div style="padding: 6px 0; display: flex; flex-direction: column">
+<div style="display: flex; gap: 12px; padding: 12px 16px; align-items: center"><span style="color: #145C33; font-weight: 700">✓</span><span style="flex: 1; font-size: 14px">1. Reconhecimento da PCR</span><span class="hint">5 min</span></div>
+<div style="display: flex; gap: 12px; padding: 12px 16px; align-items: center; background: #E8F2FC; border-left: 3px solid #0B63C4"><span style="color: #0B63C4">▶</span><span style="flex: 1; font-size: 14px; font-weight: 700">2. Compressões Torácicas</span><span class="hint">7 min</span></div>
+<div style="display: flex; gap: 12px; padding: 12px 16px; align-items: center"><span style="color: #9AA6B5">○</span><span style="flex: 1; font-size: 14px">3. Operação e Segurança do DEA</span><span class="hint">8 min</span></div>
+<div style="display: flex; gap: 12px; padding: 12px 16px; align-items: center"><span style="color: #9AA6B5">○</span><span style="flex: 1; font-size: 14px">4. Manejo de Engasgo</span><span class="hint">8 min</span></div>
+</div>
+</div>
+<sc-if value="{{ sheet }}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end">
+<button type="button" aria-label="Fechar" onClick="{{ hideSheet }}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(15,27,45,.4); cursor: default"></button>
+<div role="dialog" aria-label="Aula concluída" style="position: relative; background: #FFFFFF; border-radius: 20px 20px 0 0; padding: 10px 20px 28px; display: flex; flex-direction: column; gap: 12px">
+<span style="align-self: center; width: 40px; height: 4px; border-radius: 999px; background: #C9D3DF"></span>
+<span style="display: flex; align-items: center; gap: 10px; font-weight: 700; color: #145C33"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#145C33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>Aula concluída</span>
+<span style="color: #3A4556; font-size: 14px">Próxima: Operação e Segurança do DEA · 8 min</span>
+<a class="b bp" href="AlunoV2Aula.dc.html" style="width: 100%">Ir para a próxima aula<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></a>
+<button type="button" class="b bg" onClick="{{ hideSheet }}" style="width: 100%">Ficar nesta aula</button>
+<button type="button" class="b bg sm" onClick="{{ undoDone }}" style="align-self: center; color: #5B6472">Desfazer</button>
+</div>
+</div>
+</sc-if>
+</div>
+<figcaption class="hint">Player · vídeo fixo no topo, aulas em aba, aviso em folha inferior</figcaption>
+</figure>
+
+<figure style="margin: 0; display: flex; flex-direction: column; gap: 12px; align-items: center">
+<div class="ph">
+<header style="display: flex; align-items: center; gap: 8px; padding: 44px 8px 12px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF"><span class="bi"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></span><span style="font-weight: 700; flex: 1">Certificados</span></header>
+<div style="flex: 1; overflow: hidden; padding: 16px; display: flex; flex-direction: column; gap: 14px">
+<div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px; border-color: #B7E0C5"><div style="display: flex; align-items: center; justify-content: space-between"><span style="font-weight: 700">Plantão Sem GPT</span><span class="pill ok">Pronto</span></div><span style="display: flex; gap: 8px; font-size: 14px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#145C33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>1 de 1 aula concluída</span><a class="b bp" href="AlunoV2Certificados.dc.html" style="width: 100%">Conferir dados e emitir</a></div>
+<div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 10px"><div style="display: flex; align-items: center; justify-content: space-between"><span style="font-weight: 700">BLS</span><span class="pill blue">Em andamento</span></div><div class="bar"><span style="width: 25%"></span></div><span class="hint">1 de 4 aulas · faltam 3</span><a class="b bs" href="AlunoV2Aula.dc.html" style="width: 100%">Continuar curso</a></div>
+</div>
+<nav aria-label="Menu" style="display: flex; background: #FFFFFF; border-top: 1px solid #E3E8EF; padding-bottom: 14px">
+<a class="bn" href="AlunoV2Inicio.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<a class="bn" href="AlunoV2AoVivo.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Ao vivo</a>
+<a class="bn" href="AlunoV2Comunidade.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade</a>
+<a class="bn" href="AlunoV2Certificados.dc.html" aria-current="page"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Certificados</a>
+<a class="bn" href="AlunoV2Conta.dc.html"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Conta</a>
+</nav>
+</div>
+<figcaption class="hint">Certificados · botões de largura total e alvo de toque de 44 px</figcaption>
+</figure>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({ notif: false, user: false, search: false, read: false, toast: null }, { sheet: true, mtab: 'aulas' });
+  }
+  flash(msg, undo) {
+    this.setState({ toast: { msg, undo: undo || null } });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 6000);
+  }
+  renderVals() {
+    const s = this.state;
+    const notifs = [
+      { title: 'O instrutor respondeu sua dúvida', meta: 'BLS · Profundidade da compressão · há 2 h', href: 'AlunoV2Comunidade.dc.html' },
+      { title: 'Aula ao vivo na quinta, 12/11, às 20h', meta: 'Plantão Sem GPT · lembrete 1 h antes por e-mail', href: 'AlunoV2AoVivo.dc.html' },
+      { title: 'Seu certificado está pronto para emitir', meta: 'Plantão Sem GPT · confira nome e CPF', href: 'AlunoV2Certificados.dc.html' }
+    ].map(n => Object.assign(n, { bg: s.read ? '#FFFFFF' : '#F5F9FE', dot: s.read ? '#E3E8EF' : '#0B63C4' }));
+    const shell = {
+      notifOpen: s.notif, userOpen: s.user, searchOpen: s.search,
+      unread: s.read ? 0 : 3, hasUnread: !s.read, notifs,
+      toggleNotif: () => this.setState({ notif: !s.notif, user: false }),
+      toggleUser: () => this.setState({ user: !s.user, notif: false }),
+      openSearch: () => this.setState({ search: true, notif: false, user: false }),
+      closeSearch: () => this.setState({ search: false }),
+      markRead: () => { this.setState({ read: true, notif: false }); this.flash('Avisos marcados como lidos', () => this.setState({ read: false })); },
+      hasToast: !!s.toast, toastMsg: s.toast ? s.toast.msg : '', hasUndo: !!(s.toast && s.toast.undo),
+      undo: () => { const u = s.toast && s.toast.undo; this.setState({ toast: null }); if (u) u(); },
+      closeToast: () => this.setState({ toast: null })
+    };
+    return Object.assign(shell, this.board(s));
+  }
+  board(s) {
+    return {
+      sheet: s.sheet, showSheet: () => this.setState({ sheet: true }), hideSheet: () => this.setState({ sheet: false }),
+      undoDone: () => { this.setState({ sheet: false }); this.flash('Aula desmarcada'); },
+      mtabs: [['aulas', 'Aulas'], ['sobre', 'Sobre'], ['mat', 'Materiais'], ['duv', 'Dúvidas']].map(([id, label]) => ({ label, sel: String(s.mtab === id), pick: () => this.setState({ mtab: id }) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

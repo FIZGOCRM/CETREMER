@@ -1,9 +1,137 @@
-{% extends 'base_core.html' %}{% load cetremer static %}{% block title %}{{ lesson.title }} · CETREMER{% endblock %}{% block body %}
-<div class="lesson-page"><header class="lesson-topbar"><div class="row gap-12"><a class="back-link" href="{% url 'dashboard' %}">{% include 'partials/icon.html' with name='chevron-left' size=18 %}Meus cursos</a><span class="divider-v" aria-hidden="true"></span><div class="stack"><span class="lesson-topbar__brand">CETREMER</span><span class="lesson-topbar__course">{{ course.title }}</span></div></div><div class="row gap-16"><div class="progress-inline">{% include 'partials/progress.html' with value=pct label='Progresso do curso' track=True %}<span class="progress-label nowrap"><span data-progress-pct>{{ pct }}%</span> · <span data-progress-count>{{ completed_count }} de {{ total }}</span></span></div><a class="avatar" href="{% url 'settings' %}" aria-label="Minha conta">{{ user.student_profile.full_name|default:user.email|iniciais }}</a></div></header>
-<div class="lesson-layout"><main class="lesson-main"><div class="player">{% if lesson.vimeo_id %}<iframe src="{{ lesson.player_url }}" data-vimeo data-lesson-id="{{ lesson.id }}" data-complete-url="{% url 'complete_lesson' lesson.id %}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}"></iframe>{% elif lesson.youtube_embed_url %}<iframe src="{{ lesson.youtube_embed_url }}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}"></iframe>{% else %}<div class="player__empty">Vídeo ainda não disponível.</div>{% endif %}</div>
-<div class="lesson-head"><div class="stack gap-4"><span class="text-13 muted">Módulo {{ lesson.module.order }} · {{ lesson.module.title }} · Aula {{ lesson_index }} de {{ total }}</span><h1 class="lesson-head__title">{{ lesson.title }}</h1></div>{% csrf_token %}<button type="button" class="btn btn--lg btn-toggle-complete {% if is_completed %}btn--done{% else %}btn--primary{% endif %}" data-lesson-id="{{ lesson.id }}" data-url="{% url 'toggle_progress' lesson.id %}" aria-pressed="{{ is_completed|yesno:'true,false' }}">{% include 'partials/icon.html' with name='check' size=18 stroke='2.4' %}<span data-label>{% if is_completed %}Concluída{% else %}Marcar como concluída{% endif %}</span></button><p class="error-text" data-progress-error hidden>Não foi possível salvar. Tente de novo.</p></div>
-<nav class="lesson-nav" aria-label="Navegação entre aulas">{% if prev_lesson %}<a class="lesson-nav__link" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/icon.html' with name='chevron-left' %}<span class="lesson-nav__text"><span class="lesson-nav__label">Aula anterior</span><span class="lesson-nav__title">{{ prev_lesson.title }}</span></span></a>{% endif %}{% if next_lesson_nav %}<a class="lesson-nav__link lesson-nav__link--next" href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}"><span class="lesson-nav__text"><span class="lesson-nav__label">Próxima aula</span><span class="lesson-nav__title">{{ next_lesson_nav.title }}</span></span>{% include 'partials/icon.html' with name='chevron-right' %}</a>{% endif %}</nav>
-{% if lesson.description %}<section class="card card--pad stack gap-10"><h2 class="card__title">Sobre esta aula</h2><p class="text-2">{{ lesson.description|linebreaksbr }}</p></section>{% endif %}
-{% if materials %}<section class="card card--pad stack gap-14"><h2 class="card__title">Material de apoio</h2>{% for material in materials %}<a class="file-item" href="{% if material.file %}{{ material.file.url }}{% else %}{{ material.url }}{% endif %}" target="_blank" rel="noopener"><span class="icon-tile icon-tile--40">{% include 'partials/icon.html' with name='file' %}</span><span class="file-item__text"><span class="file-item__name">{{ material.title }}</span><span class="file-item__meta">PDF · abre em nova aba</span></span>{% include 'partials/icon.html' with name='download' size=18 %}</a>{% endfor %}</section>{% endif %}
-<section class="card card--pad stack gap-14"><h2 class="card__title">Dúvidas sobre esta aula</h2><p class="muted">Sua pergunta vai para o fórum do curso, e os instrutores respondem por lá.</p><form class="stack gap-12" method="post" action="{% url 'create_post' course.slug %}">{% csrf_token %}<input type="hidden" name="lesson_id" value="{{ lesson.id }}"><label class="field__label" for="question">Sua dúvida</label><textarea class="textarea" id="question" name="content" required></textarea><button class="btn btn--outline self-end" type="submit">Publicar dúvida</button></form>{% for p in posts %}<article class="post"><h3 class="post__title">{{ p.title }}</h3><p class="post__excerpt">{{ p.content }}</p></article>{% empty %}<p class="empty empty--sm">Ninguém perguntou nada nesta aula ainda.</p>{% endfor %}</section>
-</main><aside class="lesson-side" aria-label="Conteúdo do curso"><div class="card card--clip"><div class="curriculum__head"><h2 class="curriculum__title">Conteúdo do curso</h2>{% include 'partials/progress.html' with value=pct label='Progresso do curso' track=True %}<span class="progress-label"><span data-progress-count>{{ completed_count }} de {{ total }}</span> aulas concluídas · {{ total_seconds|duracao }} no total</span></div>{% for m in modules %}<div class="module"><button type="button" class="module__toggle module-title-btn" aria-expanded="true" aria-controls="module-{{ m.id }}"><span class="module__text"><span class="module__title">Módulo {{ forloop.counter }} · {{ m.title }}</span><span class="module__count" data-module-count="{{ m.id }}">{{ m.done_count }} de {{ m.total_count }} aulas</span></span>{% include 'partials/icon.html' with name='chevron-up' size=18 class='module__chevron module-toggle-icon' %}</button><ul class="module__list" id="module-{{ m.id }}">{% for l in m.lessons_list %}<li><a class="lesson-item" href="{% url 'lesson_detail' course.slug l.id %}"{% if l.id == lesson.id %} aria-current="page"{% endif %}><span class="status-dot{% if l.id in completed_ids %} is-done{% endif %}{% if l.id == lesson.id %} is-current{% endif %}" id="status-dot-{{ l.id }}" aria-hidden="true">{% include 'partials/icon.html' with name='check' size=13 stroke='3' class='icon--check' %}{% include 'partials/icon.html' with name='play' size=11 class='icon--play' %}</span><span class="lesson-item__text"><span class="lesson-item__title">{{ l.position }}. {{ l.title }}</span><span class="lesson-item__meta" data-lesson-meta="{{ l.id }}" data-duration="{{ l.duration_seconds|duracao }}">{% if l.id == lesson.id %}Assistindo agora · {% elif l.id in completed_ids %}Concluída · {% endif %}{{ l.duration_seconds|duracao }}</span></span></a></li>{% endfor %}</ul></div>{% endfor %}</div><div class="card status-card"><span class="icon-tile icon-tile--40 icon-tile--neutral">{% include 'partials/icon.html' with name='award' %}</span><span class="stack"><strong class="fw-600 text-14">Certificado</strong>{% if pct == 100 %}<a href="{% url 'issue_certificate' course.slug %}">Ver certificado</a>{% else %}<span class="text-13 muted">Liberado ao concluir 100% das aulas. Faltam {{ remaining }}.</span>{% endif %}</span></div></aside></div></div>{% endblock %}{% block extra_js %}<script src="https://player.vimeo.com/api/player.js" defer></script><script src="{% static 'js/aluno.js' %}" defer></script>{% endblock %}
+{% extends 'base_core.html' %}{% load cetremer static ui %}
+{% block title %}{{ lesson.title }} · {{ course.title }} · CETREMER{% endblock %}
+{% block body %}
+<div class="lesson-page" id="lesson-page"
+     data-lesson-id="{{ lesson.id }}" data-module-id="{{ lesson.module_id }}"
+     data-toggle-url="{% url 'toggle_progress' lesson.id %}"
+     data-complete-url="{% url 'complete_lesson' lesson.id %}"
+     data-position-url="{% url 'save_position' lesson.id %}"
+     data-resume="{{ resume_seconds }}"
+     data-completed="{{ is_completed|yesno:'true,false' }}">
+  <header class="lesson-topbar">
+    <div class="row gap-12">
+      <a class="back-link" href="{% url 'course_home' course.slug %}">{% include 'partials/icon.html' with name='chevron-left' size=18 %}Voltar ao curso</a>
+      <span class="divider-v" aria-hidden="true"></span>
+      <div class="stack"><span class="lesson-topbar__brand">CETREMER</span><span class="lesson-topbar__course">{{ course.short_name|default:course.title }} · {{ course.title }}</span></div>
+    </div>
+    <div class="row gap-10">
+      <div class="lesson-topbar__progress">
+        {% include 'partials/progress.html' with value=pct label='Progresso do curso' track=True %}
+        <span class="lesson-topbar__progress-text" data-progress-text>{{ pct }}% · {{ completed_count }} de {{ total|plural_pt:"aula,aulas" }}</span>
+      </div>
+      <button type="button" class="btn btn--secondary btn--xs" data-focus-toggle aria-pressed="false">{% include 'partials/icon.html' with name='sidebar' size=16 %}<span data-label>Modo foco</span></button>
+      <button type="button" class="icon-btn icon-btn--plain" data-cmdk-open aria-label="Buscar">{% include 'partials/icon.html' with name='search' size=20 %}</button>
+      <a class="avatar" href="{% url 'settings' %}" aria-label="Minha conta">{% if user_avatar_url %}<img src="{{ user_avatar_url }}" alt="">{% else %}{{ user_initials }}{% endif %}</a>
+    </div>
+  </header>
+
+  <div class="lesson-layout">
+    <main class="lesson-main">
+      <div class="player">
+        {% if lesson.vimeo_id %}
+        <iframe src="{{ lesson.player_url }}" data-vimeo allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}"></iframe>
+        <div class="resume-chip" id="resume-chip" hidden>
+          {% include 'partials/icon.html' with name='clock' size=16 %}
+          <span>Continuando de onde você parou: <strong data-resume-time>00:00</strong></span>
+          <button type="button" class="resume-chip__btn" data-resume-restart>Recomeçar</button>
+          <button type="button" class="resume-chip__close" data-resume-close aria-label="Fechar aviso">{% include 'partials/icon.html' with name='x' size=16 %}</button>
+        </div>
+        {% elif lesson.youtube_embed_url %}
+        <iframe src="{{ lesson.youtube_embed_url }}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}"></iframe>
+        {% else %}
+        <div class="player__empty">Este vídeo está indisponível agora. A equipe já foi avisada.{% if site.whatsapp_url %} <a class="btn btn--light btn--sm" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">Falar com o suporte</a>{% endif %}</div>
+        {% endif %}
+      </div>
+
+      {% if next_lesson_nav %}
+      <div class="done-banner" id="done-banner" role="status" hidden>
+        {% include 'partials/icon.html' with name='check-circle' size=26 %}
+        <div class="done-banner__text"><span class="done-banner__title">Aula concluída</span><span class="done-banner__sub">Próxima: <span data-next-title>{{ next_lesson_nav.title }}</span></span></div>
+        <button type="button" class="btn btn--quiet btn--sm" data-done-stay>Ficar nesta aula</button>
+        <a class="btn btn--primary" data-next-link href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}">Ir para a próxima aula{% include 'partials/icon.html' with name='chevron-right' size=18 %}</a>
+      </div>
+      {% endif %}
+
+      <div class="lesson-head">
+        <div class="stack gap-4">
+          <span class="text-13 muted">Módulo {{ module_index }} · {{ lesson.module.title }} · Aula {{ lesson_index }} de {{ total }}</span>
+          <h1 class="lesson-head__title">{{ lesson.title }}</h1>
+        </div>
+        <button type="button" class="btn btn--lg {% if is_completed %}btn--done{% else %}btn--primary{% endif %}" data-complete-toggle aria-pressed="{{ is_completed|yesno:'true,false' }}">{% include 'partials/icon.html' with name='check' size=18 stroke='2.4' %}<span data-label>{% if is_completed %}Concluída{% else %}Marcar como concluída{% endif %}</span></button>
+      </div>
+      {% if lesson.vimeo_id %}<p class="auto-note">{% include 'partials/icon.html' with name='info' size=15 %}A aula também é marcada sozinha quando você assiste 90% do vídeo.</p>{% endif %}
+
+      <nav class="lesson-nav" aria-label="Navegação entre aulas">
+        {% if prev_lesson %}<a class="lesson-nav__link" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/icon.html' with name='chevron-left' %}<span class="lesson-nav__text"><span class="lesson-nav__label">Aula anterior</span><span class="lesson-nav__title">{{ prev_lesson.title }}</span></span></a>{% endif %}
+        {% if next_lesson_nav %}<a class="lesson-nav__link lesson-nav__link--next" data-nav-next href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}"><span class="lesson-nav__text"><span class="lesson-nav__label">Próxima aula</span><span class="lesson-nav__title">{{ next_lesson_nav.title }}</span></span>{% include 'partials/icon.html' with name='chevron-right' %}</a>{% endif %}
+        {% if is_last %}<a class="lesson-nav__link lesson-nav__link--next" href="{% url 'certificates' %}"><span class="lesson-nav__text"><span class="lesson-nav__label">Última aula do curso</span><span class="lesson-nav__title">Ver requisitos do certificado</span></span>{% include 'partials/icon.html' with name='award' %}</a>{% endif %}
+      </nav>
+
+      <section class="card card--clip">
+        <div class="tabs" role="tablist" aria-label="Sobre a aula" data-tabs data-tabs-param="aba">
+          <button type="button" role="tab" class="tab" id="tab-sobre" aria-controls="panel-sobre" data-tab="sobre" aria-selected="{% if aba == 'sobre' %}true{% else %}false{% endif %}">Sobre esta aula</button>
+          <button type="button" role="tab" class="tab" id="tab-materiais" aria-controls="panel-materiais" data-tab="materiais" aria-selected="{% if aba == 'materiais' %}true{% else %}false{% endif %}">Materiais ({{ materials|length }})</button>
+          <button type="button" role="tab" class="tab" id="tab-duvidas" aria-controls="panel-duvidas" data-tab="duvidas" aria-selected="{% if aba == 'duvidas' %}true{% else %}false{% endif %}">Dúvidas ({{ posts|length }})</button>
+          <button type="button" role="tab" class="tab only-mobile" id="tab-aulas" aria-controls="panel-aulas" data-tab="aulas" aria-selected="{% if aba == 'aulas' %}true{% else %}false{% endif %}">Aulas</button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-sobre" aria-labelledby="tab-sobre"{% if aba != 'sobre' %} hidden{% endif %}>
+          {% if lesson.description %}<p class="text-2">{{ lesson.description|linebreaksbr }}</p>{% else %}<p class="text-2">O instrutor não escreveu uma descrição para esta aula.</p>{% endif %}
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-materiais" aria-labelledby="tab-materiais"{% if aba != 'materiais' %} hidden{% endif %}>
+          {% for material in materials %}
+          <a class="file-item" href="{% if material.file %}{{ material.file.url }}{% else %}{{ material.url }}{% endif %}" target="_blank" rel="noopener"><span class="icon-tile icon-tile--40">{% include 'partials/icon.html' with name='file' %}</span><span class="file-item__text"><span class="file-item__name">{{ material.title }}</span><span class="file-item__meta">PDF · abre em nova aba</span></span>{% include 'partials/icon.html' with name='download' size=18 %}</a>
+          {% empty %}
+          <p class="text-2">Esta aula não tem material de apoio. Os PDFs do curso inteiro ficam na aba Materiais do <a href="{% url 'course_home' course.slug %}?aba=materiais">curso</a>.</p>
+          {% endfor %}
+        </div>
+        <div class="tab-panel stack gap-16" role="tabpanel" id="panel-duvidas" aria-labelledby="tab-duvidas"{% if aba != 'duvidas' %} hidden{% endif %}>
+          {% include 'courses/_lesson_questions.html' %}
+          <form class="stack gap-8" method="post" action="{% url 'create_post' course.slug %}" data-async>
+            {% csrf_token %}
+            <input type="hidden" name="lesson_id" value="{{ lesson.id }}">
+            <label class="field__label" for="question">Pergunte sobre esta aula</label>
+            <textarea class="textarea" id="question" name="content" rows="3" required placeholder="Ex.: em 02:40, qual a posição correta das mãos?"></textarea>
+            <div class="row row--between gap-12"><span class="hint">Vai para a comunidade do {{ course.short_name|default:course.title }} com o nome desta aula. Você recebe um e-mail quando responderem.</span><button class="btn btn--primary btn--sm" type="submit">Publicar dúvida</button></div>
+          </form>
+        </div>
+        <div class="tab-panel only-mobile" role="tabpanel" id="panel-aulas" aria-labelledby="tab-aulas"{% if aba != 'aulas' %} hidden{% endif %}>
+          {% include 'courses/_lesson_list.html' with suffix='-m' %}
+        </div>
+      </section>
+    </main>
+
+    <aside class="lesson-side" aria-label="Conteúdo do curso">
+      <div class="card card--clip">
+        <div class="curriculum__head">
+          <h2 class="curriculum__title">Conteúdo do curso</h2>
+          {% include 'partials/progress.html' with value=pct label='Progresso do curso' track=True %}
+          <span class="progress-label" data-progress-count data-suffix=" · {{ total_seconds|duracao }} no total">{{ completed_count }} de {{ total|plural_pt:"aula concluída,aulas concluídas" }} · {{ total_seconds|duracao }} no total</span>
+        </div>
+        {% include 'courses/_lesson_list.html' with suffix='' %}
+      </div>
+      <div class="card cert-mini{% if cert.ready %} is-ready{% endif %}" data-cert-mini>
+        <span class="icon-tile icon-tile--40">{% include 'partials/icon.html' with name='award' %}</span>
+        <span class="stack">
+          <span class="fw-600">Certificado</span>
+          <span class="text-13 muted" data-cert-text>{% if cert.ready %}Todas as aulas concluídas. Confira seus dados e emita.{% else %}Liberado ao concluir 100% das aulas. {{ cert.remaining|falta_pt }}{% endif %}</span>
+          <a class="link-strong text-14" data-cert-link href="{% if cert.ready %}{% url 'certificates' %}?emitir={{ course.slug }}{% else %}{% url 'certificates' %}{% endif %}">{% if cert.ready %}Emitir certificado{% else %}Ver requisitos{% endif %}</a>
+        </span>
+      </div>
+    </aside>
+  </div>
+
+  <dialog class="dialog dialog--celebrate" id="celebrate" aria-labelledby="fim">
+    <div class="dialog__body">
+      <span class="celebrate__icon">{% include 'partials/icon.html' with name='award' size=36 %}</span>
+      <h2 class="celebrate__title" id="fim">Você concluiu o {{ course.short_name|default:course.title }}</h2>
+      <p class="text-2">{% if total == 1 %}A aula do curso foi concluída.{% else %}Todas as {{ total }} aulas foram concluídas.{% endif %} {% if data_ok %}Seu certificado já pode ser emitido.{% else %}Falta só conferir nome e CPF para emitir o certificado.{% endif %}</p>
+      <div class="dialog__actions">
+        <button type="button" class="btn btn--secondary" data-dialog-close>Rever aulas</button>
+        <a class="btn btn--primary" href="{% url 'certificates' %}?emitir={{ course.slug }}">{% include 'partials/icon.html' with name='award' size=18 %}Emitir certificado</a>
+      </div>
+    </div>
+  </dialog>
+</div>
+{% url 'search' as search_url %}{% include "partials/cmdk.html" with search_url=search_url %}
+{% endblock %}
+{% block extra_js %}<script src="https://player.vimeo.com/api/player.js"></script><script src="{% static 'js/player.js' %}" defer></script>{% endblock %}

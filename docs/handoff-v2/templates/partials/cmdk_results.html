@@ -1,0 +1,11 @@
+{# Resposta da view de busca (GET ?q=). groups = [{"label": "Aulas", "items": [{"url","icon","title","sub"}]}]. Vazio: não renderiza nada (o JS mostra "Nada encontrado"). #}
+{% for group in groups %}
+  <div class="cmdk__group">{{ group.label }}</div>
+  {% for item in group.items %}
+  <a class="cmdk__item" href="{{ item.url }}" role="option" aria-selected="false">
+    {% include "partials/icon.html" with name=item.icon size=18 %}
+    <span class="cmdk__item-text"><span class="cmdk__item-title">{{ item.title }}</span>{% if item.sub %}<span class="cmdk__item-sub">{{ item.sub }}</span>{% endif %}</span>
+    <span class="kbd">Enter</span>
+  </a>
+  {% endfor %}
+{% endfor %}

@@ -42,6 +42,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 
+SITE_URL = os.environ.get('SITE_URL', '').rstrip('/')  # usado nos links absolutos de e-mails enviados fora de uma requisição
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '*').split(',') if h.strip()]
 
 
@@ -56,6 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Custom Apps
+    'core',  # templatetags/ui.py (HANDOFF-v2 2.5)
     'users',
     'courses',
     'sales',
@@ -86,6 +88,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'core.context_processors.site',
+                'core.context_processors.user_shell',
+                'core.context_processors.student_shell',
+                'core.context_processors.painel_shell',
             ],
         },
     },

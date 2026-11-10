@@ -21,15 +21,15 @@ class ModuleInline(admin.TabularInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'price', 'is_published', 'live_meet_url', 'created_at')
-    list_filter = ('is_published', 'created_at')
+    list_display = ('title', 'price', 'status', 'live_meet_url', 'created_at')
+    list_filter = ('status', 'created_at')
     search_fields = ('title', 'description')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [ModuleInline]
     
     fieldsets = (
         (None, {
-            'fields': ('title', 'slug', 'description', 'cover_image', 'creator', 'is_published')
+            'fields': ('title', 'slug', 'description', 'cover_image', 'creator', 'status')
         }),
         ('Preços e Vendas', {
             'fields': ('price',)

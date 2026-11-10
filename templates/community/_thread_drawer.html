@@ -1,0 +1,63 @@
+{% comment %}
+Miolo do painel da conversa (HANDOFF-v2 7.6). Usado em hub.html (painel aberto por ?duvida=) e devolvido por
+community (?duvida=<id>&parcial=1) e pelas respostas JSON (replace do #thread-content).
+Contexto: post, is_author, official (respostas da equipe), others (demais respostas).
+{% endcomment %}{% load cetremer ui %}
+<div id="thread-content">
+  <div class="drawer__head">
+    <div class="stack">
+      <span class="drawer__eyebrow">{% if post.course %}{{ post.course.short_name|default:post.course.title }}{% else %}Discussão geral{% endif %}{% if post.lesson_position %} · Aula {{ post.lesson_position }}{% endif %}{% if post.lesson %} · {{ post.lesson.title }}{% endif %}</span>
+      <h2 class="drawer__title" id="conversa-title">{{ post.title }}</h2>
+    </div>
+    <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+  </div>
+  <div class="drawer__body">
+    <div class="row gap-12">
+      <span class="avatar avatar--32" aria-hidden="true">{{ post.author_name|iniciais }}</span>
+      <div class="stack gap-4">
+        <span class="fw-600">{{ post.author_name }} <span class="text-13 muted">· {{ post.created_at|timesince }} atrás</span></span>
+        <p class="text-2">{{ post.content|linebreaksbr }}</p>
+      </div>
+    </div>
+
+    {% if official %}
+    <div class="answer-box">
+      {% for comment in official %}
+      <div class="answer-box__by">{% include 'partials/icon.html' with name='shield' size=18 %}Instrutor CETREMER <span class="badge badge--blue">Resposta oficial</span></div>
+      <p>{{ comment.content|linebreaksbr }}</p>
+      {% endfor %}
+      {% if is_author %}
+      <div class="row row--between gap-10">
+        <span class="text-14">Isso resolveu sua dúvida?</span>
+        <div class="row gap-8">
+          <form method="post" action="{% url 'community_resolve' post.id %}" data-async>
+            {% csrf_token %}
+            <button type="submit" class="btn btn--secondary btn--xs" aria-pressed="{{ post.is_resolved|yesno:'true,false' }}">{% if post.is_resolved %}{% include 'partials/icon.html' with name='check' size=14 stroke='2.4' %}Marcada como resolvida{% else %}Sim, resolveu{% endif %}</button>
+          </form>
+          <button type="button" class="btn btn--ghost btn--xs" data-focus-target="#reply-content">Ainda tenho dúvida</button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="waiting-box">{% include 'partials/icon.html' with name='clock' size=18 %}<span>Aguardando o instrutor. A equipe costuma responder em até 1 dia útil, e você recebe um e-mail.</span></div>
+    {% endif %}
+
+    {% if others %}
+    <ul class="list-plain stack gap-12">
+      {% for comment in others %}
+      <li class="row gap-12">
+        <span class="avatar avatar--32" aria-hidden="true">{{ comment.author_name|iniciais }}</span>
+        <div class="stack gap-4"><span class="fw-600">{{ comment.author_name }} <span class="text-13 muted">· {{ comment.created_at|timesince }} atrás</span></span><p class="text-2">{{ comment.content|linebreaksbr }}</p></div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  <form class="drawer__foot stack gap-8" method="post" action="{% url 'community_reply' post.id %}" data-async>
+    {% csrf_token %}
+    <label class="field__label" for="reply-content">Escreva uma resposta</label>
+    <textarea class="textarea" id="reply-content" name="content" rows="3" required></textarea>
+    <button type="submit" class="btn btn--primary btn--sm self-end">{% include 'partials/icon.html' with name='reply' size=16 %}Responder</button>
+  </form>
+</div>

@@ -1,0 +1,146 @@
+{% extends 'base_aluno.html' %}{% load cetremer ui tz %}
+{% block title %}{{ course.title }} · CETREMER{% endblock %}
+{% block crumbs %}<a href="{% url 'dashboard' %}">Início</a><span aria-hidden="true">/</span><span>Meus cursos</span>{% endblock %}
+{% block page_title %}{{ course.title }}{% endblock %}
+{% block page_class %}page--gap-24{% endblock %}
+{% block content %}
+<section class="card course-hero-v2">
+  <div class="course-hero-v2__cover {{ course.cover_class }}">{% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% else %}{{ course.short_name|default:course.title }}{% endif %}</div>
+  <div class="course-hero-v2__body">
+    <div class="row gap-8">
+      {% if course.category %}<span class="badge {{ course.category.badge_class }}">{{ course.category.name }}</span>{% endif %}
+      {% if course.workload_hours %}<span class="badge badge--gray">Carga horária {{ course.workload_hours }}h</span>{% endif %}
+      <span class="badge badge--gray">{{ modules|length|plural_pt:"módulo,módulos" }} · {{ lessons_total|plural_pt:"aula,aulas" }}{% if total_seconds %} · {{ total_seconds|duracao }}{% endif %}</span>
+      {% if course.certificate_enabled %}<span class="badge badge--success">{% include 'partials/icon.html' with name='award' size=14 %}Certificado verificável</span>{% endif %}
+    </div>
+    <h2 class="course-hero-v2__title">{{ course.title }}</h2>
+    {% if course.tagline %}<p class="text-2">{{ course.tagline }}</p>{% endif %}
+    <div class="progress-inline progress-inline--wide">
+      {% include 'partials/progress.html' with value=progress.pct label='Progresso do curso' size='lg' %}
+      <span class="progress-label">{{ progress.pct }}% · {{ progress.done }} de {{ progress.total|plural_pt:"aula,aulas" }}</span>
+    </div>
+    <div class="row gap-10">
+      {% if action.lesson %}
+      <a class="btn btn--primary" href="{% url 'lesson_detail' course.slug action.lesson.id %}">{% include 'partials/icon.html' with name='play' size=16 %}{% if action.label == 'Continuar' %}Continuar: Aula {{ action.lesson.position }} · {{ action.lesson.title|truncatechars:28 }}{% else %}{{ action.label }}{% endif %}</a>
+      {% endif %}
+      {% if course.certificate_enabled %}<a class="btn btn--secondary" href="{% url 'certificates' %}">{% include 'partials/icon.html' with name='award' size=16 %}Requisitos do certificado</a>{% endif %}
+    </div>
+    <span class="text-13 muted">{% if enrollment.expires_at %}Acesso até {{ enrollment.expires_at|date:"d/m/Y" }}{% else %}Acesso vitalício{% endif %} · liberado em {{ enrollment.enrolled_at|date:"d/m/Y" }}{% if origin %} {{ origin }}{% endif %}{% if enrollment.external_ref %} ({{ enrollment.external_ref }}){% endif %}</span>
+  </div>
+</section>
+
+<div class="split">
+  <section class="card split__main card--clip">
+    <div class="tabs" role="tablist" aria-label="Conteúdo do curso" data-tabs data-tabs-param="aba">
+      <button type="button" role="tab" class="tab" id="tab-conteudo" aria-controls="panel-conteudo" data-tab="conteudo" aria-selected="{% if aba == 'conteudo' %}true{% else %}false{% endif %}">Conteúdo</button>
+      <button type="button" role="tab" class="tab" id="tab-materiais" aria-controls="panel-materiais" data-tab="materiais" aria-selected="{% if aba == 'materiais' %}true{% else %}false{% endif %}">Materiais ({{ materials|length }})</button>
+      <button type="button" role="tab" class="tab" id="tab-duvidas" aria-controls="panel-duvidas" data-tab="duvidas" aria-selected="{% if aba == 'duvidas' %}true{% else %}false{% endif %}">Dúvidas ({{ posts_count }})</button>
+      <button type="button" role="tab" class="tab" id="tab-ao-vivo" aria-controls="panel-ao-vivo" data-tab="ao-vivo" aria-selected="{% if aba == 'ao-vivo' %}true{% else %}false{% endif %}">Aulas ao vivo</button>
+    </div>
+
+    <div class="tab-panel stack gap-12" role="tabpanel" id="panel-conteudo" aria-labelledby="tab-conteudo"{% if aba != 'conteudo' %} hidden{% endif %}>
+      {% if modules %}
+      <div class="row row--end"><button type="button" class="btn btn--ghost btn--xs" data-toggle-all-modules data-label-collapse="Recolher tudo" data-label-expand="Expandir tudo">Recolher tudo</button></div>
+      {% endif %}
+      {% for module in modules %}
+      <div class="module-card">
+        <button type="button" class="module__toggle" aria-expanded="true" aria-controls="module-{{ module.id }}">
+          <span class="module__text">
+            <span class="module__title">Módulo {{ module.number }} · {{ module.title }}</span>
+            <span class="module__count">{{ module.total_count|plural_pt:"aula,aulas" }} · {{ module.done_count|plural_pt:"concluída,concluídas" }}</span>
+          </span>
+          {% if module.state == 'done' %}<span class="badge badge--success">Concluído</span>{% elif module.state == 'progress' %}<span class="badge badge--blue">Em andamento</span>{% elif module.state == 'locked' %}<span class="badge badge--warning">{% if module.release_on %}Libera em {{ module.release_on|date:"d/m" }}{% else %}Bloqueado{% endif %}</span>{% else %}<span class="badge badge--gray">Não iniciado</span>{% endif %}
+          {% include 'partials/icon.html' with name='chevron-up' size=18 class='module__chevron' %}
+        </button>
+        <div class="module__list" id="module-{{ module.id }}">
+          {% for lesson in module.lessons_list %}
+          {% if lesson.state == 'locked' %}<span class="lesson-row" aria-disabled="true">{% else %}<a class="lesson-row" href="{% url 'lesson_detail' course.slug lesson.id %}"{% if lesson.state == 'current' %} aria-current="true"{% endif %}>{% endif %}
+            {% if lesson.state == 'done' %}<span class="mark-done" aria-hidden="true">✓</span>{% elif lesson.state == 'current' %}<span class="mark-current" aria-hidden="true">▶</span>{% elif lesson.state == 'locked' %}{% include 'partials/icon.html' with name='lock' size=16 %}{% else %}<span class="mark-todo" aria-hidden="true">○</span>{% endif %}
+            <span class="lesson-row__text"><span class="lesson-row__title">{{ lesson.position }}. {{ lesson.title }}</span><span class="lesson-row__meta">{{ lesson.meta }}{% if lesson.materials_count %} + · {{ lesson.materials_count|plural_pt:"material,materiais" }}{% endif %}</span></span>
+            <span class="lesson-row__time">{{ lesson.duration_seconds|duracao }}</span>
+          {% if lesson.state == 'locked' %}</span>{% else %}</a>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty-state"><span class="empty-state__title">Este curso ainda não tem aulas publicadas</span><span class="empty-state__text">Assim que a equipe publicar, elas aparecem aqui.</span></div>
+      {% endfor %}
+    </div>
+
+    <div class="tab-panel stack gap-12" role="tabpanel" id="panel-materiais" aria-labelledby="tab-materiais"{% if aba != 'materiais' %} hidden{% endif %}>
+      {% if materials %}
+      <p class="text-14 muted">Todos os materiais do curso em um lugar. Cada um mostra de qual aula é.</p>
+      {% for material in materials %}
+      <a class="file-item" href="{% if material.file %}{{ material.file.url }}{% else %}{{ material.url }}{% endif %}" target="_blank" rel="noopener"><span class="icon-tile icon-tile--40">{% include 'partials/icon.html' with name='file' %}</span><span class="file-item__text"><span class="file-item__name">{{ material.title }}</span><span class="file-item__meta">PDF · {% if material.file_size_label %}{{ material.file_size_label }} · {% endif %}Aula {{ material.lesson_position }}</span></span>{% include 'partials/icon.html' with name='download' size=18 %}</a>
+      {% endfor %}
+      {% else %}
+      <div class="empty-state"><span class="empty-state__title">Este curso não tem materiais de apoio</span></div>
+      {% endif %}
+    </div>
+
+    <div class="tab-panel stack gap-12" role="tabpanel" id="panel-duvidas" aria-labelledby="tab-duvidas"{% if aba != 'duvidas' %} hidden{% endif %}>
+      <div class="row row--between gap-12"><span class="text-14 muted">Dúvidas feitas neste curso, com a aula de origem.</span><a class="btn btn--primary btn--xs" href="{% url 'community' %}?nova=1&curso={{ course.slug }}">Nova pergunta</a></div>
+      {% for post in posts %}
+      <a class="list-row-link" href="{% url 'community' %}?duvida={{ post.id }}">
+        <span class="grow stack gap-4"><span class="fw-600">{{ post.title }}</span><span class="text-13 muted">{% if post.lesson_position %}Aula {{ post.lesson_position }} · {% endif %}{{ post.author_name }} · {{ post.created_at|timesince }} atrás</span></span>
+        {% if post.is_answered_cache %}<span class="badge badge--success">Respondida</span>{% else %}<span class="badge badge--warning">Aguardando resposta</span>{% endif %}
+      </a>
+      {% empty %}
+      <div class="empty-state"><span class="empty-state__title">Ninguém perguntou nada neste curso ainda.</span></div>
+      {% endfor %}
+      <a class="link-strong text-14" href="{% url 'community' %}?curso={{ course.slug }}">Ver todas na comunidade</a>
+    </div>
+
+    <div class="tab-panel stack gap-12" role="tabpanel" id="panel-ao-vivo" aria-labelledby="tab-ao-vivo"{% if aba != 'ao-vivo' %} hidden{% endif %}>
+      {% if live_sessions %}
+      {% timezone "America/Sao_Paulo" %}
+      {% for session in live_sessions %}
+      <a class="list-row-link" href="{% url 'live_classes' %}?curso={{ course.slug }}">
+        <span class="date-mini">{{ session.starts_at|date:"d/m" }}</span>
+        <span class="grow stack gap-4"><span class="fw-600">{{ session.title }}</span><span class="text-13 muted">{{ session.starts_at|date:"H\hi" }} às {{ session.ends_at|date:"H\hi" }} (horário de Brasília)</span></span>
+      </a>
+      {% endfor %}
+      {% endtimezone %}
+      <a class="link-strong text-14" href="{% url 'live_classes' %}?curso={{ course.slug }}">Ver agenda completa</a>
+      {% else %}
+      <div class="empty-state">
+        <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='video' size=24 %}</span>
+        <span class="empty-state__title">Este curso não tem encontros ao vivo</span>
+        <span class="empty-state__text">Se a equipe marcar um encontro, ele aparece aqui e você recebe um e-mail com data e link.</span>
+        <a class="btn btn--secondary btn--xs" href="{% url 'live_classes' %}">Ver agenda de todos os cursos</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside class="split__side split__side--300 stack gap-16">
+    {% if course.certificate_enabled %}
+    <div class="card card--pad-sm stack gap-14">
+      <h2 class="card__title">Seu certificado</h2>
+      {% for req in cert_reqs %}
+      <div class="req-mini{% if req.ok %} is-ok{% endif %}">
+        {% if req.ok %}{% include 'partials/icon.html' with name='check-circle' size=18 %}{% else %}{% include 'partials/icon.html' with name='circle' size=18 %}{% endif %}
+        <span class="stack gap-2">
+          {% if req.key == 'lessons' %}
+          <span class="fw-600">{% if progress.total == 1 %}Concluir a aula{% else %}Concluir as {{ progress.total }} aulas{% endif %}</span>
+          <span class="text-13 muted">{% if req.ok %}Concluídas{% else %}{{ progress.done }} de {{ progress.total }} · {{ progress.remaining|falta_pt|lower }}{% endif %}</span>
+          {% elif req.key == 'data' %}
+          <span class="fw-600">Informar nome completo e CPF</span>
+          {% if req.ok %}<span class="text-13 muted">Nome e CPF informados</span>{% else %}<a class="link-strong text-13" href="{% url 'settings' %}?secao=certificado">Completar agora</a>{% endif %}
+          {% else %}
+          <span class="fw-600">Ter acesso ativo ao curso</span>
+          <span class="text-13 muted">{% if enrollment.expires_at %}Até {{ enrollment.expires_at|date:"d/m/Y" }}{% else %}Vitalício{% endif %}</span>
+          {% endif %}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    <div class="card card--pad-sm stack gap-10">
+      <h2 class="card__title">Precisa de ajuda?</h2>
+      <p class="text-13 muted">Dúvida de conteúdo vai para a comunidade, onde o instrutor responde. Problema de acesso ou pagamento, chame no WhatsApp.</p>
+      {% if site.whatsapp_url %}<a class="btn btn--secondary btn--xs" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">Falar com o suporte</a>{% endif %}
+    </div>
+  </aside>
+</div>
+{% endblock %}

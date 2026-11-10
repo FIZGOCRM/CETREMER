@@ -1,0 +1,20 @@
+{% comment %}
+Dúvidas feitas nesta aula (aba Dúvidas do player). A view community.create_post devolve este miolo em
+json_ok(replace={"#lesson-questions": html}). Contexto: posts (de community.questions.lesson_questions), course.
+{% endcomment %}{% load ui %}
+<div class="stack gap-14" id="lesson-questions">
+  {% for p in posts %}
+  <article class="post">
+    <div class="row gap-8">
+      <h3 class="post__title">{{ p.title }}</h3>
+      {% if p.official %}<span class="badge badge--success">Respondida pelo instrutor</span>{% else %}<span class="badge badge--warning">Aguardando resposta</span>{% endif %}
+    </div>
+    <span class="text-13 muted">{{ p.author_name }} · {{ p.created_at|timesince }} atrás · {{ p.replies_count|plural_pt:"resposta,respostas" }}</span>
+    <p class="post__excerpt">{{ p.content }}</p>
+    {% if p.official %}<div class="answer-official"><strong>Instrutor CETREMER:</strong> {{ p.official.content }}</div>{% endif %}
+    <a class="link-strong text-14" href="{% url 'community' %}?duvida={{ p.id }}">Abrir conversa na comunidade</a>
+  </article>
+  {% empty %}
+  <p class="empty empty--sm">Ninguém perguntou nada nesta aula ainda.</p>
+  {% endfor %}
+</div>

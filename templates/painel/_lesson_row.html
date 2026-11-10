@@ -1,0 +1,16 @@
+{% load cetremer ui %}{% comment %}
+Linha de aula do builder (8.3). Contexto: lesson (decorada: number, kind, is_youtube, material_count), course, is_new,
+O id da linha (#lesson-row-<id>) é o alvo do `replace` ao salvar o painel da aula.
+{% endcomment %}
+<div class="builder-lesson{% if lesson.editing %} is-editing{% endif %}{% if is_new %} is-new{% endif %}" id="lesson-row-{{ lesson.id }}" data-lesson-id="{{ lesson.id }}" draggable="true">
+  <button class="drag-handle" type="button" aria-label="Mover aula {{ lesson.title }}">{% include 'partials/icon.html' with name='drag' size=16 %}</button>
+  <span class="icon-tile icon-tile--40{% if lesson.kind != 'vimeo' %} icon-tile--danger{% endif %}" aria-hidden="true">{% include 'partials/icon.html' with name='video' size=18 %}</span>
+  <span class="builder-lesson__text">
+    <span class="builder-lesson__title">{{ lesson.number }}. {{ lesson.title }}</span>
+    {% if lesson.kind == 'none' %}<span class="builder-lesson__meta builder-lesson__meta--warn">Sem vídeo</span>
+    {% elif lesson.kind == 'other' %}<span class="builder-lesson__meta builder-lesson__meta--warn">{% if lesson.is_youtube %}YouTube{% else %}Vídeo fora do Vimeo{% endif %} · troque pelo Vimeo</span>
+    {% else %}<span class="builder-lesson__meta">Vimeo{% if lesson.duration_seconds %} · {{ lesson.duration_seconds|duracao }}{% endif %}{% if lesson.material_count %} · {{ lesson.material_count|plural_pt:"material,materiais" }}{% endif %}</span>{% endif %}
+  </span>
+  {% if lesson.status == 'published' %}<span class="badge badge--success">Publicada</span>{% else %}<span class="badge badge--warning">Rascunho</span>{% endif %}
+  <a class="btn btn--secondary btn--xs" href="?aula={{ lesson.id }}" data-drawer-url="{% url 'painel:lesson_drawer' course.id lesson.id %}" data-drawer-target="drawer-aula" data-drawer-param="aula" data-drawer-value="{{ lesson.id }}">Editar</a>
+</div>

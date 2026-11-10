@@ -1,1 +1,188 @@
-﻿{% extends 'base_aluno.html' %}{% load cetremer %}{% block title %}Minha conta · CETREMER{% endblock %}{% block page_title %}Minha conta{% endblock %}{% block page_class %}page--w880 page--gap-24{% endblock %}{% block topbar_actions %}<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn--quiet">Sair</button></form>{% endblock %}{% block content %}<section class="card card--pad-lg stack gap-18"><h2 class="card__title">Dados de acesso</h2><form class="stack gap-18" method="post" enctype="multipart/form-data">{% csrf_token %}<input type="hidden" name="action" value="profile_account"><div class="row gap-16"><span class="avatar avatar--64">{{ user.student_profile.full_name|default:user.email|iniciais }}</span><label class="btn btn--secondary" for="avatar">Trocar foto</label><input class="sr-only" type="file" name="avatar" id="avatar" accept="image/*"></div><div class="field field--narrow"><label class="field__label" for="email">E-mail</label><input class="input" id="email" name="email" type="email" value="{{ user.email }}" required></div><button class="btn btn--primary self-start">Salvar</button></form></section><section class="card card--pad-lg stack gap-18"><h2 class="card__title">Dados para o certificado</h2><p class="muted">Use o nome e CPF que devem aparecer no certificado.</p><form class="stack gap-18" method="post">{% csrf_token %}<input type="hidden" name="action" value="profile_personal"><div class="form-grid"><div class="field"><label class="field__label" for="full_name">Nome completo</label><input class="input" id="full_name" name="full_name" value="{{ user.student_profile.full_name|default:'' }}"></div><div class="field"><label class="field__label" for="cpf">CPF</label><input class="input" id="cpf" name="cpf" value="{{ user.student_profile.cpf|cpf|default:'' }}"{% if error %} aria-invalid="true"{% endif %}>{% if error %}<span class="error-text">{{ error }}</span>{% endif %}</div></div><button class="btn btn--primary self-start">Salvar</button></form></section><section class="card card--pad-lg stack gap-18"><h2 class="card__title">Senha</h2><form class="stack gap-18" method="post">{% csrf_token %}<input type="hidden" name="action" value="password"><div class="form-grid form-grid--200"><div class="field"><label class="field__label" for="password_old">Senha atual</label><input class="input" id="password_old" name="password_old" type="password"></div><div class="field"><label class="field__label" for="password_new">Nova senha</label><input class="input" id="password_new" name="password_new" type="password"></div><div class="field"><label class="field__label" for="password_confirm">Confirmar senha</label><input class="input" id="password_confirm" name="password_confirm" type="password"></div></div><button class="btn btn--outline self-start">Atualizar senha</button></form></section><section class="card card--pad-lg stack gap-18"><h2 class="card__title">Meus pedidos</h2>{% if orders %}<div class="table-wrap table-wrap--bare"><table class="table table--plain table--w520"><thead><tr><th>Data</th><th>Curso</th><th>Valor</th><th>Status</th></tr></thead><tbody>{% for order in orders %}<tr><td>{{ order.created_at|date:'d/m/Y' }}</td><td>{{ order.course.title }}</td><td>{{ order.amount|brl }}</td><td><span class="badge badge--md">{{ order.get_status_display }}</span></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty empty--sm">Você ainda não tem pedidos.</div>{% endif %}</section>{% endblock %}
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Minha conta · CETREMER{% endblock %}
+{% block page_title %}Minha conta{% endblock %}
+{% block page_class %}page--gap-24{% endblock %}
+{% block content %}
+<div class="settings-layout">
+  <nav class="vtabs" aria-label="Seções da conta">
+    <a class="vtab" href="?secao=perfil"{% if section == 'perfil' %} aria-current="page"{% endif %}>Perfil</a>
+    {% if is_student %}
+    <a class="vtab" href="?secao=certificado"{% if section == 'certificado' %} aria-current="page"{% endif %}>Dados do certificado{% if not data_ok %} <span class="badge badge--warning">Pendente</span>{% endif %}</a>
+    {% endif %}
+    <a class="vtab" href="?secao=senha"{% if section == 'senha' %} aria-current="page"{% endif %}>Senha e acesso</a>
+    {% if is_student %}
+    <a class="vtab" href="?secao=pedidos"{% if section == 'pedidos' %} aria-current="page"{% endif %}>Pedidos e acessos <span class="badge badge--gray">{{ access_count }}</span></a>
+    <a class="vtab" href="?secao=avisos"{% if section == 'avisos' %} aria-current="page"{% endif %}>Avisos por e-mail</a>
+    {% endif %}
+  </nav>
+
+  <div class="settings-layout__main">
+
+  {% if section == 'perfil' %}
+  {% with f=forms.perfil %}
+  <form class="card card--pad-lg stack gap-18" id="form-perfil" method="post" enctype="multipart/form-data" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}
+    <input type="hidden" name="section" value="perfil">
+    <div class="form-errors" data-form-errors role="alert"{% if not f.errors %} hidden{% endif %}><span data-form-errors-text>{% if f.errors %}Corrija {{ f.errors|length|plural_pt:"campo,campos" }} para salvar.{% endif %}</span></div>
+    <h2 class="card__title">Perfil</h2>
+    <div class="row gap-16">
+      <span class="avatar avatar--64">{% if user_avatar_url %}<img src="{{ user_avatar_url }}" alt="">{% else %}{{ user_initials }}{% endif %}</span>
+      <div class="stack gap-4">
+        <label class="btn btn--secondary btn--xs self-start" for="avatar">Trocar foto</label>
+        <input class="sr-only" type="file" name="avatar" id="avatar" accept="image/png,image/jpeg" data-dirty-label="foto">
+        <span class="hint">JPG ou PNG até 2 MB. Aparece na comunidade.</span>
+        {% for error in f.avatar.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    <div class="form-grid">
+      {% if is_student %}
+      <div class="field">
+        <label class="field__label" for="display_name">Como prefere ser chamada(o)</label>
+        <input class="input" id="display_name" name="display_name" maxlength="40" value="{{ f.display_name.value|default_if_none:'' }}" data-dirty-label="nome de tratamento"{% if f.display_name.errors %} aria-invalid="true"{% endif %}>
+        <span class="hint">Usado nas saudações e na comunidade.</span>
+        {% for error in f.display_name.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      <div class="field">
+        <label class="field__label" for="email">E-mail de acesso</label>
+        <input class="input" id="email" name="email" type="email" value="{{ f.email.value|default_if_none:'' }}" required data-dirty-label="e-mail"{% if f.email.errors %} aria-invalid="true"{% endif %}>
+        <span class="hint">Trocar o e-mail pede confirmação no endereço novo.{% if pending_email %} Aguardando confirmação de {{ pending_email }}.{% endif %}</span>
+        {% for error in f.email.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      {% if is_student %}
+      <div class="field">
+        <label class="field__label" for="whatsapp">WhatsApp</label>
+        <input class="input" id="whatsapp" name="whatsapp" inputmode="tel" value="{{ f.whatsapp.value|default_if_none:'' }}" data-dirty-label="WhatsApp"{% if f.whatsapp.errors %} aria-invalid="true"{% endif %}>
+        <span class="hint">Só para avisos de aula ao vivo, se você permitir.</span>
+        {% for error in f.whatsapp.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </form>
+  {% endwith %}
+
+  {% elif section == 'certificado' %}
+  {% with f=forms.certificado %}
+  <form class="card card--pad-lg stack gap-18" id="form-certificado" method="post" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}
+    <input type="hidden" name="section" value="certificado">
+    <div class="form-errors" data-form-errors role="alert"{% if not f.errors %} hidden{% endif %}><span data-form-errors-text>{% if f.errors %}Corrija {{ f.errors|length|plural_pt:"campo,campos" }} para salvar.{% endif %}</span></div>
+    <div class="row row--between gap-12">
+      <h2 class="card__title">Dados do certificado</h2>
+      {% if not data_ok and pending_certificates %}<span class="badge badge--warning">Pendente para {{ pending_certificates }} certificado{{ pending_certificates|pluralize }}</span>{% endif %}
+    </div>
+    <p class="text-2">Esses dados vão impressos em todos os seus certificados. Depois de emitir um certificado, só o suporte consegue corrigir.</p>
+    <div class="form-grid">
+      <div class="field">
+        <label class="field__label" for="full_name">Nome completo</label>
+        <input class="input" id="full_name" name="full_name" value="{{ f.full_name.value|default_if_none:'' }}" data-dirty-label="nome completo" autocomplete="name"{% if certificate_locked %} readonly{% endif %}{% if f.full_name.errors %} aria-invalid="true"{% endif %}>
+        <span class="hint">{% if certificate_locked %}Já usado em certificado emitido. Para corrigir, fale com o suporte.{% else %}Com acentos, sem abreviar.{% endif %}</span>
+        {% for error in f.full_name.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field">
+        <label class="field__label" for="cpf">CPF</label>
+        <input class="input" id="cpf" name="cpf" inputmode="numeric" autocomplete="off" value="{{ f.cpf.value|default_if_none:''|cpf }}" data-dirty-label="CPF" data-cpf{% if certificate_locked %} readonly{% endif %}{% if f.cpf.errors %} aria-invalid="true"{% endif %}>
+        <span class="field-ok" hidden>{% include 'partials/icon.html' with name='check' size=14 stroke='2.4' %}CPF válido</span>
+        <span class="hint">{% if certificate_locked %}Já usado em certificado emitido. Para corrigir, fale com o suporte.{% else %}Só números ou com pontos, como preferir.{% endif %}</span>
+        {% for error in f.cpf.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    {% if certificate_locked and site.whatsapp_url %}<a class="btn btn--secondary btn--xs self-start" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">Falar com o suporte</a>{% endif %}
+  </form>
+  {% endwith %}
+
+  {% elif section == 'senha' %}
+  {% with f=forms.senha %}
+  <form class="card card--pad-lg stack gap-18" id="form-senha" method="post" data-async>
+    {% csrf_token %}
+    <input type="hidden" name="section" value="senha">
+    <div class="form-errors" data-form-errors role="alert"{% if not f.errors %} hidden{% endif %}><span data-form-errors-text>{% if f.errors %}Corrija {{ f.errors|length|plural_pt:"campo,campos" }} para salvar.{% endif %}</span></div>
+    <h2 class="card__title">Senha e acesso</h2>
+    <div class="form-grid form-grid--200">
+      <div class="field">
+        <label class="field__label" for="old_password">Senha atual</label>
+        <div class="input-wrap"><input class="input" id="old_password" name="password_old" type="password" autocomplete="current-password" required{% if f.password_old.errors %} aria-invalid="true"{% endif %}><button type="button" class="input-wrap__btn" data-reveal="old_password">Mostrar</button></div>
+        {% for error in f.password_old.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field">
+        <label class="field__label" for="new_password1">Nova senha</label>
+        <div class="input-wrap"><input class="input" id="new_password1" name="password_new" type="password" autocomplete="new-password" required{% if f.password_new.errors %} aria-invalid="true"{% endif %}><button type="button" class="input-wrap__btn" data-reveal="new_password1">Mostrar</button></div>
+        <ul class="pw-rules" data-pw-rules="new_password1">
+          <li data-rule="len">Pelo menos 8 caracteres</li>
+          <li data-rule="mix">Letras e números</li>
+          <li data-rule="diff" data-diff-from="old_password">Diferente da senha atual</li>
+        </ul>
+        {% for error in f.password_new.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+      <div class="field">
+        <label class="field__label" for="new_password2">Confirmar nova senha</label>
+        <div class="input-wrap"><input class="input" id="new_password2" name="password_confirm" type="password" autocomplete="new-password" required{% if f.password_confirm.errors %} aria-invalid="true"{% endif %}><button type="button" class="input-wrap__btn" data-reveal="new_password2">Mostrar</button></div>
+        {% for error in f.password_confirm.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
+      </div>
+    </div>
+    <button type="submit" class="btn btn--primary self-start">Atualizar senha</button>
+    <div class="danger-row">
+      <span class="stack gap-2"><span class="fw-600">Sair de todos os aparelhos</span><span class="text-13 muted">Use se você entrou em um computador que não é seu.</span></span>
+      <button type="submit" class="btn btn--danger-outline btn--xs" form="form-sair-outros">Sair dos outros aparelhos</button>
+    </div>
+  </form>
+  <form id="form-sair-outros" method="post" action="{% url 'logout_others' %}" data-async>{% csrf_token %}</form>
+  {% endwith %}
+
+  {% elif section == 'pedidos' %}
+  <div class="card card--clip">
+    <p class="text-2 card--pad-sm">De onde veio cada curso da sua conta. Compras feitas na Hotmart ou Eduzz aparecem aqui depois da migração.</p>
+    <div class="table-wrap table-wrap--bare">
+      <table class="table table--w640">
+        <thead><tr><th>Curso</th><th>Origem</th><th>Liberado em</th><th>Acesso</th></tr></thead>
+        <tbody>
+          {% for row in access_rows %}
+          <tr>
+            <td>{{ row.course.title }}</td>
+            <td><span class="badge badge--gray">{{ row.origin }}</span></td>
+            <td>{{ row.enrollment.enrolled_at|date:"d/m/Y" }}</td>
+            <td>{% if row.enrollment.expires_at %}<span class="badge badge--warning">Até {{ row.enrollment.expires_at|date:"d/m/Y" }}</span>{% else %}<span class="badge badge--success">Vitalício</span>{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="muted">Você ainda não tem cursos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="row row--between gap-12 card--pad-sm">
+      <span class="text-14">Algum curso que você comprou não aparece?</span>
+      {% if site.whatsapp_url %}<a class="btn btn--secondary btn--xs" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">Avisar o suporte</a>{% endif %}
+    </div>
+  </div>
+  <div class="card card--pad-lg stack gap-18">
+    <h2 class="card__title">Meus pedidos</h2>
+    {% if orders %}
+    <div class="table-wrap table-wrap--bare"><table class="table table--plain table--w520"><thead><tr><th>Data</th><th>Curso</th><th>Valor</th><th>Status</th></tr></thead><tbody>{% for order in orders %}<tr><td>{{ order.created_at|date:'d/m/Y' }}</td><td>{{ order.course.title }}</td><td>{{ order.amount|brl }}</td><td><span class="badge badge--md">{{ order.get_status_display }}</span></td></tr>{% endfor %}</tbody></table></div>
+    {% else %}<div class="empty empty--sm">Você ainda não tem pedidos.</div>{% endif %}
+  </div>
+
+  {% elif section == 'avisos' %}
+  {% with f=forms.avisos %}
+  <form class="card card--pad-lg stack gap-18" id="form-avisos" method="post" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}
+    <input type="hidden" name="section" value="avisos">
+    <h2 class="card__title">Avisos por e-mail</h2>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-answers">Respostas às minhas dúvidas</span><span class="text-13 muted">Quando o instrutor ou outro aluno responder.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if f.notify_answers.value|stringformat:'s' == '1' %}true{% else %}false{% endif %}" aria-labelledby="lbl-answers" data-switch-input="notify_answers" data-dirty-label="respostas às dúvidas"></button><input type="hidden" name="notify_answers" id="notify_answers" value="{{ f.notify_answers.value|default:0 }}"></div>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-live">Lembrete de aula ao vivo</span><span class="text-13 muted">1 hora antes, com o link do Google Meet.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if f.notify_live.value|stringformat:'s' == '1' %}true{% else %}false{% endif %}" aria-labelledby="lbl-live" data-switch-input="notify_live" data-dirty-label="lembrete de aula ao vivo"></button><input type="hidden" name="notify_live" id="notify_live" value="{{ f.notify_live.value|default:0 }}"></div>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-cert">Certificado pronto</span><span class="text-13 muted">Quando você concluir um curso.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if f.notify_certificate.value|stringformat:'s' == '1' %}true{% else %}false{% endif %}" aria-labelledby="lbl-cert" data-switch-input="notify_certificate" data-dirty-label="certificado pronto"></button><input type="hidden" name="notify_certificate" id="notify_certificate" value="{{ f.notify_certificate.value|default:0 }}"></div>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-marketing">Novos cursos e condições especiais</span><span class="text-13 muted">No máximo 2 por mês.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if f.notify_marketing.value|stringformat:'s' == '1' %}true{% else %}false{% endif %}" aria-labelledby="lbl-marketing" data-switch-input="notify_marketing" data-dirty-label="novos cursos e condições especiais"></button><input type="hidden" name="notify_marketing" id="notify_marketing" value="{{ f.notify_marketing.value|default:0 }}"></div>
+  </form>
+  {% endwith %}
+  {% endif %}
+
+  {% if section == 'perfil' or section == 'certificado' or section == 'avisos' %}
+  <div class="dirtybar" id="dirtybar" hidden role="region" aria-label="Alterações não salvas">
+    {% include 'partials/icon.html' with name='alert' size=20 class='dirtybar__icon' %}
+    <span class="dirtybar__msg" data-dirty-msg>Alterações não salvas</span>
+    <button type="button" class="dirtybar__discard" data-dirty-discard>Descartar</button>
+    <button type="submit" class="btn btn--primary" form="form-{{ section }}">Salvar alterações</button>
+  </div>
+  {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -17,13 +17,13 @@ class CommunityEnrollmentTests(TestCase):
         self.client.force_login(self.student)
 
     def test_hub_rejects_unenrolled_course_but_allows_general(self):
-        response = self.client.post(reverse('create_hub_post'), {
-            'title': 'Topic', 'content': 'Post', 'course_id': str(self.course.id),
+        response = self.client.post(reverse('community_create'), {
+            'title': 'Topic', 'content': 'Post', 'course': str(self.course.id),
         })
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 302)
         self.assertFalse(CommunityPost.objects.exists())
-        response = self.client.post(reverse('create_hub_post'), {
-            'title': 'Topic', 'content': 'Post', 'course_id': 'general',
+        response = self.client.post(reverse('community_create'), {
+            'title': 'Topic', 'content': 'Post', 'course': 'general',
         })
         self.assertEqual(response.status_code, 302)
         self.assertIsNone(CommunityPost.objects.get().course)
@@ -39,6 +39,6 @@ class CommunityEnrollmentTests(TestCase):
 
     def test_comment_on_course_post_requires_enrollment(self):
         post = CommunityPost.objects.create(course=self.course, author=self.student, title='Topic', content='Post')
-        response = self.client.post(reverse('create_comment', kwargs={'post_id': post.id}), {'content': 'Reply'})
+        response = self.client.post(reverse('community_reply', kwargs={'post_id': post.id}), {'content': 'Reply'})
         self.assertEqual(response.status_code, 403)
         self.assertFalse(post.comments.exists())

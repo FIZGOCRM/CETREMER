@@ -1,0 +1,7 @@
+{% load ui %}{% comment %}Barra de alterações não salvas de uma seção das Configurações. Contexto: form_id, save_label.{% endcomment %}
+<div class="dirtybar" id="dirtybar" hidden role="region" aria-label="Alterações não salvas">
+  {% include 'partials/icon.html' with name='alert' size=20 class='dirtybar__icon' %}
+  <span class="dirtybar__msg" data-dirty-msg>Alterações não salvas</span>
+  <button type="button" class="dirtybar__discard" data-dirty-discard>Descartar</button>
+  <button type="submit" class="btn btn--primary" form="{{ form_id }}">{{ save_label }}</button>
+</div>

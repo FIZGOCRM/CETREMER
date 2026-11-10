@@ -1,1 +1,117 @@
-﻿{% extends 'base_aluno.html' %}{% load cetremer %}{% block title %}Comunidade · CETREMER{% endblock %}{% block page_title %}Comunidade{% endblock %}{% block content %}<div class="split"><main class="split__main split__main--480 gap-16"><div class="chips"><a class="chip" href="?curso=geral"{% if current_filter == 'geral' %} aria-current="page"{% endif %}>Discussão geral</a><a class="chip" href="?curso=todos"{% if current_filter == 'todos' %} aria-current="page"{% endif %}>Todos</a>{% for c in my_courses %}<a class="chip" href="?curso={{ c.slug }}"{% if current_filter == c.slug %} aria-current="page"{% endif %}>{{ c.short_name|default:c.title }}</a>{% endfor %}</div>{% for p in posts %}<article class="card post"><div class="post__meta"><span class="avatar avatar--32 avatar--soft" aria-hidden="true">{{ p.author_display|iniciais }}</span><span class="post__author">{{ p.author_display }}</span><span>· {{ p.created_at|timesince }} atrás</span><span class="badge {% if p.course %}{{ p.course.category.badge_class|default:'badge--blue' }}{% else %}badge--gray{% endif %}">{% if p.course %}{{ p.course.short_name|default:p.course.title }}{% if p.lesson %} · Aula {{ p.lesson_position }}{% endif %}{% else %}Discussão geral{% endif %}</span></div><h2 class="post__title">{{ p.title }}</h2><p class="post__excerpt">{{ p.content }}</p><div class="post__foot">{% if p.is_answered %}<span class="post__answered">{% include 'partials/icon.html' with name='check' size=16 stroke='2.4' %}Respondida pelo instrutor</span>{% endif %}<span class="muted">{{ p.comments_count }} respostas</span></div></article>{% empty %}<div class="empty">Ainda não há perguntas por aqui. Seja o primeiro a perguntar.</div>{% endfor %}</main><aside class="split__side split__side--320 card card--pad-md stack gap-14"><h2 class="card__title">Nova pergunta</h2><form class="stack gap-14" method="post" action="{% url 'create_hub_post' %}">{% csrf_token %}<div class="field"><label class="field__label" for="course_id">Sobre</label><select class="select" id="course_id" name="course_id"><option value="general">Discussão geral</option>{% for c in my_courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select><span class="hint">Só aparecem os cursos em que você está matriculado.</span></div><div class="field"><label class="field__label" for="title">Título</label><input class="input" id="title" name="title" required></div><div class="field"><label class="field__label" for="content">Detalhes</label><textarea class="textarea" id="content" name="content" required></textarea></div><button class="btn btn--primary btn--lg">Publicar</button></form></aside></div>{% endblock %}
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Comunidade · CETREMER{% endblock %}
+{% block page_title %}Comunidade{% endblock %}
+{% block page_class %}page--gap-24{% endblock %}
+{% block content %}
+<div class="split">
+  <main class="split__main gap-16">
+    <div class="toolbar">
+      <form method="get" class="grow">
+        <label class="sr-only" for="q">Buscar nas dúvidas</label>
+        <input class="input" type="search" id="q" name="q" value="{{ q }}" placeholder="Buscar nas dúvidas">
+        {% if situation != 'todas' %}<input type="hidden" name="situacao" value="{{ situation }}">{% endif %}
+        {% if course_filter %}<input type="hidden" name="curso" value="{{ course_filter }}">{% endif %}
+      </form>
+      <a class="btn btn--primary" href="?nova=1" data-drawer-open="drawer-nova">{% include 'partials/icon.html' with name='plus' size=16 %}Nova pergunta</a>
+    </div>
+    <div class="row row--between gap-12">
+      <div class="seg" role="group" aria-label="Situação">
+        <a class="seg__btn"{% if situation == 'todas' %} aria-current="page"{% endif %} href="?{% if course_filter %}curso={{ course_filter }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}">Todas</a>
+        <a class="seg__btn"{% if situation == 'sem-resposta' %} aria-current="page"{% endif %} href="?situacao=sem-resposta{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Sem resposta</a>
+        <a class="seg__btn"{% if situation == 'respondidas' %} aria-current="page"{% endif %} href="?situacao=respondidas{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Respondidas</a>
+        <a class="seg__btn"{% if situation == 'minhas' %} aria-current="page"{% endif %} href="?situacao=minhas{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Minhas</a>
+      </div>
+      <div class="chips">
+        <a class="chip"{% if not course_filter %} aria-current="page"{% endif %} href="?{% if situation != 'todas' %}situacao={{ situation }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}">Todos os cursos</a>
+        {% for c in my_courses %}<a class="chip"{% if course_filter == c.slug %} aria-current="page"{% endif %} href="?curso={{ c.slug }}{% if situation != 'todas' %}&situacao={{ situation }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ c.short_name|default:c.title }}</a>{% endfor %}
+        <a class="chip"{% if course_filter == 'geral' %} aria-current="page"{% endif %} href="?curso=geral{% if situation != 'todas' %}&situacao={{ situation }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Discussão geral</a>
+      </div>
+    </div>
+
+    {% if posts %}
+    <div class="card card--clip">
+      {% for post in posts %}
+      <a class="list-row-link thread{% if post.has_unread_answer and post.author_id == user.id %} is-unread{% endif %}{% if post.is_new %} is-new{% endif %}"
+         href="?duvida={{ post.id }}" data-drawer-url="?duvida={{ post.id }}&parcial=1" data-drawer-target="drawer-conversa" data-drawer-param="duvida" data-drawer-value="{{ post.id }}">
+        <span class="avatar" aria-hidden="true">{{ post.author_name|iniciais }}</span>
+        <span class="thread__text">
+          <span class="row gap-8">{% if post.is_pinned %}<span class="text-warning" aria-label="Fixada">{% include 'partials/icon.html' with name='star' size=16 %}</span>{% endif %}<span class="thread__title">{{ post.title }}</span>{% if post.is_answered_cache %}<span class="badge badge--success">Respondida pelo instrutor</span>{% else %}<span class="badge badge--warning">Aguardando resposta</span>{% endif %}</span>
+          <span class="thread__preview">{{ post.content|truncatechars:160 }}</span>
+          <span class="text-13 muted">{{ post.author_name }} · {% if post.course %}{{ post.course.short_name|default:post.course.title }}{% else %}Discussão geral{% endif %}{% if post.lesson_position %} · Aula {{ post.lesson_position }}{% endif %}{% if post.lesson %} · {{ post.lesson.title }}{% endif %} · {{ post.created_at|timesince }} atrás</span>
+        </span>
+        <span class="thread__replies">{% include 'partials/icon.html' with name='chat' size=16 %}{{ post.replies }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card empty-state">
+      <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='chat' size=24 %}</span>
+      {% if situation == 'minhas' %}
+      <span class="empty-state__title">Você ainda não perguntou nada aqui</span>
+      <span class="empty-state__text">Use o botão Nova pergunta ou pergunte direto da aula.</span>
+      {% else %}
+      <span class="empty-state__title">Nenhuma dúvida com esses filtros</span>
+      <span class="empty-state__text">Tente outro curso ou outra situação.</span>
+      {% endif %}
+      {% if has_filters %}<a class="btn btn--secondary btn--xs" href="{% url 'community' %}">Limpar filtros</a>{% endif %}
+    </div>
+    {% endif %}
+  </main>
+
+  <aside class="split__side split__side--300 stack gap-16">
+    <div class="card card--pad-sm stack gap-12">
+      <h2 class="card__title">Como funciona</h2>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='check-circle' size=18 %}<span class="text-14">Pergunte de dentro da aula para a dúvida já ir com o nome da aula.</span></div>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='mail' size=18 %}<span class="text-14">Você recebe um e-mail quando o instrutor responder.</span></div>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='star' size=18 %}<span class="text-14">Resposta do instrutor aparece em destaque, no topo da conversa.</span></div>
+    </div>
+    <div class="card card--pad-sm stack gap-8">
+      <h2 class="card__title">Combinados</h2>
+      <p class="text-14 muted">Sem dados de pacientes, sem prescrição individual e sem divulgação. A equipe pode ocultar posts fora das regras.</p>
+    </div>
+  </aside>
+</div>
+
+<dialog class="drawer drawer--600" id="drawer-conversa" aria-labelledby="conversa-title"{% if open_post %} data-autoopen="duvida"{% endif %}>
+  <div data-drawer-content>{% if thread %}{% include 'community/_thread_drawer.html' with post=thread.post is_author=thread.is_author official=thread.official others=thread.others %}{% endif %}</div>
+</dialog>
+
+<dialog class="drawer drawer--560" id="drawer-nova" aria-labelledby="nova-title"{% if compose_open %} data-autoopen="nova"{% endif %}>
+  <form class="stack" method="post" action="{% url 'community_create' %}" data-async>
+    {% csrf_token %}
+    <div class="drawer__head">
+      <h2 class="drawer__title" id="nova-title">Nova pergunta</h2>
+      <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+    </div>
+    <div class="drawer__body">
+      <div class="field">
+        <label class="field__label" for="nova-curso">Curso</label>
+        <select class="select" id="nova-curso" name="course">
+          {% for c in my_courses %}<option value="{{ c.id }}"{% if compose_course.id == c.id %} selected{% endif %}>{{ c.title }}</option>{% endfor %}
+          <option value="general"{% if not compose_course %} selected{% endif %}>Discussão geral</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-aula">Aula (opcional)</label>
+        <select class="select" id="nova-aula" name="lesson">
+          <option value="">Nenhuma aula</option>
+          {% for course, group in lessons_by_course %}<optgroup label="{{ course.title }}">{% for lesson in group %}<option value="{{ lesson.id }}"{% if compose_lesson.id == lesson.id %} selected{% endif %}>Aula {{ lesson.position }} · {{ lesson.title }}</option>{% endfor %}</optgroup>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-titulo">Título</label>
+        <input class="input" id="nova-titulo" name="title" maxlength="200" required autocomplete="off" data-suggest-url="{% url 'community_suggest' %}" data-suggest-box="#suggest-box">
+        <div class="suggest-box" id="suggest-box" hidden></div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-detalhes">Detalhes</label>
+        <textarea class="textarea" id="nova-detalhes" name="content" rows="5" required placeholder="Conte o contexto. Se for sobre um trecho do vídeo, diga o minuto."></textarea>
+      </div>
+    </div>
+    <div class="drawer__foot">
+      <button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Publicar pergunta</button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

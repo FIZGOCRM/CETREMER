@@ -1,1 +1,87 @@
-﻿{% extends 'base_aluno.html' %}{% load cetremer %}{% block title %}Aulas ao vivo · CETREMER{% endblock %}{% block page_title %}Aulas ao vivo{% endblock %}{% block content %}<p class="page-intro page-intro--max">Encontros ao vivo dos cursos em que você está matriculado. O link do Google Meet abre na hora marcada.</p>{% for c in live_courses %}<section class="card card--clip"><div class="card--pad row row--between gap-16"><div class="row gap-16"><span class="course-tile course-tile--56 {{ c.cover_class }}">{{ c.short_name|default:c.title }}</span><div class="stack"><h2 class="card__title card__title--lg">{{ c.title }}</h2><span class="text-14 muted">Encontros ao vivo deste curso</span></div></div>{% if c.live_meet_url %}<a class="btn btn--primary btn--lg" href="{{ c.live_meet_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='video' size=18 %}Entrar no Google Meet</a>{% endif %}</div>{% if c.calendar_embed_url %}<div class="card__divider"></div><div class="card--pad stack gap-12"><h3 class="text-15 fw-600">Agenda</h3><iframe class="calendar-embed" src="{{ c.calendar_embed_url }}" title="Agenda de aulas ao vivo de {{ c.title }}" loading="lazy"></iframe><a class="link-strong text-14 self-start" href="{{ c.live_calendar_url }}" target="_blank" rel="noopener">Adicionar ao meu Google Agenda</a></div>{% endif %}</section>{% empty %}<div class="empty">Nenhum dos seus cursos tem aulas ao vivo no momento.</div>{% endfor %}{% for c in other_enrolled %}<section class="card card--dashed status-card"><span class="course-tile course-tile--56 {{ c.cover_class }}">{{ c.short_name|default:c.title }}</span><div class="stack"><h2 class="card__title">{{ c.title }}</h2><p>Este curso não tem encontros ao vivo agendados.</p></div></section>{% endfor %}{% endblock %}
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Aulas ao vivo · CETREMER{% endblock %}
+{% block crumbs %}<a href="{% url 'dashboard' %}">Área do aluno</a><span aria-hidden="true">/</span><span>Aulas ao vivo</span>{% endblock %}
+{% block page_title %}Aulas ao vivo{% endblock %}
+{% block page_class %}page--gap-32{% endblock %}
+{% block content %}
+{% if not has_any %}
+<div class="card empty-state">
+  <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='video' size=24 %}</span>
+  <span class="empty-state__title">Nenhum dos seus cursos tem aulas ao vivo no momento.</span>
+</div>
+{% else %}
+
+{% if next_session %}
+{% with s=next_session %}
+<section class="card live-next{% if s.live_state == 'soon' %} is-soon{% elif s.live_state == 'live' %} is-live{% endif %}" aria-labelledby="proximo-encontro">
+  <div class="date-tile"><span class="date-tile__wd">{{ s.wd }}</span><span class="date-tile__day">{{ s.day }}</span><span class="date-tile__mon">{{ s.mon }}</span></div>
+  <div class="live-next__body">
+    <div class="row gap-8"><span class="eyebrow" id="proximo-encontro">Próximo encontro</span><span class="badge {{ s.badge_class }}">{{ s.badge }}</span></div>
+    <h2 class="course-hero-v2__title text-24">{{ s.course.title }} · {{ s.title }}</h2>
+    <div class="meta-line">
+      <span class="meta-line__item">{% include 'partials/icon.html' with name='clock' size=16 %}{{ s.time_range }} (horário de Brasília)</span>
+      {% if s.join_url %}<span class="meta-line__item">{% include 'partials/icon.html' with name='video' size=16 %}Google Meet</span>{% endif %}
+      {% if s.host_name %}<span class="meta-line__item">{% include 'partials/icon.html' with name='user' size=16 %}{{ s.host_name }}</span>{% endif %}
+    </div>
+    <div class="row gap-10">
+      {% if s.join_url %}
+        {% if s.live_state == 'scheduled' %}
+        <a class="btn btn--primary" aria-disabled="true" data-enable-at="{{ s.enable_at }}" data-enabled-href="{{ s.join_url }}"><span data-lock-icon>{% include 'partials/icon.html' with name='lock' size=16 %}</span>Entrar no Google Meet</a>
+        {% else %}
+        <a class="btn btn--primary" href="{{ s.join_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='video' size=16 %}Entrar no Google Meet</a>
+        {% endif %}
+      {% endif %}
+      <a class="btn btn--secondary" href="{{ s.calendar_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='calendar' size=16 %}Adicionar ao Google Agenda</a>
+      <a class="btn btn--ghost" href="{{ s.ics_url }}">Baixar convite (.ics)</a>
+    </div>
+    <span class="text-13 muted" data-enable-hint data-enabled-hint="A sala já está aberta. O link abre o Google Meet em uma nova aba.">{{ s.hint }}</span>
+  </div>
+</section>
+{% endwith %}
+{% endif %}
+
+<section class="stack gap-14" aria-labelledby="agenda">
+  <div class="row row--between">
+    <h2 class="section__title" id="agenda">Agenda</h2>
+    <div class="chips">
+      <a class="chip" href="{% url 'live_classes' %}"{% if not selected_course %} aria-current="page"{% endif %}>Todos os cursos</a>
+      {% for course in courses %}<a class="chip" href="?curso={{ course.slug }}"{% if selected_course.id == course.id %} aria-current="page"{% endif %}>{{ course.short_name|default:course.title }}</a>{% endfor %}
+    </div>
+  </div>
+  {% if upcoming %}
+  <div class="card card--clip">
+    {% for s in upcoming %}
+    <div class="list-row-link">
+      <div class="date-mini"><span class="date-mini__wd">{{ s.wd }}</span><span class="date-mini__day">{{ s.day }}</span><span class="date-mini__mon">{{ s.mon }}</span></div>
+      <span class="grow stack gap-4"><span class="fw-600">{{ s.course.short_name|default:s.course.title }} · {{ s.title }}</span><span class="text-13 muted">{{ s.time_range }}{% if s.join_url %} · Google Meet{% endif %} (horário de Brasília)</span></span>
+      {% if forloop.first %}<span class="badge badge--blue">Próximo</span>{% else %}<span class="badge badge--gray">Agendado</span>{% endif %}
+      <a class="btn btn--secondary btn--xs" href="{{ s.calendar_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='calendar' size=16 %}Agenda</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif empty_course %}
+  <div class="card empty-state">
+    <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='calendar' size=24 %}</span>
+    <span class="empty-state__title">O {{ empty_course.short_name|default:empty_course.title }} não tem encontros ao vivo marcados</span>
+    <span class="empty-state__text">Quando a equipe marcar, você recebe um e-mail com data e link, e o encontro aparece aqui.</span>
+  </div>
+  {% endif %}
+</section>
+
+{% if recordings %}
+<section class="stack gap-14" aria-labelledby="gravacoes">
+  <h2 class="section__title" id="gravacoes">Gravações</h2>
+  <p class="page-intro">Perdeu um encontro? A gravação fica disponível por 30 dias.</p>
+  <div class="course-grid course-grid--320">
+    {% for s in recordings %}
+    <article class="card recording">
+      <a class="recording__cover" href="{{ s.recording_url }}" target="_blank" rel="noopener" aria-label="Assistir à gravação: {{ s.title }}">{% include 'partials/icon.html' with name='play' size=32 %}<span class="recording__len">{{ s.length }}</span></a>
+      <div class="card--pad-sm stack gap-4"><span class="fw-600">{{ s.course.short_name|default:s.course.title }} · {{ s.title }}</span><span class="text-13 muted">Gravado em {{ s.starts_at|date:"d/m" }} · disponível até {{ s.available_until|date:"d/m" }}</span></div>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% endif %}
+{% endblock %}

@@ -1,1 +1,79 @@
-{% extends 'base_admin.html' %}{% block page_title %}Importar alunos{% endblock %}{% block topbar_eyebrow %}<a class="topbar__eyebrow" href="{% url 'painel:students' %}">Alunos</a>{% endblock %}{% block page_class %}page--w980 page--gap-20{% endblock %}{% block content %}<section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">1</span><h2 class="step-title">Prepare a planilha</h2></div><p>Use as colunas nome, email e cpf. Aceitamos CSV separado por vírgula ou ponto e vírgula.</p><a class="btn btn--secondary self-start" href="/static/modelos/importar-alunos.csv" download>Baixar modelo CSV</a></section><section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">2</span><h2 class="step-title">Escolha os cursos e envie o arquivo</h2></div><form class="stack gap-16" method="post" enctype="multipart/form-data">{% csrf_token %}<fieldset class="fieldset"><legend>Liberar acesso a</legend><div class="checks-inline">{% for c in courses %}<label class="check check--inline"><input type="checkbox" name="courses" value="{{ c.id }}">{{ c.title }}</label>{% endfor %}</div></fieldset><label class="dropzone dropzone--lg" data-dropzone><input class="sr-only" type="file" name="file" accept=".csv" required><span data-dropzone-name>Arraste o CSV ou escolha no computador</span></label><button class="btn btn--primary self-start">Ler arquivo</button></form></section>{% if preview %}<section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">3</span><h2 class="step-title">Confira antes de importar</h2></div><div class="row gap-10"><span class="badge badge--lg badge--success">{{ summary.new }} novos</span><span class="badge badge--lg badge--blue">{{ summary.existing }} já cadastrados, ganham o curso</span><span class="badge badge--lg badge--danger">{{ summary.error }} com erro, serão ignorados</span></div><div class="table-wrap table-wrap--flat"><table class="table table--compact table--w560"><thead><tr><th>Nome</th><th>E-mail</th><th>Situação</th></tr></thead><tbody>{% for row in preview.rows|slice:':50' %}<tr><td>{{ row.name }}</td><td>{{ row.email }}</td><td class="fw-600">{{ row.status }}</td></tr>{% endfor %}</tbody></table></div>{% if preview.rows|length > 50 %}<p>e mais linhas</p>{% endif %}<form class="stack gap-12" method="post">{% csrf_token %}<label class="check"><input type="checkbox" name="send_email">Enviar e-mail de acesso agora</label><button class="btn btn--primary btn--lg self-start" name="action" value="confirm">Importar alunos</button></form></section>{% endif %}{% endblock %}
+{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Importar alunos (HANDOFF-v2 8.8). Contexto: step (1 a 4), steps, origins, state, roles, courses, columns, recognized, total_columns,
+e no passo 4: summary, selected_courses. O estado fica na sessão; o passo vai em ?passo=.
+{% endcomment %}
+{% block admin_title %}Importar alunos{% endblock %}
+{% block crumbs %}<a href="{% url 'painel:students' %}">Alunos</a> / Importar{% endblock %}
+{% block content %}
+<div class="stack gap-4">
+  <h1 class="page-title">Importar alunos</h1>
+  <p class="page-intro">Nada é importado até você confirmar no último passo.</p>
+</div>
+
+<ol class="stepper" aria-label="Passos da importação">
+  {% for number, label in steps %}
+  <li class="stepper__item{% if number < step %} is-done{% elif number == step %} is-current{% endif %}"{% if number == step %} aria-current="step"{% endif %}><span class="stepper__num">{% if number < step %}{% include 'partials/icon.html' with name='check' size=14 stroke='2.6' %}{% else %}{{ number }}{% endif %}</span>{{ label }}</li>
+  {% endfor %}
+</ol>
+
+{% if step == 1 %}
+<form class="card card--pad stack gap-16" method="post" enctype="multipart/form-data" action="{% url 'painel:students_import' %}">
+  {% csrf_token %}
+  <div class="stack gap-8"><span class="field__label" id="origem-label">Origem da lista</span>
+    <div class="seg" role="radiogroup" aria-labelledby="origem-label">{% for value, label in origins %}<label class="seg__btn"><input type="radio" name="origin" value="{{ value }}"{% if value == state.origin or not state and value == 'eduzz' %} checked{% endif %}>{{ label }}</label>{% endfor %}</div></div>
+  <label class="dropzone dropzone--lg" data-dropzone><input class="sr-only" type="file" name="file" accept=".csv,text/csv" required><span data-dropzone-name>Envie o CSV exportado</span></label>
+  <div class="stack gap-8">
+    <details><summary class="fw-600">Como exportar da Eduzz</summary><ol class="stack gap-4"><li>No painel da Eduzz, abra o relatório de vendas ou de clientes.</li><li>Escolha o período e o produto e exporte em CSV.</li><li>Envie o arquivo aqui.</li></ol></details>
+    <details><summary class="fw-600">Como exportar da Hotmart</summary><ol class="stack gap-4"><li>No painel da Hotmart, abra o relatório de vendas.</li><li>Escolha o período e o produto e exporte em CSV.</li><li>Envie o arquivo aqui.</li></ol></details>
+  </div>
+  <div class="row row--between gap-12"><a class="btn btn--quiet" href="{% url 'painel:students' %}">Cancelar</a><button type="submit" class="btn btn--primary">Continuar</button></div>
+</form>
+
+{% elif step == 2 %}
+<form class="card card--pad stack gap-16" method="post" action="{% url 'painel:students_import' %}?passo=2">
+  {% csrf_token %}
+  <p class="text-14">Reconhecemos {{ recognized }} de {{ total_columns }} colunas. Ajuste se algo estiver errado.</p>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Coluna no arquivo</th><th>Exemplo</th><th>Usar como</th></tr></thead>
+    <tbody>{% for column in columns %}<tr>
+      <td class="fw-600">{{ column.header }}</td><td class="muted">{{ column.example }}</td>
+      <td><label class="sr-only" for="col-{{ column.index }}">Usar a coluna {{ column.header }} como</label><select class="select" id="col-{{ column.index }}" name="col_{{ column.index }}">{% for value, label in roles %}<option value="{{ value }}"{% if value == column.role %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></td>
+    </tr>{% endfor %}</tbody>
+  </table></div>
+  <span class="hint">E-mail é obrigatório. Nome e CPF são opcionais, mas o certificado só sai com os dois.</span>
+  <div class="row row--between gap-12"><a class="btn btn--quiet" href="{% url 'painel:students_import' %}?passo=1">Voltar</a><span class="text-13 muted">Passo 2 de 4</span><button type="submit" class="btn btn--primary">Continuar</button></div>
+</form>
+
+{% elif step == 3 %}
+<form class="card card--pad stack gap-16" method="post" action="{% url 'painel:students_import' %}?passo=3">
+  {% csrf_token %}
+  <fieldset class="fieldset"><legend class="field__label">Liberar acesso a</legend>
+    <div class="stack gap-8">{% for c in courses %}<label class="check"><input type="checkbox" name="courses" value="{{ c.id }}"{% if c.id in state.course_ids %} checked{% endif %}> {{ c.title }}</label>{% endfor %}</div></fieldset>
+  <label class="check"><input type="checkbox" name="send_email" value="1"{% if state.send_email %} checked{% endif %}> Enviar e-mail de acesso agora</label>
+  <div class="row row--between gap-12"><a class="btn btn--quiet" href="{% url 'painel:students_import' %}?passo=2">Voltar</a><span class="text-13 muted">Passo 3 de 4</span><button type="submit" class="btn btn--primary">Continuar</button></div>
+</form>
+
+{% else %}
+<div class="metric-grid">
+  <div class="metric metric--sm"><span class="metric__label">Novos alunos</span><strong class="metric__value">{{ summary.new }}</strong></div>
+  <div class="metric metric--sm"><span class="metric__label">Já cadastrados</span><strong class="metric__value">{{ summary.existing }}</strong><span class="metric__foot">recebem os cursos</span></div>
+  <div class="metric metric--sm"><span class="metric__label">Ignorados</span><strong class="metric__value">{{ summary.ignored }}</strong><span class="metric__foot">{% if summary.invalid %}{{ summary.invalid }} com e-mail inválido{% endif %}{% if summary.duplicate %} · {{ summary.duplicate }} repetidos{% endif %}{% if summary.other_account %} · {{ summary.other_account }} de outra conta{% endif %}</span></div>
+</div>
+<p class="text-14">Cursos: {% for course in selected_courses %}{{ course.short_name|default:course.title }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if state.send_email %} · com e-mail de acesso{% endif %}</p>
+{% if summary.problems %}
+<section class="card card--clip" aria-labelledby="problemas">
+  <div class="task-list__head"><h2 class="card__title" id="problemas">Linhas com problema</h2><span class="text-13 muted">{{ summary.problems_total|plural_pt:"linha,linhas" }}{% if summary.problems_total > summary.problems|length %} · mostrando {{ summary.problems|length }}{% endif %}</span></div>
+  <div class="table-wrap table-wrap--bare"><table class="table"><thead><tr><th>Linha</th><th>E-mail</th><th>Nome</th><th>Problema</th></tr></thead><tbody>
+    {% for row in summary.problems %}<tr><td>{{ row.line }}</td><td>{{ row.email|default:"–" }}</td><td>{{ row.name|default:"–" }}</td><td class="text-danger">{{ row.reason }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</section>
+{% endif %}
+<form class="row row--between gap-12" method="post" action="{% url 'painel:students_import' %}?passo=4" data-busy-label="Importando {{ summary.total_ok|plural_pt:'aluno,alunos' }}…">
+  {% csrf_token %}
+  <a class="btn btn--quiet" href="{% url 'painel:students_import' %}?passo=3">Voltar</a>
+  <span class="text-13 muted">Passo 4 de 4</span>
+  <button type="submit" class="btn btn--primary"{% if not summary.total_ok %} disabled{% endif %}>Importar {{ summary.total_ok|plural_pt:"aluno,alunos" }}</button>
+</form>
+{% endif %}
+{% endblock %}

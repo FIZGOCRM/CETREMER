@@ -146,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         // Redirect to the success dashboard
                         window.location.href = data.redirect_url;
                     } else {
-                        alert(data.message || "Falha na verificação do cartão. Por favor, tente novamente.");
+                        CTM.toast(data.message || "Falha na verificação do cartão. Por favor, tente novamente.", { kind: "error" });
                         modalOverlay.close();
                     }
                 })

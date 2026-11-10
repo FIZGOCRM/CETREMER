@@ -28,9 +28,8 @@ class FirstAccessTests(TestCase):
 
     def create_student_in_panel(self):
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('painel:students'), {
-            'action': 'enroll', 'email': 'aluna@example.com',
-            'full_name': 'Aluna Teste', 'course_id': self.course.id,
+        response = self.client.post(reverse('painel:student_enroll'), {
+            'email': 'aluna@example.com', 'full_name': 'Aluna Teste', 'course': self.course.id,
         }, follow=True)
         self.assertEqual(response.status_code, 200)
         code = re.search(r'\b\d{10}\b', response.content.decode())
@@ -75,8 +74,8 @@ class FirstAccessTests(TestCase):
             self.assertContains(self.client.post(url, data), 'Código inválido')
         self.assertContains(self.client.post(url, {**data, 'code': code}), 'Código inválido')
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('painel:students'), {
-            'action': 'generate_first_access', 'student_id': user.id,
+        response = self.client.post(reverse('painel:student_action', args=[user.id]), {
+            'action': 'generate_first_access',
         }, follow=True)
         replacement = re.search(r'\b\d{10}\b', response.content.decode()).group()
         self.client.logout()
@@ -89,8 +88,8 @@ class FirstAccessTests(TestCase):
         user.set_unusable_password()
         user.save(update_fields=['password'])
         self.client.force_login(self.admin)
-        response = self.client.post(reverse('painel:students'), {
-            'action': 'generate_first_access', 'student_id': user.id,
+        response = self.client.post(reverse('painel:student_action', args=[user.id]), {
+            'action': 'generate_first_access',
         }, follow=True)
         self.assertRegex(response.content.decode(), r'\b\d{10}\b')
         self.assertEqual(len(mail.outbox), 0)
@@ -98,8 +97,8 @@ class FirstAccessTests(TestCase):
     def test_explicit_email_send_reports_failure_when_backend_returns_zero(self):
         from unittest.mock import patch
         user, _ = self.create_student_in_panel()
-        with patch('painel.views.send_mail', return_value=0):
-            response = self.client.post(reverse('painel:students'), {
-                'action': 'resend_access', 'student_id': user.id,
+        with patch('painel.access.send_mail', return_value=0):
+            response = self.client.post(reverse('painel:student_action', args=[user.id]), {
+                'action': 'resend_access',
             }, follow=True)
         self.assertContains(response, 'não foi enviado')

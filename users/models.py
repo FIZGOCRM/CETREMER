@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
+from django.utils import timezone
 from django.dispatch import receiver
 from .validators import only_digits, validate_cpf
 
@@ -17,6 +19,7 @@ class User(AbstractUser):
         default=Role.STUDENT
     )
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    pending_email = models.EmailField(blank=True)  # troca de e-mail aguardando confirmação no endereço novo
     bio = models.TextField(blank=True)
 
     def __str__(self):
@@ -30,6 +33,16 @@ class StudentProfile(models.Model):
     full_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome Completo")
     cpf = models.CharField(max_length=11, blank=True, null=True, verbose_name="CPF")
     address = models.TextField(blank=True, null=True, verbose_name="Endereço")
+    display_name = models.CharField(max_length=40, blank=True)
+    whatsapp = models.CharField(max_length=20, blank=True)
+    notify_answers = models.BooleanField(default=True)
+    notify_live = models.BooleanField(default=True)
+    notify_certificate = models.BooleanField(default=True)
+    notify_marketing = models.BooleanField(default=False)
+    dismissed_steps = models.JSONField(default=list, blank=True)
+    staff_notes = models.TextField(blank=True)  # anotações internas da equipe (ficha do aluno, HANDOFF-v2 8.7)
+    first_access_at = models.DateTimeField(null=True, blank=True)
+    access_email_sent_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Student: {self.user.username} - Level {self.level}"
@@ -64,6 +77,7 @@ class CreatorProfile(models.Model):
     ai_tutor_enabled = models.BooleanField(default=False, verbose_name="Ativar Tutor de IA?")
     certificate_signature_name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Nome para Assinatura do Certificado")
     certificate_signature_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cargo da Assinatura")
+    notify_new_questions = models.BooleanField(default=False, verbose_name="Me avisar por e-mail a cada nova dúvida")
 
     def __str__(self):
         return f"Creator: {self.company_name or self.user.username}"
@@ -88,6 +102,7 @@ class SiteSettings(models.Model):
     email_use_tls = models.BooleanField(default=True)
     signer_name = models.CharField(max_length=120, blank=True)
     signer_role = models.CharField(max_length=120, blank=True)
+    signer_registration = models.CharField(max_length=60, blank=True)  # registro profissional do responsável técnico (HANDOFF-v2 8.11)
     signature_image = models.ImageField(upload_to='site/', blank=True)
 
     @classmethod
@@ -101,6 +116,25 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.school_name
+
+
+class Notification(models.Model):
+    KIND = [('answer', 'Resposta'), ('live', 'Aula ao vivo'), ('certificate', 'Certificado'),
+            ('module', 'Módulo liberado'), ('access', 'Acesso')]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    kind = models.CharField(max_length=20, choices=KIND)
+    title = models.CharField(max_length=120)
+    meta = models.CharField(max_length=160, blank=True)
+    url = models.CharField(max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['user', 'read_at'])]
+
+    def __str__(self):
+        return f'{self.user_id}: {self.title}'
 
 
 class FirstAccessCode(models.Model):
@@ -125,3 +159,12 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.is_superuser:
             # Create a default creator profile for admin to manage items
             CreatorProfile.objects.create(user=instance, company_name="Admin Academy")
+
+
+@receiver(user_logged_in)
+def remember_first_access(sender, user, **kwargs):
+    """Guarda o primeiro login do aluno (ficha do aluno: "Primeiro acesso")."""
+    profile = getattr(user, 'student_profile', None)
+    if profile is not None and profile.first_access_at is None:
+        profile.first_access_at = timezone.now()
+        profile.save(update_fields=['first_access_at'])

@@ -1,0 +1,16 @@
+{# Diálogo "Novo curso" (nível CRIAR). POST para painel:course_create. Sucesso: redireciona para painel:course_content do curso novo com toast "Curso criado como rascunho". Erro: 400 JSON, o diálogo continua aberto com o erro no campo. #}
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-new-course" aria-labelledby="dlg-new-course-title">
+  <form method="post" action="{% url 'painel:course_create' %}" class="dialog__body" data-async>
+    {% csrf_token %}
+    <span class="dialog__eyebrow">Criar</span>
+    <h2 class="dialog__title" id="dlg-new-course-title">Novo curso</h2>
+    <div class="field"><label class="field__label" for="nc-title">Título</label><input class="input" id="nc-title" name="title" required maxlength="200" autofocus></div>
+    <div class="field"><label class="field__label" for="nc-cat">Categoria</label>
+      <select class="select" id="nc-cat" name="category">{% for c in painel_categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></div>
+    <p class="hint">Começa como rascunho. Preço, capa e página de venda você completa depois.</p>
+    <div class="dialog__actions">
+      <button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Criar e adicionar aulas</button>
+    </div>
+  </form>
+</dialog>

@@ -1,0 +1,26 @@
+{% load cetremer ui %}{% comment %}
+Cabeçalho + aulas de uma matrícula na ficha do aluno (HANDOFF-v2 8.7). Contexto: block (enrollment, course, rows, done, total, pct), student, open.
+O id #scourse-progress-<curso> é o alvo do `replace` quando uma aula é marcada ou desmarcada.
+{% endcomment %}
+<div id="scourse-progress-{{ block.course.id }}">
+  <div class="row gap-16 student-course__head">
+    <span class="course-tile course-tile--56 {{ block.course.cover_class }}" aria-hidden="true">{{ block.course.short_name|default:block.course.title }}</span>
+    <div class="stack gap-4 grow">
+      <div class="row gap-8"><span class="fw-600">{{ block.course.title }}</span>{% if not block.enrollment.is_active %}<span class="badge badge--gray">Acesso removido</span>{% endif %}</div>
+      <div class="progress-inline"><div class="progress" role="progressbar" aria-label="Progresso em {{ block.course.title }}" aria-valuenow="{{ block.pct }}" aria-valuemin="0" aria-valuemax="100"><div class="progress__bar" style="width: {{ block.pct }}%"></div></div><span class="progress-label">{{ block.done }} de {{ block.total|plural_pt:"aula,aulas" }} · desde {{ block.enrollment.enrolled_at|date:"d/m" }}</span></div>
+    </div>
+    <button type="button" class="btn btn--ghost btn--xs" aria-expanded="{% if open %}true{% else %}false{% endif %}" aria-controls="slessons-{{ block.course.id }}" data-toggle-target="slessons-{{ block.course.id }}" data-label-open="Ocultar aulas" data-label-closed="Ver aulas">{% if open %}Ocultar aulas{% else %}Ver aulas{% endif %}</button>
+  </div>
+  <div id="slessons-{{ block.course.id }}"{% if not open %} hidden{% endif %}>
+    <ul class="list-plain">
+      {% for row in block.rows %}
+      <li class="builder-lesson" id="slrow-{{ row.lesson.id }}">
+        <span class="icon-tile icon-tile--40{% if not row.completed %} icon-tile--neutral{% endif %}" aria-hidden="true">{% if row.completed %}{% include 'partials/icon.html' with name='check-circle' size=18 %}{% else %}{% include 'partials/icon.html' with name='circle' size=18 %}{% endif %}</span>
+        <span class="builder-lesson__text"><span class="builder-lesson__title">{{ row.lesson.title }}</span>
+          <span class="builder-lesson__meta">{% if not row.published %}rascunho, não visível{% elif row.completed %}concluída {{ row.when|when_pt }}{% else %}não assistida{% endif %}</span></span>
+        {% if row.published %}<form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="toggle_lesson"><input type="hidden" name="lesson" value="{{ row.lesson.id }}"><button type="submit" class="btn btn--secondary btn--xs">{% if row.completed %}Desmarcar{% else %}Marcar concluída{% endif %}</button></form>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,33 @@
+{% load cetremer ui %}{% comment %}
+Miolo do painel do pedido (HANDOFF-v2 8.9). Contexto: order (status_label, status_badge, method_label, student_name), events.
+{% endcomment %}
+<div class="order-drawer" id="order-drawer-content">
+  <div class="drawer__head">
+    <div class="stack"><span class="drawer__eyebrow">Pedido</span><h2 class="drawer__title" id="drawer-pedido-t">#{{ order.id }} · {{ order.amount|brl }}</h2><span class="badge {{ order.status_badge }} self-start">{{ order.status_label }}</span></div>
+    <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+  </div>
+  <div class="drawer__body">
+    <dl class="dl dl--compact">
+      <dt>Aluno</dt><dd><a href="{% url 'painel:student_detail' order.student.user_id %}">{{ order.student_name }}</a></dd>
+      <dt>Curso</dt><dd>{{ order.course.title }}</dd>
+      <dt>Pagamento</dt><dd>{{ order.method_label }}</dd>
+      <dt>ID no gateway</dt><dd>{{ order.transaction_id|default:"–" }}</dd>
+    </dl>
+    <div class="stack gap-8"><h3 class="card__title">Linha do tempo</h3>
+      <ul class="timeline">{% for event in events %}<li class="timeline__item">{{ event.text }}{% if event.when %}<span class="timeline__when">{{ event.when|when_pt }}</span>{% endif %}</li>{% endfor %}</ul></div>
+  </div>
+  <div class="drawer__foot drawer__foot--between">
+    <form method="post" action="{% url 'painel:order_action' order.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="resend_access"><button type="submit" class="btn btn--secondary">Reenviar acesso</button></form>
+    {% if order.status == 'COMPLETED' %}<button type="button" class="btn btn--danger-outline" data-dialog-open="dlg-refund-{{ order.id }}">Reembolsar</button>{% endif %}
+  </div>
+  {% if order.status == 'COMPLETED' %}
+  <dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-refund-{{ order.id }}" aria-labelledby="dlg-refund-{{ order.id }}-t">
+    <form method="post" action="{% url 'painel:order_action' order.id %}" class="dialog__body" data-async>{% csrf_token %}<input type="hidden" name="action" value="refund">
+      <span class="dialog__eyebrow">Afeta alunos</span>
+      <h2 class="dialog__title" id="dlg-refund-{{ order.id }}-t">Reembolsar o pedido #{{ order.id }}?</h2>
+      <p class="dialog__text">{{ order.student_name }} perde o acesso ao {{ order.course.short_name|default:order.course.title }}. O valor volta pelo gateway em até 7 dias.</p>
+      <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger">Reembolsar</button></div>
+    </form>
+  </dialog>
+  {% endif %}
+</div>

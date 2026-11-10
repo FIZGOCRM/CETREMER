@@ -1,9 +1,118 @@
-﻿{% extends 'base_aluno.html' %}{% load cetremer %}
-{% block title %}Meus cursos · CETREMER{% endblock %}{% block page_title %}Meus cursos{% endblock %}{% block page_class %}page--gap-40{% endblock %}
-{% block topbar_actions %}<a class="user-chip" href="{% url 'settings' %}"><span class="avatar avatar--32">{{ user.student_profile.full_name|default:user.email|iniciais }}</span><span class="user-chip__name">{{ user.student_profile.full_name|default:user.email }}</span></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn--quiet">Sair</button></form>{% endblock %}
-{% block content %}<div class="stack gap-4"><h2 class="page-title">Olá, {{ user.student_profile.full_name|default:user.username|first_name }}</h2><p class="page-intro">{% if my_courses %}Você tem {{ my_courses|length }} cursos ativos. Continue de onde parou.{% else %}Você ainda não tem cursos. Conheça os treinamentos abaixo.{% endif %}</p></div>
-{% if continue_item %}{% with item=continue_item c=continue_item.course %}<section class="card continue" aria-labelledby="continuar"><div class="continue__cover {{ c.cover_class }}">{% if c.cover_image %}<img src="{{ c.cover_image.url }}" alt="">{% else %}<span class="continue__initials">{{ c.short_name|default:c.title }}</span>{% endif %}</div><div class="continue__body"><span class="eyebrow" id="continuar">Continue de onde parou</span><h2 class="continue__title">{{ c.title }}</h2><div class="meta-row"><span class="meta-row__item">{% include 'partials/icon.html' with name='play' size=16 %} Próxima: Aula {{ item.next_lesson.order }} · {{ item.next_lesson.title }}</span><span class="meta-row__item meta-row__item--muted">{% include 'partials/icon.html' with name='clock' size=16 %} {{ item.next_lesson.duration_seconds|duracao }}</span></div><div class="progress-block progress-block--w460">{% include 'partials/progress.html' with value=item.pct size='lg' label='Progresso do curso' %}<span class="progress-label">{{ item.pct }}% concluído · {{ item.completed }} de {{ item.total }} aulas</span></div><div class="row gap-12"><a class="btn btn--primary btn--lg" href="{% url 'lesson_detail' c.slug item.next_lesson.id %}">{% include 'partials/icon.html' with name='play' size=18 %}Continuar aula</a><a class="btn btn--secondary btn--lg" href="{% url 'course_preview' c.slug %}">Ver conteúdo do curso</a></div></div></section>{% endwith %}{% endif %}
-{% if live_item %}<section class="card live-strip"><div class="row gap-16"><span class="icon-tile">{% include 'partials/icon.html' with name='video' size=22 %}</span><div class="stack"><h2 class="live-strip__title">Aula ao vivo · {{ live_item.course.title }}</h2><span class="text-14 muted">Próximo encontro na agenda</span></div></div><div class="row gap-12"><a class="btn btn--ghost" href="{% url 'live_classes' %}">Ver agenda</a><a class="btn btn--dark" href="{{ live_item.course.live_meet_url }}" target="_blank" rel="noopener">Entrar no Google Meet</a></div></section>{% endif %}
-<section class="section"><div class="section__head"><h2 class="section__title">Meus cursos</h2><span class="text-14 muted">{{ my_courses|length }} cursos</span></div><div class="course-grid">{% for item in my_courses %}{% include 'partials/course_card_owned.html' with item=item %}{% empty %}<div class="empty">Nenhum curso adquirido ainda.</div>{% endfor %}</div></section>
-{% if other_courses %}<section class="section"><div class="stack gap-4"><h2 class="section__title">Outros treinamentos CETREMER</h2><span class="text-14 muted">Cursos que você ainda não tem. Veja o conteúdo antes de adquirir.</span></div><div class="course-grid">{% for c in other_courses %}{% include 'partials/course_card_shop.html' with course=c locked=True cta='Conhecer curso' %}{% endfor %}</div></section>{% endif %}
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Início · CETREMER{% endblock %}
+{% block page_title %}Início{% endblock %}
+{% block page_class %}page--gap-32{% endblock %}
+{% block content %}
+<div class="greeting">
+  <h2 class="page-title">{{ greeting }}, {{ user_first_name }}</h2>
+  {% if summary %}<p class="page-intro">{{ summary }}</p>{% endif %}
+</div>
+
+{% if all_courses %}
+  {% if resume %}
+  <section class="card continue-v2" aria-labelledby="continuar">
+    <a class="continue-v2__cover {{ resume.course.cover_class }}" href="{{ resume.url }}" aria-label="Continuar a aula {{ resume.lesson.title }}">
+      {% if resume.course.cover_image %}<img src="{{ resume.course.cover_image.url }}" alt="">{% else %}{{ resume.course.short_name|default:resume.course.title }}{% endif %}
+      <span class="continue-v2__play"><span>{% include 'partials/icon.html' with name='play' size=26 %}</span></span>
+      {% if resume.seconds > 15 %}
+      <span class="continue-v2__time">Parou em {{ resume.seconds|mmss }}{% if resume.lesson.duration_seconds %} de {{ resume.lesson.duration_seconds|mmss }}{% endif %}</span>
+      <span class="continue-v2__bar"><span style="width: {{ resume.watched_pct }}%"></span></span>
+      {% endif %}
+    </a>
+    <div class="continue-v2__body">
+      <span class="eyebrow" id="continuar">Continue de onde parou</span>
+      <h2 class="course-hero-v2__title text-24">{{ resume.lesson.title }}</h2>
+      <span class="text-2">{{ resume.course.title }} · Módulo {{ resume.module_number }} · Aula {{ resume.position }} de {{ resume.total }}</span>
+      <div class="progress-inline">
+        {% include 'partials/progress.html' with value=resume.pct label='Progresso do curso' %}
+        <span class="progress-label">{{ resume.pct }}% do curso · {{ resume.done }} de {{ resume.total|plural_pt:"aula,aulas" }}</span>
+      </div>
+      <div class="row gap-10">
+        <a class="btn btn--primary" href="{{ resume.url }}">{% include 'partials/icon.html' with name='play' size=16 %}Continuar aula</a>
+        <a class="btn btn--secondary" href="{% url 'course_home' resume.course.slug %}">Ver conteúdo do curso</a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {% if steps %}
+  <section class="card card--clip" aria-labelledby="proximos-passos">
+    <div class="task-list__head"><h2 class="card__title" id="proximos-passos">Próximos passos</h2><span class="text-13 muted">{{ steps|length|plural_pt:"item,itens" }}</span></div>
+    {% for step in steps %}
+    <div class="task" id="{{ step.dom_id }}">
+      <span class="task__icon {{ step.tone }}">{% include 'partials/icon.html' with name=step.icon size=20 %}</span>
+      <span class="task__text"><span class="task__title">{{ step.title }}</span><span class="task__meta">{{ step.meta }}</span></span>
+      <span class="badge {{ step.badge_class }}">{{ step.badge }}</span>
+      <a class="btn btn--secondary btn--xs" href="{{ step.url }}">{{ step.action }}</a>
+      <button type="button" class="icon-btn icon-btn--plain" aria-label="Dispensar este aviso" data-dismiss-url="{% url 'step_dismiss' step.key %}" data-dismiss-target="#{{ step.dom_id }}" data-undo-url="{% url 'step_restore' step.key %}">{% include 'partials/icon.html' with name='x' size=18 %}</button>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <section class="stack gap-16" aria-labelledby="meus-cursos">
+    <div class="row row--between">
+      <h2 class="section__title" id="meus-cursos">Meus cursos</h2>
+      <div class="seg" role="group" aria-label="Filtrar cursos">
+        <a class="seg__btn"{% if filter == 'todos' %} aria-current="page"{% endif %} href="?filtro=todos">Todos ({{ filter_counts.todos }})</a>
+        <a class="seg__btn"{% if filter == 'andamento' %} aria-current="page"{% endif %} href="?filtro=andamento">Em andamento ({{ filter_counts.andamento }})</a>
+        <a class="seg__btn"{% if filter == 'nao_iniciados' %} aria-current="page"{% endif %} href="?filtro=nao_iniciados">Não iniciados ({{ filter_counts.nao_iniciados }})</a>
+        <a class="seg__btn"{% if filter == 'concluidos' %} aria-current="page"{% endif %} href="?filtro=concluidos">Concluídos ({{ filter_counts.concluidos }})</a>
+      </div>
+    </div>
+    {% if courses %}
+    <div class="course-grid course-grid--320">
+      {% for item in courses %}
+      <article class="card course-card-v2">
+        <a class="course-card-v2__cover {{ item.course.cover_class }}" href="{% url 'course_home' item.course.slug %}" tabindex="-1" aria-hidden="true">
+          {% if item.course.cover_image %}<img src="{{ item.course.cover_image.url }}" alt="" loading="lazy">{% else %}{{ item.course.short_name|default:item.course.title|truncatechars:12 }}{% endif %}
+          {% if item.status == 'concluido' %}<span class="badge badge--success">Concluído</span>{% elif item.status == 'andamento' %}<span class="badge badge--blue">Em andamento</span>{% else %}<span class="badge badge--gray">Não iniciado</span>{% endif %}
+        </a>
+        <div class="course-card-v2__body">
+          {% if item.course.category %}<span class="badge {{ item.course.category.badge_class }} self-start">{{ item.course.category.name }}</span>{% endif %}
+          <a class="course-card-v2__title" href="{% url 'course_home' item.course.slug %}">{{ item.course.title }}</a>
+          {% include 'partials/progress.html' with value=item.pct label='Progresso em '|add:item.course.title %}
+          <span class="progress-label">{{ item.label }}</span>
+          <div class="course-card-v2__actions">
+            <a class="btn btn--primary btn--xs grow" href="{{ item.url }}">{{ item.action }}</a>
+            <a class="btn btn--secondary btn--xs" href="{% url 'course_home' item.course.slug %}">Conteúdo</a>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="card card--dashed empty-state">
+      <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='course' size=24 %}</span>
+      {% if filter == 'nao_iniciados' %}
+      <span class="empty-state__title">Nenhum curso por começar</span>
+      <span class="empty-state__text">Você já começou todos os seus cursos. Quando comprar um novo, ele aparece aqui.</span>
+      {% elif filter == 'concluidos' %}
+      <span class="empty-state__title">Nenhum curso concluído ainda</span>
+      <span class="empty-state__text">Quando você terminar todas as aulas de um curso, ele aparece aqui junto com o certificado.</span>
+      {% else %}
+      <span class="empty-state__title">Nenhum curso em andamento</span>
+      <span class="empty-state__text">Comece um curso para ele aparecer aqui.</span>
+      {% endif %}
+      <a class="btn btn--secondary btn--xs" href="?filtro=todos">Ver todos</a>
+    </div>
+    {% endif %}
+  </section>
+{% else %}
+  <div class="card empty-state">
+    <span class="empty-state__icon">{% include 'partials/icon.html' with name='course' size=24 %}</span>
+    <span class="empty-state__title">Você ainda não tem cursos</span>
+    <span class="empty-state__text">Quando sua compra for confirmada, o curso aparece aqui na hora.</span>
+  </div>
+{% endif %}
+
+{% if shop %}
+<section class="stack gap-16" aria-labelledby="outros-treinamentos">
+  <h2 class="section__title" id="outros-treinamentos">Outros treinamentos CETREMER</h2>
+  <p class="page-intro">Veja o conteúdo completo antes de comprar. Ao comprar, o curso aparece aqui na hora.</p>
+  <div class="course-grid course-grid--320">
+    {% for course in shop %}{% include 'partials/course_card_shop.html' with course=course locked=True cta='Conhecer curso' %}{% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}

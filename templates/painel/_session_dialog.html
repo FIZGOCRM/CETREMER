@@ -1,0 +1,27 @@
+{% comment %}
+Diálogo de encontro ao vivo (HANDOFF-v2 8.5). session=None cria; com session edita (e pode excluir). Salva em painel:live_session_save,
+fora do formulário principal. Horários de Brasília.
+{% endcomment %}
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-session-{% if session %}{{ session.id }}{% else %}new{% endif %}" aria-labelledby="dlg-session-{% if session %}{{ session.id }}{% else %}new{% endif %}-t">
+  <form method="post" action="{% url 'painel:live_session_save' course.id %}" class="dialog__body" data-async>
+    {% csrf_token %}
+    {% if session %}<input type="hidden" name="session_id" value="{{ session.id }}">{% endif %}
+    <h2 class="dialog__title" id="dlg-session-{% if session %}{{ session.id }}{% else %}new{% endif %}-t">{% if session %}Editar encontro{% else %}Adicionar encontro{% endif %}</h2>
+    <div class="form-grid form-grid--160">
+      <div class="field"><label class="field__label" for="ses-date-{{ session.id|default:'new' }}">Data</label><input class="input" id="ses-date-{{ session.id|default:'new' }}" name="date" type="date" required value="{{ session.date_value }}"></div>
+      <div class="field"><label class="field__label" for="ses-start-{{ session.id|default:'new' }}">Início</label><input class="input" id="ses-start-{{ session.id|default:'new' }}" name="start" type="time" required value="{{ session.start_value }}"></div>
+      <div class="field"><label class="field__label" for="ses-end-{{ session.id|default:'new' }}">Fim</label><input class="input" id="ses-end-{{ session.id|default:'new' }}" name="end" type="time" required value="{{ session.end_value }}"></div>
+    </div>
+    <div class="field"><label class="field__label" for="ses-title-{{ session.id|default:'new' }}">Título</label><input class="input" id="ses-title-{{ session.id|default:'new' }}" name="title" required maxlength="160" value="{{ session.title }}"></div>
+    <div class="field"><label class="field__label" for="ses-host-{{ session.id|default:'new' }}">Apresentador</label><input class="input" id="ses-host-{{ session.id|default:'new' }}" name="host_name" maxlength="80" value="{{ session.host_name }}"></div>
+    <div class="field"><label class="field__label" for="ses-meet-{{ session.id|default:'new' }}">Link próprio (opcional)</label><input class="input" id="ses-meet-{{ session.id|default:'new' }}" name="meet_url" type="url" value="{{ session.meet_url }}"><span class="hint">Se ficar vazio, usa o link do Google Meet do curso.</span></div>
+    <div class="field"><label class="field__label" for="ses-rec-{{ session.id|default:'new' }}">Link da gravação (opcional)</label><input class="input" id="ses-rec-{{ session.id|default:'new' }}" name="recording_url" type="url" value="{{ session.recording_url }}"></div>
+    <p class="hint">Horários de Brasília.</p>
+    <div class="dialog__actions">
+      {% if session %}<button type="submit" class="btn btn--danger-text" form="ses-delete-{{ session.id }}">Excluir encontro</button>{% endif %}
+      <button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">{% if session %}Salvar encontro{% else %}Adicionar encontro{% endif %}</button>
+    </div>
+  </form>
+  {% if session %}<form id="ses-delete-{{ session.id }}" method="post" action="{% url 'painel:live_session_delete' session.id %}" data-async hidden>{% csrf_token %}</form>{% endif %}
+</dialog>

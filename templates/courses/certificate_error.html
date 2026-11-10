@@ -1,1 +1,29 @@
-﻿{% extends 'base_core.html' %}{% load cetremer %}{% block title %}Certificado Bloqueado · CETREMER{% endblock %}{% block body %}<div class="lesson-page"><header class="lesson-topbar"><a class="back-link" href="{% url 'certificates' %}">{% include 'partials/icon.html' with name='chevron-left' %}Meus certificados</a><span class="lesson-topbar__brand">CETREMER</span></header><main class="center-page"><section class="center-page__card card card--pad-xl stack gap-22"><span class="icon-tile icon-tile--56 icon-tile--neutral">{% include 'partials/icon.html' with name='lock' size=26 %}</span><h1 class="auth-card__title">Certificado Bloqueado</h1><p>Conclua os requisitos para emitir o certificado do curso {{ course.title }}.</p><ul class="list-plain stack gap-12"><li class="req-item{% if progress_ok %} is-ok{% endif %}">{% include 'partials/icon.html' with name='check' %}<span>Concluir 100% das aulas · {{ completed_count }} de {{ total }} aulas · faltam {{ remaining }}</span></li><li class="req-item{% if data_ok %} is-ok{% endif %}">{% include 'partials/icon.html' with name='check' %}<span>Informar nome completo e CPF {% if not data_ok %}<a href="{% url 'settings' %}">Completar em Minha conta</a>{% endif %}</span></li></ul>{% if next_lesson %}<a class="btn btn--primary btn--xl" href="{% url 'lesson_detail' course.slug next_lesson.id %}">Continuar o curso</a>{% endif %}</section></main></div>{% endblock %}
+﻿{% extends 'base_core.html' %}{% load cetremer ui %}
+{% block title %}Certificado Bloqueado · CETREMER{% endblock %}
+{% block body %}
+<div class="lesson-page">
+  <header class="lesson-topbar">
+    <a class="back-link" href="{% url 'certificates' %}">{% include 'partials/icon.html' with name='chevron-left' %}Meus certificados</a>
+    <span class="lesson-topbar__brand">CETREMER</span>
+  </header>
+  <main class="center-page">
+    <section class="center-page__card card card--pad-xl stack gap-22">
+      <span class="icon-tile icon-tile--56 icon-tile--neutral">{% include 'partials/icon.html' with name='lock' size=26 %}</span>
+      <h1 class="auth-card__title">Certificado Bloqueado</h1>
+      <p>Conclua os requisitos para emitir o certificado do curso {{ course.title }}.</p>
+      <ul class="list-plain stack gap-12">
+        <li class="req-item{% if progress_ok %} is-ok{% endif %}">
+          <span class="req-item__mark" aria-hidden="true">{% if progress_ok %}{% include 'partials/icon.html' with name='check' size=14 stroke='3' class='icon--check' %}{% endif %}</span>
+          <span>Concluir 100% das aulas · {{ completed_count }} de {{ total|plural_pt:"aula,aulas" }}{% if not progress_ok %} · {{ remaining|falta_pt|lower }}{% endif %}</span>
+        </li>
+        <li class="req-item{% if data_ok %} is-ok{% endif %}">
+          <span class="req-item__mark" aria-hidden="true">{% if data_ok %}{% include 'partials/icon.html' with name='check' size=14 stroke='3' class='icon--check' %}{% endif %}</span>
+          <span>Informar nome completo e CPF {% if not data_ok %}<a href="{% url 'settings' %}?secao=certificado">Completar em Minha conta</a>{% endif %}</span>
+        </li>
+      </ul>
+      {% if progress_ok %}<a class="btn btn--primary btn--xl" href="{% url 'certificates' %}?emitir={{ course.slug }}">{% include 'partials/icon.html' with name='award' size=18 %}Conferir dados e emitir</a>{% endif %}
+      {% if next_lesson and not progress_ok %}<a class="btn btn--primary btn--xl" href="{% url 'lesson_detail' course.slug next_lesson.id %}">Continuar o curso</a>{% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

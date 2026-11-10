@@ -37,9 +37,9 @@ class PublicAccountTests(TestCase):
         user = User.objects.create_user(username='student', password='OldStrongPassword123!', role=User.Role.STUDENT)
         self.client.force_login(user)
         response = self.client.post(reverse('settings'), {
-            'action': 'password', 'password_old': 'OldStrongPassword123!',
+            'section': 'senha', 'password_old': 'OldStrongPassword123!',
             'password_new': '1', 'password_confirm': '1',
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
         user.refresh_from_db()
         self.assertTrue(user.check_password('OldStrongPassword123!'))

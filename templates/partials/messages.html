@@ -1,21 +1,11 @@
 {% comment %}
-Mensagens de feedback. Prefira django.contrib.messages (messages.success / messages.error).
-As variáveis antigas "error" e "success" no contexto continuam aceitas durante a migração.
+Erros e avisos de formulário das páginas públicas e de login (variáveis "error" e "success" do contexto).
+Mensagens do Django (core.toasts.toast) viram toast em partials/toasts.html, incluído por base_core.html:
+não são repetidas aqui.
 {% endcomment %}
-{% if messages or error or success %}
+{% if error or success %}
 <div class="messages">
   {% if error %}<div class="alert alert--error" role="alert">{% include "partials/icon.html" with name="alert" size=18 %}<span>{{ error }}</span></div>{% endif %}
   {% if success %}<div class="alert alert--success" role="status">{% include "partials/icon.html" with name="check" size=18 stroke="2.4" %}<span>{{ success }}</span></div>{% endif %}
-  {% for message in messages %}
-    {% if message.level_tag == 'error' %}
-      <div class="alert alert--error" role="alert">{% include "partials/icon.html" with name="alert" size=18 %}<span>{{ message }}</span></div>
-    {% elif message.level_tag == 'warning' %}
-      <div class="alert alert--warning" role="alert">{% include "partials/icon.html" with name="alert" size=18 %}<span>{{ message }}</span></div>
-    {% elif message.level_tag == 'success' %}
-      <div class="alert alert--success" role="status">{% include "partials/icon.html" with name="check" size=18 stroke="2.4" %}<span>{{ message }}</span></div>
-    {% else %}
-      <div class="alert alert--info" role="status">{% include "partials/icon.html" with name="alert" size=18 %}<span>{{ message }}</span></div>
-    {% endif %}
-  {% endfor %}
 </div>
 {% endif %}

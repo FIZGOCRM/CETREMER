@@ -1,0 +1,35 @@
+{% comment %}
+Menu lateral v2 do admin (escuro, agrupado). 
+Contexto: painel_shell (pending_questions). Ativo por namespace "painel" + url_name.
+{% endcomment %}
+{% load ui %}{% with u=request.resolver_match.url_name %}
+<aside class="sidebar" aria-label="Menu administrativo">
+  <a class="brand" href="{% url 'painel:dashboard' %}"><span class="brand__name">{{ site.school_name }}</span><span class="brand__tag">Painel administrativo</span></a>
+  <nav class="sidenav" aria-label="Menu administrativo">
+    <span class="sidenav__group">Visão geral</span>
+    <a class="sidenav__link" href="{% url 'painel:dashboard' %}"{% if u == 'dashboard' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="home" size=18 %}Início</a>
+    <span class="sidenav__group">Conteúdo</span>
+    <a class="sidenav__link" href="{% url 'painel:courses' %}"{% if u in 'courses course_content course_sales course_settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="course" size=18 %}Cursos</a>
+    <span class="sidenav__group">Pessoas</span>
+    <a class="sidenav__link" href="{% url 'painel:students' %}"{% if u in 'students student_detail students_import' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="users" size=18 %}Alunos</a>
+    <a class="sidenav__link" href="{% url 'painel:community' %}"{% if u == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" size=18 %}Comunidade{% if pending_questions %}<span class="sidenav__badge" data-pending-count aria-label="{{ pending_questions|plural_pt:"dúvida sem resposta,dúvidas sem resposta" }}">{{ pending_questions }}</span>{% endif %}</a>
+    {% if perms_painel.orders %}
+    <span class="sidenav__group">Vendas</span>
+    <a class="sidenav__link" href="{% url 'painel:orders' %}"{% if u == 'orders' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="receipt" size=18 %}Pedidos</a>
+    {% endif %}
+  </nav>
+  <div class="sidebar__footer">
+    {% if perms_painel.settings %}<a class="sidenav__link" href="{% url 'painel:settings' %}"{% if u == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="gear" size=18 %}Configurações</a>{% endif %}
+    <div class="admin-user popover" data-popover>
+      <span class="avatar avatar--32 avatar--gray" aria-hidden="true">{{ user_initials }}</span>
+      <span class="admin-user__text"><span class="admin-user__name">{{ user_full_name }}</span><span class="admin-user__mail">{{ request.user.email }}</span></span>
+      <button type="button" class="icon-btn icon-btn--plain" aria-label="Menu da conta" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>{% include "partials/icon.html" with name="more" size=18 %}</button>
+      <div class="menu menu--left menu--up" data-popover-panel hidden role="menu">
+        <a role="menuitem" class="menu__item" href="{% url 'dashboard' %}">{% include "partials/icon.html" with name="eye" size=18 %}Ver como aluno</a>
+        <div class="menu__sep"></div>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" role="menuitem" class="menu__item menu__item--danger">{% include "partials/icon.html" with name="logout" size=18 %}Sair</button></form>
+      </div>
+    </div>
+  </div>
+</aside>
+{% endwith %}
