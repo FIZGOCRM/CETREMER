@@ -96,6 +96,17 @@ Acesse no navegador:
 
 ---
 
+## Primeiro acesso de aluno cadastrado pelo administrador
+
+1. No painel `/painel/alunos/`, use **Matricular aluno**. O envio de e-mail é opcional e fica desmarcado por padrão.
+2. O painel exibe um código temporário de 10 dígitos **uma única vez**. Entregue ao aluno junto com o e-mail cadastrado por um canal seguro. O código expira em 7 dias e bloqueia após 5 tentativas incorretas.
+3. O aluno abre `/primeiro-acesso/`, informa e-mail e código e cria sua senha. Depois entra em `/login/` com o mesmo e-mail.
+4. Para um aluno importado ou que perdeu o código, abra o detalhe em `/painel/alunos/` e use **Gerar novo código de primeiro acesso**. Isso invalida o código anterior.
+
+**Enviar link por e-mail** continua disponível como ação explícita se o SMTP for configurado. Sem SMTP, no ambiente local o link aparece apenas no console; a plataforma informa isso no painel. Alunos que já têm senha usam **Esqueci minha senha**.
+
+---
+
 ## 🧭 Principais Rotas do Sistema
 
 * **Catálogo & Landing Page:** `http://localhost:8000/`

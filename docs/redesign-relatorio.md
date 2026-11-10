@@ -13,7 +13,13 @@ Data: 10/11/2026. Inspeção visual no navegador não executada, conforme instru
 | 6 | `5321fe1` | Painel, gestão de cursos/aulas, alunos, importação CSV, pedidos, comunidade e configurações | 44 OK |
 | 7 | `f7cba15` | Limpeza de CSS/JS/templates antigos; kit removido do Git e ignorado; textos da landing alinhados à referência | 44 OK |
 
-**Resultado final:** `python manage.py test --verbosity 0` — 44 testes, OK. `python manage.py makemigrations --check --dry-run` — nenhuma alteração pendente. `python manage.py migrate --noinput` aplicou `courses.0008_legacy_calendar` na base local. Um smoke test de todas as páginas públicas, do aluno e do painel retornou HTTP 200 usando o Django Client.
+**Resultado da fase 7:** `python manage.py test --verbosity 0` — 44 testes, OK. `python manage.py makemigrations --check --dry-run` — nenhuma alteração pendente naquele momento. `python manage.py migrate --noinput` aplicou `courses.0008_legacy_calendar` na base local. Um smoke test de todas as páginas públicas, do aluno e do painel retornou HTTP 200 usando o Django Client.
+
+## Ajuste posterior: primeiro acesso manual
+
+Por decisão do usuário, o cadastro manual no painel não depende de e-mail. O painel mostra uma única vez um código de 10 dígitos para o administrador entregar ao aluno com o endereço cadastrado. O código é guardado apenas como hash, expira em 7 dias, bloqueia depois de 5 erros e é consumido quando o aluno cria a senha em `/primeiro-acesso/`. A ação **Gerar novo código de primeiro acesso** atende alunos importados ou que perderam o código. O envio de link por SMTP continua opcional, com mensagem distinta para envio real, console local e falha.
+
+**Verificação posterior:** `python manage.py test --verbosity 0` — 49 testes, OK; migração `users.0006_firstaccesscode` aplicada; `/primeiro-acesso/` respondeu HTTP 200 no servidor local.
 
 ## Decisões sem confirmação
 
@@ -53,6 +59,7 @@ Servidor: <http://localhost:8000/>. Seed: admin `admin@cetremer.com.br` / `passw
 | Página do curso BLS | `/courses/suporte-basico-vida-bls/` | Público; com o aluno logado aparece “Ir para o curso”. |
 | Checkout BLS | `/courses/suporte-basico-vida-bls/checkout/` | Público; alternar cartão/Pix e finalizar em ambiente MOCK. |
 | Login | `/login/` | Entrar com e-mail. |
+| Primeiro acesso manual | `/primeiro-acesso/` | Admin matricula aluno em `/painel/alunos/`, entrega o código exibido uma vez; aluno informa e-mail, código e nova senha. |
 | Cadastro | `/register/` | Criar aluno sem matrícula automática. |
 | Esqueci senha | `/senha/esqueci/` | Solicitar link do e-mail do seed; procurar link no console do servidor. |
 | Link enviado | `/senha/enviado/` | Após enviar formulário de senha. |

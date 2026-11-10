@@ -6,6 +6,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.utils.text import slugify
+from django.db import transaction
+from .first_access import verify_code
+from .models import FirstAccessCode
 from .models import User
 
 
@@ -86,6 +89,37 @@ class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):
     def get(self, request, *args, **kwargs):
         messages.success(request, 'Senha criada. Entre com seu e-mail e a nova senha.')
         return redirect('login')
+
+
+def first_access_view(request):
+    error = None
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        code = request.POST.get('code', '').strip()
+        password = request.POST.get('password', '')
+        confirmation = request.POST.get('password_confirm', '')
+        if not email or not code or not password or not confirmation:
+            error = 'Preencha todos os campos.'
+        elif password != confirmation:
+            error = 'As senhas não coincidem.'
+        else:
+            with transaction.atomic():
+                user = User.objects.select_for_update().filter(email__iexact=email, role=User.Role.STUDENT, is_active=True).first()
+                credential = FirstAccessCode.objects.select_for_update().filter(user=user).first() if user else None
+                if not user or user.has_usable_password() or not credential or not verify_code(credential, code):
+                    error = 'Código inválido ou expirado. Peça um novo código ao administrador.'
+                else:
+                    try:
+                        validate_password(password, user=user)
+                    except ValidationError as exc:
+                        error = ' '.join(exc.messages)
+                    else:
+                        user.set_password(password)
+                        user.save(update_fields=['password'])
+                        credential.delete()
+                        messages.success(request, 'Senha criada. Entre com seu e-mail e a nova senha.')
+                        return redirect('login')
+    return render(request, 'registration/first_access.html', {'error': error})
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash

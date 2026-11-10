@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 from email.utils import parseaddr
 
 from django.contrib import messages
+from django.conf import settings as django_settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
@@ -30,6 +31,8 @@ from courses.models import Category, Course, Enrollment, Lesson, LessonMaterial,
 from courses.student_views import progress_info
 from sales.models import Order
 from users.models import CreatorProfile, SiteSettings
+from users.models import FirstAccessCode
+from users.first_access import issue_code
 from users.validators import validate_cpf
 
 User = get_user_model()
@@ -39,8 +42,17 @@ def access_email(request, user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
     url = request.build_absolute_uri(reverse('password_reset_confirm', args=[uid, token]))
-    send_mail('Seu acesso à CETREMER', f'Olá! Defina sua senha para acessar a CETREMER: {url}',
-              None, [user.email], fail_silently=True)
+    return send_mail('Seu acesso à CETREMER', f'Olá! Defina sua senha para acessar a CETREMER: {url}',
+                     None, [user.email], fail_silently=False)
+
+
+def report_access_delivery(request, sent):
+    if not sent:
+        messages.error(request, 'O e-mail de acesso não foi enviado. Confira as configurações de SMTP.')
+    elif django_settings.DEBUG and not SiteSettings.load().email_host:
+        messages.info(request, 'Link de acesso gerado no console do servidor local. Nenhum e-mail chegou à caixa de entrada.')
+    else:
+        messages.success(request, 'E-mail de acesso enviado.')
 
 
 def page(request, template, **context):
@@ -213,8 +225,16 @@ def students(request):
                 user.student_profile.save(update_fields=['full_name'])
             if user:
                 Enrollment.objects.get_or_create(student=user.student_profile, course=course, defaults={'source': 'manual'})
-                if request.POST.get('send_email'): access_email(request, user)
                 messages.success(request, 'Acesso liberado com sucesso.')
+                if not user.has_usable_password() and not FirstAccessCode.objects.filter(user=user).exists():
+                    code = issue_code(user)
+                    messages.info(request, f'Código de primeiro acesso: {code}. Entregue este código ao aluno por um canal seguro. Ele expira em 7 dias e aparece apenas agora.')
+                if request.POST.get('send_email'):
+                    try:
+                        sent = access_email(request, user)
+                    except Exception:
+                        sent = 0
+                    report_access_delivery(request, sent)
         elif action == 'unenroll' and user:
             enrollment = Enrollment.objects.filter(student=user.student_profile, course_id=request.POST.get('course_id')).first()
             if enrollment and hasattr(enrollment, 'certificate'):
@@ -223,7 +243,17 @@ def students(request):
                 enrollment.delete()
                 messages.success(request, 'Acesso removido. O progresso foi mantido.')
         elif action == 'resend_access' and user:
-            access_email(request, user); messages.success(request, 'E-mail de acesso reenviado.')
+            try:
+                sent = access_email(request, user)
+            except Exception:
+                sent = 0
+            report_access_delivery(request, sent)
+        elif action == 'generate_first_access' and user:
+            if user.has_usable_password():
+                messages.error(request, 'Este aluno já tem senha. Use a recuperação de senha se necessário.')
+            else:
+                code = issue_code(user)
+                messages.info(request, f'Código de primeiro acesso: {code}. Entregue este código ao aluno por um canal seguro. Ele expira em 7 dias e aparece apenas agora.')
         return redirect(reverse('painel:students') + (f'?aluno={user.id}' if user else ''))
     qs = User.objects.filter(role=User.Role.STUDENT).select_related('student_profile').annotate(courses_count=Count('student_profile__enrollments', distinct=True))
     q = request.GET.get('q', '').strip(); course_id = request.GET.get('curso', '')

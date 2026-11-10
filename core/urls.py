@@ -21,6 +21,7 @@ urlpatterns = [
     path('senha/enviado/', user_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('senha/nova/<uidb64>/<token>/', user_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('senha/pronto/', user_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
+    path('primeiro-acesso/', user_views.first_access_view, name='first_access'),
     path('courses/lesson/<int:lesson_id>/complete/', student_views.complete_lesson, name='complete_lesson'),
     
     # Creator Portal

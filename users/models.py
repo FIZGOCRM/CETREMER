@@ -102,6 +102,16 @@ class SiteSettings(models.Model):
     def __str__(self):
         return self.school_name
 
+
+class FirstAccessCode(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='first_access_code')
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f'Primeiro acesso: {self.user_id}'
+
 # Signals to automatically create student or creator profiles upon user registration
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
