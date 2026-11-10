@@ -38,7 +38,7 @@ urlpatterns = [
     # Student Area & Player
     path('dashboard/', course_views.dashboard, name='dashboard'),
     path('settings/', user_views.settings_view, name='settings'),
-    path('courses/<slug:course_slug>/lessons/<int:lesson_order>/', course_views.lesson_detail, name='lesson_detail'),
+    path('courses/<slug:course_slug>/lessons/<int:lesson_id>/', course_views.lesson_detail, name='lesson_detail'),
     path('courses/lesson/<int:lesson_id>/toggle-progress/', course_views.toggle_progress, name='toggle_progress'),
     path('courses/<slug:course_slug>/certificate/', course_views.issue_certificate, name='issue_certificate'),
     

@@ -493,7 +493,7 @@
                 <span class="nf-hero-badge">Curso em Destaque</span>
                 <h2 class="nf-hero-title">Plantão Sem GPT</h2>
                 <p class="nf-hero-desc">O guia prático definitivo para médicos dominarem condutas de emergência, UTI e pronto-socorro de forma rápida e segura na vida real, sem depender de pesquisas.</p>
-                <a href="{% url 'lesson_detail' course_slug='plantao-sem-gpt' lesson_order=1 %}" class="nf-hero-btn">
+                <a href="{% if spotlight_lesson %}{% url 'lesson_detail' course_slug='plantao-sem-gpt' lesson_id=spotlight_lesson.id %}{% else %}{% url 'course_preview' course_slug='plantao-sem-gpt' %}{% endif %}" class="nf-hero-btn">
                     <span>▶</span> Continuar Assistindo
                 </a>
             </div>
@@ -504,7 +504,7 @@
             <h3 class="nf-row-title">🚑 Treinamentos Essenciais (AHA)</h3>
             <div class="nf-grid-vertical">
                 {% for item in essentials %}
-                    <a href="{% if item.is_locked %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_order=1 %}{% endif %}" class="nf-card-vertical">
+                    <a href="{% if item.is_locked or not item.first_lesson %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_id=item.first_lesson.id %}{% endif %}" class="nf-card-vertical">
                         {% if item.is_locked %}
                             <div class="nf-locked-overlay">
                                 <span class="nf-lock-icon">🔒</span>
@@ -554,7 +554,7 @@
             <h3 class="nf-row-title">🩺 Especialidades Médicas (Posters)</h3>
             <div class="nf-grid-vertical">
                 {% for item in specialties %}
-                    <a href="{% if item.is_locked %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_order=1 %}{% endif %}" class="nf-card-vertical">
+                    <a href="{% if item.is_locked or not item.first_lesson %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_id=item.first_lesson.id %}{% endif %}" class="nf-card-vertical">
                         {% if item.is_locked %}
                             <div class="nf-locked-overlay">
                                 <span class="nf-lock-icon">🔒</span>
@@ -604,7 +604,7 @@
             <h3 class="nf-row-title">👥 Suporte Básicos e Leigos</h3>
             <div class="nf-grid-vertical">
                 {% for item in leigos %}
-                    <a href="{% if item.is_locked %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_order=1 %}{% endif %}" class="nf-card-vertical">
+                    <a href="{% if item.is_locked or not item.first_lesson %}{% url 'course_preview' course_slug=item.course.slug %}{% else %}{% url 'lesson_detail' course_slug=item.course.slug lesson_id=item.first_lesson.id %}{% endif %}" class="nf-card-vertical">
                         {% if item.is_locked %}
                             <div class="nf-locked-overlay">
                                 <span class="nf-lock-icon">🔒</span>

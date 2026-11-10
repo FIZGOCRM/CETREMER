@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from .models import User
 
 def login_view(request):
@@ -28,7 +30,7 @@ def logout_view(request):
     return redirect('landing')
 
 def register_view(request):
-    """Registers new User models (Students or Creators) and logs them in, checking redirect path."""
+    """Registers public users as students and logs them in."""
     next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
     if request.user.is_authenticated:
         return redirect(next_url)
@@ -38,7 +40,6 @@ def register_view(request):
         u = request.POST.get('username')
         e = request.POST.get('email')
         p = request.POST.get('password')
-        r = request.POST.get('role', 'STUDENT')
         
         if not u or not e or not p:
             error = "Todos os campos são obrigatórios."
@@ -47,10 +48,14 @@ def register_view(request):
         elif User.objects.filter(email=e).exists():
             error = "Este endereço de e-mail já está registrado."
         else:
-            # Create user and automatically triggers profile creation via receiver signals
-            user = User.objects.create_user(username=u, email=e, password=p, role=r)
-            login(request, user)
-            return redirect(next_url)
+            try:
+                validate_password(p, user=User(username=u, email=e, role=User.Role.STUDENT))
+            except ValidationError as exc:
+                error = ' '.join(exc.messages)
+            else:
+                user = User.objects.create_user(username=u, email=e, password=p, role=User.Role.STUDENT)
+                login(request, user)
+                return redirect(next_url)
             
     return render(request, 'register.html', {'error': error, 'next': next_url})
 
@@ -123,10 +128,15 @@ def settings_view(request):
             elif new_pass != confirm_pass:
                 error = "A nova senha e a confirmação não coincidem."
             else:
-                request.user.set_password(new_pass)
-                request.user.save()
-                update_session_auth_hash(request, request.user) # Keep user logged in
-                success = "Senha alterada com sucesso!"
+                try:
+                    validate_password(new_pass, user=request.user)
+                except ValidationError as exc:
+                    error = ' '.join(exc.messages)
+                else:
+                    request.user.set_password(new_pass)
+                    request.user.save()
+                    update_session_auth_hash(request, request.user)
+                    success = "Senha alterada com sucesso!"
                 
     return render(request, 'users/settings.html', {
         'orders': orders,

@@ -59,6 +59,38 @@ class PlatformTestCase(TestCase):
         self.assertEqual(self.student_profile.points, 0)
         self.assertEqual(self.student_profile.level, 1)
 
+    def test_unenrolled_student_cannot_open_lesson_or_certificate(self):
+        self.client.force_login(self.student_user)
+        lesson_url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': self.lesson.id})
+        preview_url = reverse('course_preview', kwargs={'course_slug': self.course.slug})
+        self.assertRedirects(self.client.get(lesson_url), preview_url)
+        self.assertRedirects(self.client.get(reverse('issue_certificate', kwargs={'course_slug': self.course.slug})), preview_url)
+        self.assertFalse(Enrollment.objects.filter(student=self.student_profile, course=self.course).exists())
+
+    def test_unenrolled_student_cannot_toggle_progress(self):
+        self.client.force_login(self.student_user)
+        response = self.client.post(reverse('toggle_progress', kwargs={'lesson_id': self.lesson.id}))
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Enrollment.objects.filter(student=self.student_profile, course=self.course).exists())
+        self.assertFalse(Progress.objects.filter(student=self.student_profile, lesson=self.lesson).exists())
+
+    def test_lesson_url_uses_id_and_rejects_missing_or_other_course_lesson(self):
+        second_module = Module.objects.create(course=self.course, title='Module 2', order=2)
+        second_lesson = Lesson.objects.create(module=second_module, title='Second lesson', order=1)
+        Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.client.force_login(self.student_user)
+        url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': second_lesson.id})
+        self.assertEqual(self.client.get(url).context['lesson'], second_lesson)
+        self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})).status_code, 404)
+        other_course = Course.objects.create(title='Other', slug='other', creator=self.creator_profile)
+        Enrollment.objects.create(student=self.student_profile, course=other_course)
+        self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': other_course.slug, 'lesson_id': second_lesson.id})).status_code, 404)
+
+    def test_nonexistent_lesson_returns_404_even_without_enrollment(self):
+        self.client.force_login(self.student_user)
+        url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})
+        self.assertEqual(self.client.get(url).status_code, 404)
+
     def test_anonymous_checkout_enrollment(self):
         """Verifies that a guest user can checkout directly, creating their account and enrollment."""
         # Process checkout POST without being logged in

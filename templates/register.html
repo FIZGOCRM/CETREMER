@@ -7,7 +7,7 @@
 <div class="container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding-top: 48px; padding-bottom: 48px;">
     <div class="glass-card" style="width: 100%; max-width: 440px;">
         <h2 style="font-size: 24px; margin-bottom: 12px; font-weight: 700; text-align: center;">Criar Conta</h2>
-        <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 24px;">Cadastre-se como Aluno ou Criador para ingressar na plataforma.</p>
+        <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 24px;">Cadastre-se como Aluno para ingressar na plataforma.</p>
 
         {% if error %}
             <div style="background: rgba(234, 8, 61, 0.1); border: 1px solid var(--border-focus); border-radius: var(--border-radius-sm); padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #fff;">
@@ -31,13 +31,6 @@
             <div class="form-group">
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
-            <div class="form-group">
-                <label for="role">Tipo de Perfil</label>
-                <select id="role" name="role" class="form-control" style="background: var(--bg-secondary); border: 1px solid var(--border-color); color: #fff; padding: 14px 16px; width: 100%; font-size: 14px; outline: none; border-radius: var(--border-radius-sm);">
-                    <option value="STUDENT" selected>Aluno - Quero assistir e adquirir cursos</option>
-                    <option value="CREATOR">Criador - Quero publicar e vender infoprodutos</option>
-                </select>
             </div>
             <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px; padding: 14px;">Criar Minha Conta</button>
         </form>

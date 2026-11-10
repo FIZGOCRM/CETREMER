@@ -475,7 +475,7 @@
                                     <div style="display: flex; align-items: center; gap: 12px;">
                                         <span class="ud-lesson-icon">▶</span>
                                         {% if is_enrolled %}
-                                            <a href="{% url 'lesson_detail' course_slug=course.slug lesson_order=les.order %}" class="ud-lesson-title">{{ les.title }}</a>
+                                            <a href="{% url 'lesson_detail' course_slug=course.slug lesson_id=les.id %}" class="ud-lesson-title">{{ les.title }}</a>
                                         {% else %}
                                             <span class="ud-lesson-title" style="color: var(--text-secondary);">{{ les.title }}</span>
                                         {% endif %}
@@ -516,11 +516,11 @@
             <div class="ud-sidebar-card">
                 <!-- Preview Thumbnail Image Area -->
                 {% if course.cover_image %}
-                    <div class="ud-preview-media" style="background-image: url('{{ course.cover_image.url }}');" onclick="location.href='{% if is_enrolled %}{% url 'lesson_detail' course_slug=course.slug lesson_order=1 %}{% else %}{% url 'checkout' course_slug=course.slug %}{% endif %}'">
+                    <div class="ud-preview-media" style="background-image: url('{{ course.cover_image.url }}');" onclick="location.href='{% if is_enrolled and first_lesson %}{% url 'lesson_detail' course_slug=course.slug lesson_id=first_lesson.id %}{% else %}{% url 'checkout' course_slug=course.slug %}{% endif %}'">
                         <span class="ud-preview-text">Pré-visualizar este curso</span>
                     </div>
                 {% else %}
-                    <div class="ud-preview-media" style="background-image: linear-gradient(135deg, #1b1b22 0%, #0c0b0f 100%);" onclick="location.href='{% if is_enrolled %}{% url 'lesson_detail' course_slug=course.slug lesson_order=1 %}{% else %}{% url 'checkout' course_slug=course.slug %}{% endif %}'">
+                    <div class="ud-preview-media" style="background-image: linear-gradient(135deg, #1b1b22 0%, #0c0b0f 100%);" onclick="location.href='{% if is_enrolled and first_lesson %}{% url 'lesson_detail' course_slug=course.slug lesson_id=first_lesson.id %}{% else %}{% url 'checkout' course_slug=course.slug %}{% endif %}'">
                         <span class="ud-preview-text">Pré-visualizar este curso</span>
                     </div>
                 {% endif %}
@@ -533,7 +533,7 @@
                     </div>
                     
                     {% if is_enrolled %}
-                        <a href="{% url 'lesson_detail' course_slug=course.slug lesson_order=1 %}" class="ud-cta-btn ud-btn-enroll">
+                        <a href="{% if first_lesson %}{% url 'lesson_detail' course_slug=course.slug lesson_id=first_lesson.id %}{% else %}{% url 'course_preview' course_slug=course.slug %}{% endif %}" class="ud-cta-btn ud-btn-enroll">
                             Estudar Agora (Ir para o Curso)
                         </a>
                     {% else %}

@@ -161,7 +161,7 @@
                         <ul class="module-lessons {% if mod.id != lesson.module.id %}hidden{% endif %}">
                             {% for les in mod.lessons.all %}
                                 <li>
-                                    <a href="{% url 'lesson_detail' course_slug=course.slug lesson_order=les.order %}" class="lesson-item-btn {% if les.id == lesson.id %}active{% endif %}">
+                                    <a href="{% url 'lesson_detail' course_slug=course.slug lesson_id=les.id %}" class="lesson-item-btn {% if les.id == lesson.id %}active{% endif %}">
                                         <span id="status-dot-{{ les.id }}" class="lesson-status-icon {% if les.id in completed_lesson_ids %}completed{% endif %}"></span>
                                         <span>{{ les.order }}. {{ les.title }}</span>
                                     </a>
