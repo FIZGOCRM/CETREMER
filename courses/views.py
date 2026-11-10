@@ -8,7 +8,8 @@ from community.models import CommunityPost
 
 def landing(request):
     """Lists published courses on landing page, checking enrollment details if logged in."""
-    courses = Course.objects.filter(is_published=True).select_related('creator__user')
+    courses = Course.objects.filter(is_published=True).select_related('creator__user', 'category')
+    from .models import Category
     
     # Query active Hero Banner
     from .models import HeroBanner
@@ -25,6 +26,7 @@ def landing(request):
         'courses': courses,
         'enrolled_courses': enrolled_courses,
         'hero': hero
+        , 'categories': Category.objects.all()
     })
 
 def course_preview(request, course_slug):
@@ -40,6 +42,11 @@ def course_preview(request, course_slug):
     modules = Module.objects.filter(course=course).prefetch_related('lessons')
     total_lessons = Lesson.objects.filter(module__course=course).count()
     first_lesson = Lesson.objects.filter(module__course=course).order_by('module__order', 'order', 'id').first()
+    from .student_views import ordered_lessons, progress_info
+    lessons = ordered_lessons(course)
+    next_lesson = first_lesson
+    if is_enrolled:
+        next_lesson = progress_info(request.user.student_profile, course, lessons)['next_lesson']
     
     # Calculate total duration
     total_seconds = sum(l.duration_seconds for m in modules for l in m.lessons.all())
@@ -58,6 +65,9 @@ def course_preview(request, course_slug):
         'duration_str': duration_str,
         'is_enrolled': is_enrolled,
         'first_lesson': first_lesson
+        , 'next_lesson': next_lesson,
+        'total_seconds': total_seconds,
+        'has_materials': Lesson.objects.filter(module__course=course, materials__isnull=False).exists(),
     })
 
 @login_required

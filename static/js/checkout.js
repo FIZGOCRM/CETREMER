@@ -17,11 +17,11 @@ document.addEventListener("DOMContentLoaded", function() {
             }
 
             if (selectedMethod === "CREDIT_CARD") {
-                if (creditCardForm) creditCardForm.style.display = "block";
-                if (pixForm) pixForm.style.display = "none";
+                if (creditCardForm) creditCardForm.hidden = false;
+                if (pixForm) pixForm.hidden = true;
             } else {
-                if (creditCardForm) creditCardForm.style.display = "none";
-                if (pixForm) pixForm.style.display = "block";
+                if (creditCardForm) creditCardForm.hidden = true;
+                if (pixForm) pixForm.hidden = false;
             }
         });
     });
@@ -95,14 +95,19 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Add to summary view
                 if (summaryBumpsList) {
                     const row = document.createElement("div");
-                    row.className = "summary-row";
-                    row.innerHTML = `<span>+ ${bumpTitle}</span><span>$${bumpPrice.toFixed(2)}</span>`;
+                    row.className = "summary-line";
+                    const titleSpan = document.createElement('span');
+                    titleSpan.textContent = '+ ' + bumpTitle;
+                    const priceSpan = document.createElement('span');
+                    priceSpan.textContent = bumpPrice.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+                    row.append(titleSpan, priceSpan);
                     summaryBumpsList.appendChild(row);
                 }
             }
         });
 
-        totalAmountText.textContent = `$${total.toFixed(2)}`;
+        totalAmountText.textContent = total.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
+        if (summaryBumpsList) summaryBumpsList.hidden = selectedBumps.length === 0;
         if (selectedBumpsInput) {
             selectedBumpsInput.value = selectedBumps.join(",");
         }
@@ -121,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function() {
             e.preventDefault();
             
             // Open processing status dialog modal
-            modalOverlay.style.display = "flex";
+            modalOverlay.showModal();
 
             const formData = new FormData(this);
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
@@ -142,12 +147,12 @@ document.addEventListener("DOMContentLoaded", function() {
                         window.location.href = data.redirect_url;
                     } else {
                         alert(data.message || "Falha na verificação do cartão. Por favor, tente novamente.");
-                        modalOverlay.style.display = "none";
+                        modalOverlay.close();
                     }
                 })
                 .catch(err => {
                     console.error("An error occurred during submission:", err);
-                    modalOverlay.style.display = "none";
+                    modalOverlay.close();
                 });
             }, 2500);
         });
