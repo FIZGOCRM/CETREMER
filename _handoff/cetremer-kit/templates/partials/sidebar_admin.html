@@ -1,0 +1,20 @@
+{% with current=request.resolver_match.url_name %}
+<aside class="sidebar">
+  <a class="brand" href="{% url 'painel:dashboard' %}">
+    <span class="brand__name">{{ site.school_name|default:"CETREMER" }}</span>
+    <span class="brand__tag">Painel administrativo</span>
+  </a>
+  <nav class="sidenav" aria-label="Menu administrativo">
+    <a class="sidenav__link" href="{% url 'painel:dashboard' %}"{% if current == 'dashboard' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="home" %}Painel</a>
+    <a class="sidenav__link" href="{% url 'painel:courses' %}"{% if current == 'courses' or current == 'course_new' or current == 'course_edit' or current == 'course_lessons' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="course" %}Cursos</a>
+    <a class="sidenav__link" href="{% url 'painel:students' %}"{% if current == 'students' or current == 'students_import' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="users" %}Alunos</a>
+    <a class="sidenav__link" href="{% url 'painel:orders' %}"{% if current == 'orders' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="receipt" %}Pedidos</a>
+    <a class="sidenav__link" href="{% url 'painel:community' %}"{% if current == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" %}Comunidade</a>
+    <a class="sidenav__link" href="{% url 'painel:settings' %}"{% if current == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="gear" %}Configurações</a>
+  </nav>
+  <div class="sidebar__footer">
+    <a class="sidebar__footer-link" href="{% url 'dashboard' %}">Ver como aluno</a>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="sidebar__footer-link">Sair</button></form>
+  </div>
+</aside>
+{% endwith %}

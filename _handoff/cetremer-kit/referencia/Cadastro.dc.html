@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Criar conta · CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #FFFFFF; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap">
+
+<section style="flex: 1 1 420px; background: #034C8C; color: #FFFFFF; padding: 48px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; gap: 40px">
+<a href="Landing.dc.html" style="display: flex; flex-direction: column; color: #FFFFFF; text-decoration: none">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 24px; letter-spacing: 0.02em">CETREMER</span>
+<span style="font-size: 13px; opacity: 0.85">Centro de Treinamento em Emergência</span>
+</a>
+<div style="display: flex; flex-direction: column; gap: 14px; max-width: 440px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 38px; line-height: 1.15">Crie sua conta de aluno</h1>
+<p style="margin: 0; font-size: 17px; color: #DCE3EC">Com a conta criada, você acompanha seus cursos e recebe os certificados no seu nome.</p>
+</div>
+<span style="font-size: 13px; color: #C9D3DF">Aprenda fazendo, com quem faz.</span>
+</section>
+
+<main style="flex: 999 1 520px; display: flex; align-items: center; justify-content: center; padding: 48px 24px; box-sizing: border-box">
+<form style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 26px">Criar conta</h2>
+<p style="margin: 0; color: #5B6472">Leva menos de um minuto.</p>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="nome" style="font-size: 14px; font-weight: 600">Nome completo</label>
+<input id="nome" type="text" autocomplete="name" style="font: inherit; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9D3DF; box-sizing: border-box">
+<span style="font-size: 13px; color: #5B6472">É o nome que vai sair no certificado.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="email" style="font-size: 14px; font-weight: 600">E-mail</label>
+<input id="email" type="email" autocomplete="email" placeholder="voce@email.com" style="font: inherit; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9D3DF; box-sizing: border-box">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="senha" style="font-size: 14px; font-weight: 600">Senha</label>
+<input id="senha" type="password" autocomplete="new-password" style="font: inherit; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9D3DF; box-sizing: border-box">
+<span style="font-size: 13px; color: #5B6472">Mínimo de 8 caracteres, sem ser só números.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="confirmar" style="font-size: 14px; font-weight: 600">Confirmar senha</label>
+<input id="confirmar" type="password" autocomplete="new-password" style="font: inherit; min-height: 48px; padding: 0 14px; border-radius: 10px; border: 1px solid #C9D3DF; box-sizing: border-box">
+</div>
+<label style="display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: #3A4556; cursor: pointer">
+<input type="checkbox" style="width: 18px; height: 18px; margin-top: 2px; accent-color: #0B63C4; flex: none">
+<span>Li e aceito os <a href="#">Termos de Uso</a> e a <a href="#">Política de Privacidade</a>.</span>
+</label>
+<a href="Main.dc.html" style="display: inline-flex; align-items: center; justify-content: center; min-height: 52px; border-radius: 10px; background: #0B63C4; color: #FFFFFF; font-weight: 600; text-decoration: none">Criar conta</a>
+<p style="margin: 0; text-align: center; color: #5B6472; font-size: 14px">Já tem conta? <a href="Login.dc.html" style="font-weight: 600">Entrar</a></p>
+</form>
+</main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

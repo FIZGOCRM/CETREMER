@@ -1,0 +1,28 @@
+{% load cetremer %}{% comment %}
+Card de curso do aluno (Meus cursos). Recebe "item" com:
+  item.course, item.pct, item.completed, item.total, item.next_lesson, item.status ("not_started" | "in_progress" | "done")
+{% endcomment %}
+{% with course=item.course %}
+<article class="course-card">
+  <div class="course-card__cover {{ course.cover_class }}">
+    {% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="" loading="lazy">{% else %}<span class="course-card__initials" aria-hidden="true">{{ course.short_name|default:course.title|truncatechars:12 }}</span>{% endif %}
+  </div>
+  <div class="course-card__body">
+    {% if course.category %}<span class="badge {{ course.category.badge_class }}">{{ course.category.name }}</span>{% endif %}
+    <h3 class="course-card__title">{{ course.title }}</h3>
+    <div class="course-card__progress">
+      {% include "partials/progress.html" with value=item.pct label="Progresso do curso "|add:course.title %}
+      <span class="progress-label">
+        {% if item.status == "done" %}Concluído{% elif item.status == "not_started" %}Não iniciado · {{ item.total }} aula{{ item.total|pluralize }}{% else %}{{ item.pct }}% · {{ item.completed }} de {{ item.total }} aulas{% endif %}
+      </span>
+    </div>
+    {% if item.status == "done" %}
+      <a class="btn btn--secondary btn--block" href="{% url 'issue_certificate' course.slug %}">Ver certificado</a>
+    {% elif item.status == "not_started" %}
+      <a class="btn btn--outline btn--block" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">Começar curso</a>
+    {% else %}
+      <a class="btn btn--primary btn--block" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">Continuar</a>
+    {% endif %}
+  </div>
+</article>
+{% endwith %}

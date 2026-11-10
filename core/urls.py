@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -8,9 +8,16 @@ from courses import views as course_views
 from sales import views as sales_views
 from community import views as community_views
 from courses import creator_views
+from core import placeholder_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('painel/', include('painel.urls')),
+    path('ao-vivo/', placeholder_views.live_classes, name='live_classes'),
+    path('certificados/', placeholder_views.certificates, name='certificates'),
+    path('certificado/verificar/', placeholder_views.verify_certificate, name='verify_certificate'),
+    path('senha/esqueci/', placeholder_views.password_reset, name='password_reset'),
+    path('courses/lesson/<int:lesson_id>/complete/', placeholder_views.complete_lesson, name='complete_lesson'),
     
     # Creator Portal
     path('creator/', creator_views.creator_dashboard, name='creator_dashboard'),

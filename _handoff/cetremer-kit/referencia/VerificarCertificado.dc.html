@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Verificar certificado · CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 40px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<a href="Landing.dc.html" style="display: flex; flex-direction: column; text-decoration: none">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.02em; color: #034C8C">CETREMER</span>
+<span style="font-size: 12px; color: #5B6472">Centro de Treinamento em Emergência</span>
+</a>
+<a href="Landing.dc.html" style="color: #3A4556; font-weight: 500; text-decoration: none">Voltar ao site</a>
+</header>
+
+<main style="width: 100%; max-width: 720px; margin: 0 auto; padding: 56px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 32px">Verificar certificado</h1>
+<p style="margin: 0; color: #5B6472">Digite o código impresso no certificado para confirmar que ele foi emitido pela CETREMER.</p>
+</div>
+
+<form style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end">
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 6px">
+<label for="codigo" style="font-size: 14px; font-weight: 600">Código de verificação</label>
+<input id="codigo" type="text" placeholder="Ex.: 2A0E-307C-F993" style="font: inherit; min-height: 52px; padding: 0 16px; border-radius: 10px; border: 1px solid #C9D3DF; background: #FFFFFF; box-sizing: border-box; letter-spacing: 0.06em; text-transform: uppercase">
+</div>
+<button type="button" style="min-height: 52px; padding: 0 24px; border-radius: 10px; border: 0; background: #0B63C4; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Verificar</button>
+</form>
+
+<section aria-labelledby="resultado" style="background: #FFFFFF; border: 1px solid #E3E8EF; border-radius: 16px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 18px 24px; background: #E9F6EE; color: #145C33">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>
+<h2 id="resultado" style="margin: 0; font-size: 18px">Certificado válido</h2>
+</div>
+<dl style="margin: 0; padding: 8px 24px 20px; display: grid; grid-template-columns: minmax(140px, auto) 1fr; gap: 0 24px">
+<dt style="padding: 12px 0; border-bottom: 1px solid #EEF1F5; color: #5B6472">Aluno</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid #EEF1F5; font-weight: 600">[Nome completo do aluno]</dd>
+<dt style="padding: 12px 0; border-bottom: 1px solid #EEF1F5; color: #5B6472">Curso</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid #EEF1F5; font-weight: 600">BLS · Suporte Básico de Vida</dd>
+<dt style="padding: 12px 0; border-bottom: 1px solid #EEF1F5; color: #5B6472">Carga horária</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid #EEF1F5">8 horas</dd>
+<dt style="padding: 12px 0; border-bottom: 1px solid #EEF1F5; color: #5B6472">Concluído em</dt><dd style="margin: 0; padding: 12px 0; border-bottom: 1px solid #EEF1F5">[Data de conclusão]</dd>
+<dt style="padding: 12px 0; color: #5B6472">Código</dt><dd style="margin: 0; padding: 12px 0; font-family: ui-monospace, monospace">2A0E-307C-F993</dd>
+</dl>
+</section>
+
+<p style="margin: 0; font-size: 14px; color: #5B6472">Por privacidade, esta página não mostra CPF nem outros dados pessoais do aluno.</p>
+</main>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
