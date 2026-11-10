@@ -75,6 +75,11 @@ def iniciais(name):
 
 
 @register.filter
+def first_name(name):
+    return str(name or '').split(' ', 1)[0]
+
+
+@register.filter
 def codigo_cert(code):
     raw = "".join(ch for ch in str(code or "") if ch.isalnum()).upper()
     return "-".join(raw[i:i + 4] for i in range(0, len(raw), 4))

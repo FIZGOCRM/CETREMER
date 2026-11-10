@@ -2,26 +2,34 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import HttpResponseForbidden
+from django.db.models import Q, Count
 
 from courses.models import Course, Enrollment, Lesson
 from .models import CommunityPost, Comment
 
 @login_required
 def community_hub(request):
-    """Renders the centralized interactive community discussion board for students."""
-    posts = CommunityPost.objects.all().prefetch_related('comments__author', 'author').select_related('course')
-    
-    # Fetch user's courses for posting options
     if request.user.role == 'STUDENT':
-        student_profile = request.user.student_profile
-        my_courses = Course.objects.filter(enrollments__student=student_profile)
+        my_courses = Course.objects.filter(enrollments__student=request.user.student_profile)
     else:
         my_courses = Course.objects.all()
-        
-    return render(request, 'community/hub.html', {
-        'posts': posts,
-        'my_courses': my_courses
-    })
+    posts = CommunityPost.objects.filter(is_hidden=False).filter(
+        Q(course__isnull=True) | Q(course__in=my_courses)
+    ).select_related('author__student_profile', 'course__category', 'lesson').annotate(comments_count=Count('comments'))
+    current_filter = request.GET.get('curso', 'geral')
+    if current_filter == 'geral':
+        posts = posts.filter(course__isnull=True)
+    elif current_filter != 'todos':
+        posts = posts.filter(course__slug=current_filter)
+    for post in posts:
+        try:
+            post.author_display = post.author.student_profile.full_name or post.author.email.split('@')[0]
+        except Exception:
+            post.author_display = post.author.email.split('@')[0] or post.author.username
+        if post.lesson_id:
+            lesson_ids = list(Lesson.objects.filter(module__course=post.course).order_by('module__order', 'order', 'id').values_list('id', flat=True))
+            post.lesson_position = lesson_ids.index(post.lesson_id) + 1 if post.lesson_id in lesson_ids else None
+    return render(request, 'community/hub.html', {'posts': posts, 'my_courses': my_courses, 'current_filter': current_filter})
 
 @login_required
 @require_POST
@@ -60,10 +68,15 @@ def create_post(request, course_slug):
         return HttpResponseForbidden('Matrícula necessária para publicar neste curso.')
     title = request.POST.get('title')
     content = request.POST.get('content')
+    lesson_id = request.POST.get('lesson_id')
+    lesson = get_object_or_404(Lesson, id=lesson_id, module__course=course) if lesson_id else None
+    if lesson and not title and content:
+        title = content[:100]
     
     if title and content:
         CommunityPost.objects.create(
             course=course,
+            lesson=lesson,
             author=request.user,
             title=title,
             content=content

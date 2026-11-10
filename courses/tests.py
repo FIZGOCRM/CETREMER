@@ -91,6 +91,26 @@ class PlatformTestCase(TestCase):
         url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})
         self.assertEqual(self.client.get(url).status_code, 404)
 
+    def test_complete_lesson_is_idempotent_and_enrollment_is_required(self):
+        self.client.force_login(self.student_user)
+        url = reverse('complete_lesson', kwargs={'lesson_id': self.lesson.id})
+        self.assertEqual(self.client.post(url).status_code, 403)
+        Enrollment.objects.create(student=self.student_profile, course=self.course)
+        first = self.client.post(url)
+        second = self.client.post(url)
+        self.assertEqual(first.json(), second.json())
+        self.assertEqual(first.json()['percentage'], 100)
+        self.assertTrue(Progress.objects.get(student=self.student_profile, lesson=self.lesson).is_completed)
+
+    def test_lesson_access_updates_enrollment_and_renders_player(self):
+        enrollment = Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': self.lesson.id}))
+        self.assertContains(response, 'referrerpolicy="strict-origin-when-cross-origin"')
+        self.assertContains(response, 'data-course-progress')
+        enrollment.refresh_from_db()
+        self.assertIsNotNone(enrollment.last_accessed_at)
+
     def test_anonymous_checkout_enrollment(self):
         """Verifies that a guest user can checkout directly, creating their account and enrollment."""
         # Process checkout POST without being logged in

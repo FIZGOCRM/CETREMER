@@ -9,18 +9,19 @@ from sales import views as sales_views
 from community import views as community_views
 from courses import creator_views
 from core import placeholder_views
+from courses import student_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),
-    path('ao-vivo/', placeholder_views.live_classes, name='live_classes'),
+    path('ao-vivo/', student_views.live_classes, name='live_classes'),
     path('certificados/', placeholder_views.certificates, name='certificates'),
     path('certificado/verificar/', placeholder_views.verify_certificate, name='verify_certificate'),
     path('senha/esqueci/', user_views.PasswordResetView.as_view(), name='password_reset'),
     path('senha/enviado/', user_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('senha/nova/<uidb64>/<token>/', user_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('senha/pronto/', user_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    path('courses/lesson/<int:lesson_id>/complete/', placeholder_views.complete_lesson, name='complete_lesson'),
+    path('courses/lesson/<int:lesson_id>/complete/', student_views.complete_lesson, name='complete_lesson'),
     
     # Creator Portal
     path('creator/', creator_views.creator_dashboard, name='creator_dashboard'),
@@ -46,9 +47,9 @@ urlpatterns = [
     path('courses/<slug:course_slug>/', course_views.course_preview, name='course_preview'),
     
     # Student Area & Player
-    path('dashboard/', course_views.dashboard, name='dashboard'),
+    path('dashboard/', student_views.dashboard, name='dashboard'),
     path('settings/', user_views.settings_view, name='settings'),
-    path('courses/<slug:course_slug>/lessons/<int:lesson_id>/', course_views.lesson_detail, name='lesson_detail'),
+    path('courses/<slug:course_slug>/lessons/<int:lesson_id>/', student_views.lesson_detail, name='lesson_detail'),
     path('courses/lesson/<int:lesson_id>/toggle-progress/', course_views.toggle_progress, name='toggle_progress'),
     path('courses/<slug:course_slug>/certificate/', course_views.issue_certificate, name='issue_certificate'),
     

@@ -28,7 +28,7 @@ class HandoffPhaseZeroTests(TestCase):
 
     def test_student_placeholders_render_with_sidebar(self):
         self.client.force_login(self.student)
-        for name in ('live_classes', 'certificates'):
+        for name in ('certificates',):
             response = self.client.get(reverse(name))
             self.assertEqual(response.status_code, 200)
             self.assertTemplateUsed(response, 'base_aluno.html')
@@ -36,6 +36,8 @@ class HandoffPhaseZeroTests(TestCase):
             self.assertContains(response, 'css/cetremer.css')
             self.assertContains(response, reverse('live_classes'))
             self.assertContains(response, reverse('certificates'))
+        response = self.client.get(reverse('live_classes'))
+        self.assertContains(response, 'Aulas ao vivo')
 
     def test_panel_placeholders_are_namespaced_and_restricted(self):
         panel_names = ('dashboard', 'courses', 'students', 'orders', 'community', 'settings')
@@ -49,7 +51,7 @@ class HandoffPhaseZeroTests(TestCase):
             self.assertContains(response, 'Em construção')
             self.assertContains(response, 'css/cetremer.css')
 
-    def test_complete_lesson_placeholder_does_not_mark_progress(self):
+    def test_complete_lesson_unknown_lesson_returns_404(self):
         self.client.force_login(self.student)
         response = self.client.post(reverse('complete_lesson', kwargs={'lesson_id': 1}))
-        self.assertEqual(response.status_code, 501)
+        self.assertEqual(response.status_code, 404)

@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlparse, urlencode
 from users.models import CreatorProfile, StudentProfile
 
 class Category(models.Model):
@@ -55,6 +55,19 @@ class Course(models.Model):
     @property
     def objectives_list(self):
         return [line.strip() for line in self.learning_objectives.splitlines() if line.strip()]
+
+    @property
+    def calendar_embed_url(self):
+        parsed = urlparse(self.live_calendar_url or '')
+        if parsed.hostname != 'calendar.google.com':
+            return ''
+        source = parse_qs(parsed.query).get('src', [''])[0]
+        if not source:
+            return ''
+        params = {'src': source, 'ctz': 'America/Campo_Grande', 'mode': 'AGENDA',
+                  'showTitle': '0', 'showPrint': '0', 'showTabs': '0',
+                  'showCalendars': '0', 'showTz': '0'}
+        return 'https://calendar.google.com/calendar/embed?' + urlencode(params)
 
 class Module(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
