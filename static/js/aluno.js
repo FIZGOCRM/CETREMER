@@ -1,5 +1,5 @@
 /* CETREMER · página da aula
-   Substitui netflix.js. Carregar só em courses/lesson_detail.html, depois do player.js do Vimeo.
+   Carregar só em courses/lesson_detail.html, depois do player.js do Vimeo.
    Contrato com o template (ver HANDOFF.md, tela "Página da aula"):
    - .module__toggle[aria-controls] abre/fecha a lista do módulo (lista com id igual ao aria-controls)
    - .btn-toggle-complete[data-lesson-id][data-url] alterna concluída (POST, resposta JSON)

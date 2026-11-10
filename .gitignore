@@ -14,6 +14,8 @@ ENV/
 # Variáveis de ambiente sensíveis (use .env.example como modelo)
 .env
 db.sqlite3
+_handoff/
+cetremer-kit/
 
 # Arquivos estáticos coletados
 staticfiles/

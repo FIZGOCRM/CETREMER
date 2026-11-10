@@ -8,8 +8,6 @@ from users import views as user_views
 from courses import views as course_views
 from sales import views as sales_views
 from community import views as community_views
-from courses import creator_views
-from core import placeholder_views
 from courses import student_views
 from courses import certificate_views
 

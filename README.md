@@ -90,8 +90,8 @@ Acesse no navegador:
 
 | Perfil | Usuário / E-mail | Senha | Descrição |
 | :--- | :--- | :--- | :--- |
-| **Administrador** | `admin` (`admin@cetremer.com.br`) | `password123` | Acesso total ao Django Admin (`/admin`) |
-| **Produtor / Criador** | `john_creator` (`john@creator.com`) | `password123` | Acesso ao Portal do Criador (`/creator`) |
+| **Administrador** | `admin` (`admin@cetremer.com.br`) | `password123` | Painel `/painel/` e Django Admin `/admin/` |
+| **Produtor / Criador** | `john_creator` (`john@creator.com`) | `password123` | Painel `/painel/` |
 | **Aluno** | `jane_student` (`jane@student.com`) | `password123` | Acesso à Área do Aluno & Aulas (`/dashboard`) |
 
 ---
@@ -100,9 +100,11 @@ Acesse no navegador:
 
 * **Catálogo & Landing Page:** `http://localhost:8000/`
 * **Área do Aluno (Player de Vídeo e Aulas):** `http://localhost:8000/dashboard/`
-* **Portal do Criador (Gestão de Cursos e Métricas):** `http://localhost:8000/creator/`
+* **Painel de gestão:** `http://localhost:8000/painel/`
 * **Comunidade & Fórum de Discussão:** `http://localhost:8000/community/`
-* **Painel Administrativo:** `http://localhost:8000/admin/`
+* **Administração técnica do Django:** `http://localhost:8000/admin/`
+
+Para incorporar vídeos do Vimeo, configure em cada vídeo **Privacidade > Incorporar > Somente em domínios que eu escolher** e inclua o domínio de produção e `localhost`.
 
 ---
 

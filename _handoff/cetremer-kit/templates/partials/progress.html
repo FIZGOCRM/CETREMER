@@ -1,9 +1,0 @@
-{% comment %}
-Barra de progresso. Uso:
-  {% include "partials/progress.html" with value=item.pct label="Progresso do curso BLS" %}
-  {% include "partials/progress.html" with value=pct label="Progresso do curso" size="lg" id="course-progress" %}
-"value" é inteiro de 0 a 100. A largura inline é a ÚNICA exceção permitida à regra de não usar style inline.
-{% endcomment %}
-<div class="progress{% if size == 'lg' %} progress--lg{% endif %}" role="progressbar" aria-label="{{ label }}" aria-valuenow="{{ value|default:0 }}" aria-valuemin="0" aria-valuemax="100"{% if id %} id="{{ id }}"{% endif %}>
-  <div class="progress__bar"{% if id %} id="{{ id }}-bar"{% endif %} style="width: {{ value|default:0 }}%"></div>
-</div>
