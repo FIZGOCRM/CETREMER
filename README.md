@@ -53,24 +53,25 @@ cp .env.example .env
 ```
 *(No Windows PowerShell use `copy .env.example .env`)*
 
-Se desejar, edite o arquivo `.env` para ajustar a porta, modo `DEBUG` ou chave secreta `SECRET_KEY`.
+Preencha `SECRET_KEY` e `FIELD_ENCRYPTION_KEY` antes de iniciar. Gere valores únicos:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+O `DEBUG` usa `False` por padrão fora do ambiente local. Guarde as chaves do `.env`: dados criptografados dependem de `FIELD_ENCRYPTION_KEY` para leitura.
 
 ---
 
 ### 6. Banco de Dados e Dados Iniciais
-O banco de dados SQLite (`db.sqlite3`) já vem pré-configurado e versionado com todos os dados.
-
-Caso queira recriar o banco ou carregar a base limpa a partir do dump:
+O banco SQLite local (`db.sqlite3`) não é versionado. Para criar a base com os dados de demonstração:
 ```bash
-# Executar migrações
 python manage.py migrate
-
-# (Opcional) Restaurar dados completos do dump
 python manage.py loaddata data_dump.json
-
-# (Opcional) Ou recriar a base com dados de demonstração
-python seed.py
 ```
+
+`python seed.py` recria os dados de demonstração e apaga usuários, cursos e matrículas locais; use apenas quando quiser reiniciar a base.
 
 ---
 

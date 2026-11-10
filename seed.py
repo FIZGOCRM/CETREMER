@@ -6,16 +6,22 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
 django.setup()
 
 from django.contrib.auth import get_user_model
-from users.models import CreatorProfile, StudentProfile
-from courses.models import Course, Module, Lesson, Enrollment, HeroBanner
+from users.models import CreatorProfile, StudentProfile, SiteSettings
+from courses.models import Category, Certificate, Course, Module, Lesson, LessonMaterial, Enrollment, HeroBanner
 
 User = get_user_model()
 
 def create_seed_data():
     print("Clearing old course and user data...")
     # Clear database state
+    Certificate.objects.all().delete()
     User.objects.all().delete()
     Course.objects.all().delete()
+    Category.objects.all().delete()
+
+    essentials = Category.objects.create(name="Essenciais AHA", slug="essenciais-aha", color="blue", order=1)
+    specialties = Category.objects.create(name="Especialidades médicas", slug="especialidades-medicas", color="teal", order=2)
+    leigos = Category.objects.create(name="Para leigos", slug="para-leigos", color="slate", order=3)
     
     print("Creating mock user credentials...")
     # 1. Create a demo creator user with profile trigger
@@ -54,7 +60,8 @@ def create_seed_data():
     c1 = Course.objects.create(
         title="BLS - Suporte Básico de Vida",
         slug="suporte-basico-vida-bls",
-        description="Curso presencial credenciado pela American Heart Association (AHA). Aprenda RCP de alta qualidade, manobras de desengasgo e uso do Desfibrilador Externo Automático (DEA). Duração: 8h.",
+        description="Curso presencial credenciado pela American Heart Association (AHA). Aprenda RCP de alta qualidade, manobras de desengasgo e uso do Desfibrilador Externo Automático (DEA).",
+        category=essentials, short_name="BLS", cover_color="blue", workload_hours=8,
         creator=creator_profile,
         price=150.00,
         is_published=True,
@@ -64,7 +71,8 @@ def create_seed_data():
     c2 = Course.objects.create(
         title="ACLS - Suporte Avançado de Vida em Cardiologia",
         slug="suporte-avancado-cardiologia-acls",
-        description="Curso avançado credenciado pela AHA. Focado em atendimento emergencial cardiovascular, RCP de alto desempenho, ritmos de PCR e dinâmica de equipe médica. Duração: 16h.",
+        description="Curso avançado credenciado pela AHA. Focado em atendimento emergencial cardiovascular, RCP de alto desempenho, ritmos de PCR e dinâmica de equipe médica.",
+        category=essentials, short_name="ACLS", cover_color="blue-2", workload_hours=16,
         creator=creator_profile,
         price=450.00,
         is_published=True,
@@ -74,7 +82,8 @@ def create_seed_data():
     c3 = Course.objects.create(
         title="PALS - Suporte Avançado de Vida em Pediatria",
         slug="suporte-avancado-pediatria-pals",
-        description="Curso avançado pediátrico credenciado pela AHA. Manejo de paradas cardíacas, insuficiência respiratória e choque em crianças e neonatos. Duração: 16h.",
+        description="Curso avançado pediátrico credenciado pela AHA. Manejo de paradas cardíacas, insuficiência respiratória e choque em crianças e neonatos.",
+        category=specialties, short_name="PALS", cover_color="teal", workload_hours=16,
         creator=creator_profile,
         price=500.00,
         is_published=True,
@@ -84,7 +93,8 @@ def create_seed_data():
     c4 = Course.objects.create(
         title="DEA e Primeiros Socorros para Leigos",
         slug="dea-primeiros-socorros-leigos",
-        description="Treinamento prático direcionado a escolas, empresas, brigadas de incêndio e cidadãos que desejam aprender a salvar vidas e utilizar o DEA no dia a dia. Duração: 4h.",
+        description="Treinamento prático direcionado a escolas, empresas, brigadas de incêndio e cidadãos que desejam aprender a salvar vidas e utilizar o DEA no dia a dia.",
+        category=leigos, short_name="DEA", cover_color="slate", workload_hours=4,
         creator=creator_profile,
         price=90.00,
         is_published=True,
@@ -95,6 +105,7 @@ def create_seed_data():
         title="Plantão Sem GPT",
         slug="plantao-sem-gpt",
         description="O guia prático definitivo para médicos dominarem condutas de emergência, UTI e pronto-socorro de forma rápida e segura na vida real, sem depender de GPT ou consultas rápidas.",
+        category=specialties, short_name="Plantão", cover_color="ink",
         creator=creator_profile,
         price=190.00,
         is_published=True,
@@ -107,15 +118,18 @@ def create_seed_data():
 
     # 4. Create modules & lessons for BLS
     m1 = Module.objects.create(course=c1, title="Módulo 1: Introdução ao Suporte Básico", order=1)
-    Lesson.objects.create(
+    first_lesson = Lesson.objects.create(
         module=m1,
         title="Reconhecimento da PCR e Corrente de Sobrevivência",
         description="Nesta aula inicial, cobriremos o diagnóstico rápido de uma parada cardiorrespiratória e a cadeia de sobrevivência intra e extra-hospitalar.",
         video_url="https://www.youtube.com/embed/dQw4w9WgXcQ", 
         duration_seconds=300,
         order=1,
-        download_url="https://www.heart.org/-/media/files/providers/handbook-resources/bls-adult-cardiac-arrest-algorithm-pdf.pdf",
-        download_name="AHA BLS Algoritmo de PCR em Adultos (PDF)"
+    )
+    LessonMaterial.objects.create(
+        lesson=first_lesson,
+        title="AHA BLS Algoritmo de PCR em Adultos (PDF)",
+        url="https://www.heart.org/-/media/files/providers/handbook-resources/bls-adult-cardiac-arrest-algorithm-pdf.pdf",
     )
     Lesson.objects.create(
         module=m1,
@@ -211,6 +225,12 @@ def create_seed_data():
         whatsapp_button_url="https://wa.me/5567996494740",
         is_active=True
     )
+
+    SiteSettings.objects.update_or_create(pk=1, defaults={
+        'school_name': 'CETREMER',
+        'whatsapp': '5567996494740',
+        'gateway_name': 'MOCK_GATEWAY',
+    })
     
     print("Created default student course enrollments and Hero Banner.")
     print("\nDatabase seeded successfully!")

@@ -55,7 +55,7 @@
                 <p>{{ lesson.description|linebreaksbr|default:"Nenhum detalhe adicional configurado para esta aula." }}</p>
             </div>
 
-            {% if lesson.download_url %}
+            {% if lesson.materials.first %}
                 <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; margin-top: 32px; margin-bottom: 48px;">
                     <h3 style="color: #fff; font-size: 16px; margin-bottom: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                         <span>📁</span> Materiais de Apoio / Downloads
@@ -63,8 +63,8 @@
                     <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.4;">
                         Baixe os arquivos complementares e apostilas vinculadas a esta aula:
                     </p>
-                    <a href="{{ lesson.download_url }}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 16px; border-color: rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; border-radius: 6px; background: rgba(255,255,255,0.03);">
-                        <span>📥</span> {{ lesson.download_name|default:"Baixar Material Complementar" }}
+                    <a href="{{ lesson.materials.first.url }}" target="_blank" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; font-size: 13px; padding: 10px 16px; border-color: rgba(255, 255, 255, 0.15); color: #fff; text-decoration: none; border-radius: 6px; background: rgba(255,255,255,0.03);">
+                        <span>📥</span> {{ lesson.materials.first.title|default:"Baixar Material Complementar" }}
                     </a>
                 </div>
             {% endif %}

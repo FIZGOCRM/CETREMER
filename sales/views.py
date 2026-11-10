@@ -140,7 +140,7 @@ def process_checkout(request, course_slug):
         status=Order.Status.COMPLETED,
         transaction_id=transaction_id
     )
-    Enrollment.objects.get_or_create(student=student_profile, course=course)
+    Enrollment.objects.get_or_create(student=student_profile, course=course, defaults={'source': 'purchase'})
     
     # 3. Create transaction records and Enrollments for chosen order bump upsells
     if selected_bumps_str:
@@ -156,7 +156,7 @@ def process_checkout(request, course_slug):
                     status=Order.Status.COMPLETED,
                     transaction_id=str(uuid.uuid4())
                 )
-                Enrollment.objects.get_or_create(student=student_profile, course=bump.bump_course)
+                Enrollment.objects.get_or_create(student=student_profile, course=bump.bump_course, defaults={'source': 'purchase'})
             except OrderBump.DoesNotExist:
                 pass
                 

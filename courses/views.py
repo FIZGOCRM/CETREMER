@@ -70,7 +70,7 @@ def dashboard(request):
     enrollments_qs = Enrollment.objects.filter(student=student_profile)
     enrolled_course_ids = set(enrollments_qs.values_list('course_id', flat=True))
     
-    all_courses = Course.objects.filter(is_published=True).select_related('creator__user')
+    all_courses = Course.objects.filter(is_published=True).select_related('creator__user', 'category')
     
     essentials = []
     specialties = []
@@ -99,10 +99,10 @@ def dashboard(request):
             'progress_percent': progress_percent
         }
         
-        # Categorize by slug for custom sliders
-        if course.slug in ['suporte-basico-vida-bls', 'suporte-avancado-cardiologia-acls']:
+        # Keep the legacy dashboard groups until the phase 3 template is replaced.
+        if course.category and course.category.slug == 'essenciais-aha':
             essentials.append(item)
-        elif course.slug in ['suporte-avancado-pediatria-pals', 'plantao-sem-gpt']:
+        elif course.category and course.category.slug == 'especialidades-medicas':
             specialties.append(item)
         else:
             leigos.append(item)

@@ -57,8 +57,8 @@
                                             {% if les.video_url %}
                                                 <span>🎬 Com vídeo</span>
                                             {% endif %}
-                                            {% if les.download_url %}
-                                                <span>📁 Material: {{ les.download_name }}</span>
+                                            {% if les.materials.first %}
+                                                <span>📁 Material: {{ les.materials.first.title }}</span>
                                             {% endif %}
                                         </div>
                                     </div>

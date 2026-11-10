@@ -112,6 +112,7 @@ class PlatformTestCase(TestCase):
         # Verify enrollment is created for new student
         enrolled = Enrollment.objects.filter(student=new_profile, course=self.course).exists()
         self.assertTrue(enrolled)
+        self.assertEqual(Enrollment.objects.get(student=new_profile, course=self.course).source, 'purchase')
 
     def test_checkout_generates_temporary_password_and_sends_email(self):
         """Verifies that guest checkout generates a temporary password, sends it via email, and the user can log in with it."""
@@ -325,7 +326,7 @@ class PlatformTestCase(TestCase):
         response = self.client.post(settings_url, {
             'action': 'profile_personal',
             'full_name': 'Márcio Hirade Filho',
-            'cpf': '111.222.333-44'
+            'cpf': '529.982.247-25'
         })
         self.assertEqual(response.status_code, 200)
         
@@ -338,7 +339,7 @@ class PlatformTestCase(TestCase):
         
         self.student_profile.refresh_from_db()
         self.assertEqual(self.student_profile.full_name, 'Márcio Hirade Filho')
-        self.assertEqual(self.student_profile.cpf, '111.222.333-44')
+        self.assertEqual(self.student_profile.cpf, '52998224725')
         self.assertEqual(self.student_profile.address, 'Rua Principal, 123 - Campo Grande')
 
     def test_certificate_blocked_if_incomplete(self):
@@ -360,7 +361,7 @@ class PlatformTestCase(TestCase):
         
         # Save StudentProfile full_name and CPF first to validate template renders
         self.student_profile.full_name = "Aluno Certificado"
-        self.student_profile.cpf = "000.000.000-00"
+        self.student_profile.cpf = "529.982.247-25"
         self.student_profile.save()
         
         cert_url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})

@@ -13,6 +13,7 @@ ENV/
 
 # Variáveis de ambiente sensíveis (use .env.example como modelo)
 .env
+db.sqlite3
 
 # Arquivos estáticos coletados
 staticfiles/

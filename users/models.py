@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from .validators import only_digits, validate_cpf
 
 # We will implement AbstractUser to override the default authentication model
 class User(AbstractUser):
@@ -27,11 +28,18 @@ class StudentProfile(models.Model):
     level = models.PositiveIntegerField(default=1)
     title = models.CharField(max_length=50, default='Novice')
     full_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome Completo")
-    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
+    cpf = models.CharField(max_length=11, blank=True, null=True, verbose_name="CPF")
     address = models.TextField(blank=True, null=True, verbose_name="Endereço")
 
     def __str__(self):
         return f"Student: {self.user.username} - Level {self.level}"
+
+    def save(self, *args, **kwargs):
+        if self.cpf:
+            self.cpf = validate_cpf(self.cpf)
+        else:
+            self.cpf = only_digits(self.cpf)
+        super().save(*args, **kwargs)
 
 class CreatorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='creator_profile')
@@ -60,9 +68,45 @@ class CreatorProfile(models.Model):
     def __str__(self):
         return f"Creator: {self.company_name or self.user.username}"
 
+
+class SiteSettings(models.Model):
+    school_name = models.CharField(max_length=80, default='CETREMER')
+    logo = models.ImageField(upload_to='site/', blank=True)
+    whatsapp = models.CharField(max_length=20, blank=True)
+    terms_url = models.URLField(blank=True)
+    privacy_url = models.URLField(blank=True)
+    access_period_text = models.CharField(max_length=120, blank=True)
+    gateway_name = models.CharField(max_length=30, blank=True)
+    gateway_key_encrypted = models.TextField(blank=True)
+    gateway_sandbox = models.BooleanField(default=True)
+    email_from_name = models.CharField(max_length=80, default='CETREMER')
+    email_from = models.EmailField(blank=True)
+    email_host = models.CharField(max_length=120, blank=True)
+    email_port = models.PositiveIntegerField(default=587)
+    email_username = models.CharField(max_length=120, blank=True)
+    email_password_encrypted = models.TextField(blank=True)
+    email_use_tls = models.BooleanField(default=True)
+    signer_name = models.CharField(max_length=120, blank=True)
+    signer_role = models.CharField(max_length=120, blank=True)
+    signature_image = models.ImageField(upload_to='site/', blank=True)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @property
+    def whatsapp_url(self):
+        return f'https://wa.me/{self.whatsapp}' if self.whatsapp else ''
+
+    def __str__(self):
+        return self.school_name
+
 # Signals to automatically create student or creator profiles upon user registration
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
     if created:
         if instance.role == User.Role.STUDENT:
             StudentProfile.objects.create(user=instance)

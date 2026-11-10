@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Course, Module, Lesson, Progress, Enrollment, HeroBanner
+from .models import Category, Course, Module, Lesson, LessonMaterial, Progress, Enrollment, HeroBanner, Certificate
 
 class LessonInline(admin.TabularInline):
     model = Lesson
     extra = 1
-    fields = ('title', 'order', 'duration_seconds', 'video_url', 'download_url', 'download_name')
+    fields = ('title', 'order', 'duration_seconds', 'video_url')
 
 @admin.register(Module)
 class ModuleAdmin(admin.ModelAdmin):
@@ -45,6 +45,18 @@ class LessonAdmin(admin.ModelAdmin):
     list_display = ('title', 'module', 'order', 'duration_seconds')
     list_filter = ('module__course', 'module')
     search_fields = ('title', 'description')
+
+@admin.register(LessonMaterial)
+class LessonMaterialAdmin(admin.ModelAdmin):
+    list_display = ('title', 'lesson', 'order')
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'color', 'order')
+
+@admin.register(Certificate)
+class CertificateAdmin(admin.ModelAdmin):
+    list_display = ('code', 'student_name', 'course_title', 'issued_at')
 
 @admin.register(Progress)
 class ProgressAdmin(admin.ModelAdmin):

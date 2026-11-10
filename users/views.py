@@ -102,8 +102,12 @@ def settings_view(request):
                 student_profile = request.user.student_profile
                 student_profile.full_name = request.POST.get('full_name')
                 student_profile.cpf = request.POST.get('cpf')
-                student_profile.save()
-                success = "Dados pessoais de certificação atualizados!"
+                try:
+                    student_profile.save()
+                except ValidationError as exc:
+                    error = ' '.join(exc.messages)
+                else:
+                    success = "Dados pessoais de certificação atualizados!"
             else:
                 error = "Apenas alunos possuem dados pessoais cadastrados."
                 

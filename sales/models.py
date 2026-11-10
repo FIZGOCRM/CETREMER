@@ -11,6 +11,7 @@ class Order(models.Model):
         PENDING = 'PENDING', 'Pending'
         COMPLETED = 'COMPLETED', 'Completed'
         FAILED = 'FAILED', 'Failed'
+        REFUNDED = 'REFUNDED', 'Reembolsado'
 
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='orders')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='orders')
