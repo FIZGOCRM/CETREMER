@@ -111,6 +111,24 @@ class PlatformTestCase(TestCase):
         enrollment.refresh_from_db()
         self.assertIsNotNone(enrollment.last_accessed_at)
 
+    def test_certificate_issues_once_and_public_verification_hides_cpf(self):
+        from courses.models import Certificate
+        enrollment = Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.student_profile.full_name = 'Aluno Certificado'
+        self.student_profile.cpf = '52998224725'
+        self.student_profile.save()
+        Progress.objects.create(student=self.student_profile, lesson=self.lesson, is_completed=True)
+        self.client.force_login(self.student_user)
+        url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
+        self.assertContains(self.client.get(url), 'CERTIFICADO')
+        self.assertContains(self.client.get(url), 'Aluno Certificado')
+        self.assertEqual(Certificate.objects.filter(enrollment=enrollment).count(), 1)
+        code = enrollment.certificate.code
+        self.client.logout()
+        response = self.client.get(reverse('verify_certificate'), {'codigo': code.lower()[:4] + '-' + code.lower()[4:]})
+        self.assertContains(response, 'Certificado válido')
+        self.assertNotContains(response, '529.982.247-25')
+
     def test_anonymous_checkout_enrollment(self):
         """Verifies that a guest user can checkout directly, creating their account and enrollment."""
         # Process checkout POST without being logged in

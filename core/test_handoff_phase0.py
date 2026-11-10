@@ -16,28 +16,18 @@ class HandoffPhaseZeroTests(TestCase):
         )
 
     def test_public_placeholders_and_site_context(self):
-        for name in ('verify_certificate',):
-            response = self.client.get(reverse(name))
-            self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'Em construção')
-            self.assertContains(response, 'css/cetremer.css')
-            self.assertEqual(response.context['site'].school_name, 'CETREMER')
         response = self.client.get(reverse('password_reset'))
         self.assertContains(response, 'Esqueci minha senha')
         self.assertContains(response, 'css/cetremer.css')
+        response = self.client.get(reverse('verify_certificate'))
+        self.assertContains(response, 'Verificar certificado')
 
     def test_student_placeholders_render_with_sidebar(self):
         self.client.force_login(self.student)
-        for name in ('certificates',):
-            response = self.client.get(reverse(name))
-            self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, 'base_aluno.html')
-            self.assertContains(response, 'Em construção')
-            self.assertContains(response, 'css/cetremer.css')
-            self.assertContains(response, reverse('live_classes'))
-            self.assertContains(response, reverse('certificates'))
         response = self.client.get(reverse('live_classes'))
         self.assertContains(response, 'Aulas ao vivo')
+        response = self.client.get(reverse('certificates'))
+        self.assertContains(response, 'Certificados')
 
     def test_panel_placeholders_are_namespaced_and_restricted(self):
         panel_names = ('dashboard', 'courses', 'students', 'orders', 'community', 'settings')

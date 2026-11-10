@@ -10,13 +10,14 @@ from community import views as community_views
 from courses import creator_views
 from core import placeholder_views
 from courses import student_views
+from courses import certificate_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),
     path('ao-vivo/', student_views.live_classes, name='live_classes'),
-    path('certificados/', placeholder_views.certificates, name='certificates'),
-    path('certificado/verificar/', placeholder_views.verify_certificate, name='verify_certificate'),
+    path('certificados/', certificate_views.certificates, name='certificates'),
+    path('certificado/verificar/', certificate_views.verify_certificate, name='verify_certificate'),
     path('senha/esqueci/', user_views.PasswordResetView.as_view(), name='password_reset'),
     path('senha/enviado/', user_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('senha/nova/<uidb64>/<token>/', user_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
@@ -51,7 +52,7 @@ urlpatterns = [
     path('settings/', user_views.settings_view, name='settings'),
     path('courses/<slug:course_slug>/lessons/<int:lesson_id>/', student_views.lesson_detail, name='lesson_detail'),
     path('courses/lesson/<int:lesson_id>/toggle-progress/', course_views.toggle_progress, name='toggle_progress'),
-    path('courses/<slug:course_slug>/certificate/', course_views.issue_certificate, name='issue_certificate'),
+    path('courses/<slug:course_slug>/certificate/', certificate_views.issue_certificate, name='issue_certificate'),
     
     # Discussion Forums
     path('community/', community_views.community_hub, name='community_hub'),
