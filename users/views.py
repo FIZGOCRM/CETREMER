@@ -107,7 +107,7 @@ def settings_view(request):
         action = request.POST.get('action')
         
         if action == 'profile_account':
-            new_username = request.POST.get('username')
+            new_username = request.POST.get('username') or request.user.username
             new_email = request.POST.get('email')
             avatar_file = request.FILES.get('avatar')
             
@@ -123,7 +123,7 @@ def settings_view(request):
                 if avatar_file:
                     request.user.avatar = avatar_file
                 request.user.save()
-                success = "Dados da conta atualizados com sucesso!"
+                success = "Dados salvos com sucesso."
                 
         elif action == 'profile_personal':
             if request.user.role == 'STUDENT':
@@ -135,7 +135,7 @@ def settings_view(request):
                 except ValidationError as exc:
                     error = ' '.join(exc.messages)
                 else:
-                    success = "Dados pessoais de certificação atualizados!"
+                    success = "Dados salvos com sucesso."
             else:
                 error = "Apenas alunos possuem dados pessoais cadastrados."
                 
@@ -168,7 +168,7 @@ def settings_view(request):
                     request.user.set_password(new_pass)
                     request.user.save()
                     update_session_auth_hash(request, request.user)
-                    success = "Senha alterada com sucesso!"
+                    success = "Dados salvos com sucesso."
                 
     return render(request, 'users/settings.html', {
         'orders': orders,

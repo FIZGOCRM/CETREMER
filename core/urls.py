@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 from users import views as user_views
 from courses import views as course_views
@@ -25,12 +26,12 @@ urlpatterns = [
     path('courses/lesson/<int:lesson_id>/complete/', student_views.complete_lesson, name='complete_lesson'),
     
     # Creator Portal
-    path('creator/', creator_views.creator_dashboard, name='creator_dashboard'),
-    path('creator/course/new/', creator_views.course_create_or_edit, name='course_create'),
-    path('creator/course/<int:course_id>/edit/', creator_views.course_create_or_edit, name='course_edit'),
-    path('creator/course/<int:course_id>/builder/', creator_views.course_builder, name='course_builder'),
-    path('creator/payments/', creator_views.creator_payments, name='creator_payments'),
-    path('creator/integrations/', creator_views.creator_integrations, name='creator_integrations'),
+    path('creator/', RedirectView.as_view(pattern_name='painel:dashboard', permanent=True), name='creator_dashboard'),
+    path('creator/course/new/', RedirectView.as_view(pattern_name='painel:course_new', permanent=True), name='course_create'),
+    path('creator/course/<int:course_id>/edit/', RedirectView.as_view(pattern_name='painel:course_edit', permanent=True), name='course_edit'),
+    path('creator/course/<int:course_id>/builder/', RedirectView.as_view(pattern_name='painel:course_lessons', permanent=True), name='course_builder'),
+    path('creator/payments/', RedirectView.as_view(pattern_name='painel:settings', permanent=True), name='creator_payments'),
+    path('creator/integrations/', RedirectView.as_view(pattern_name='painel:settings', permanent=True), name='creator_integrations'),
     
     # Landing & Main Catalog
     path('', course_views.landing, name='landing'),

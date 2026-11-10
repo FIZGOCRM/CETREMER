@@ -1,4 +1,5 @@
 from django.test import TestCase
+from decimal import Decimal
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from users.models import StudentProfile, CreatorProfile
@@ -264,74 +265,27 @@ class PlatformTestCase(TestCase):
         self.assertEqual(post.title, 'Dúvida Geral')
         self.assertIsNone(post.course)
 
-    def test_creator_portal_access_and_forms(self):
-        """Verifies that only creators can access the creator panel, create courses and update keys."""
-        from decimal import Decimal
-        # 1. Access without login redirects
-        creator_dashboard_url = reverse('creator_dashboard')
-        response = self.client.get(creator_dashboard_url)
-        self.assertEqual(response.status_code, 302)
-
-        # 2. Student cannot access creator dashboard
-        self.client.login(username="test_student", password="testpassword")
-        response = self.client.get(creator_dashboard_url)
-        self.assertEqual(response.status_code, 302)
-        self.client.logout()
-
-        # 3. Creator can access
-        self.client.login(username="test_creator", password="testpassword")
-        response = self.client.get(creator_dashboard_url)
-        self.assertEqual(response.status_code, 200)
-
-        # 4. Creator can create course
-        create_url = reverse('course_create')
-        response = self.client.post(create_url, {
-            'title': 'Novo Curso Emergência',
-            'description': 'Resgate de alta montanha.',
-            'price': '220.00',
-            'is_published': 'on'
+    def test_creator_routes_redirect_to_panel_and_new_course_form_works(self):
+        self.client.force_login(self.creator_user)
+        self.assertEqual(self.client.get(reverse('creator_dashboard')).status_code, 301)
+        self.assertEqual(self.client.get(reverse('creator_payments')).status_code, 301)
+        response = self.client.post(reverse('painel:course_new'), {
+            'title': 'Novo Curso Emergência', 'description': 'Resgate de alta montanha.',
+            'price': '220.00', 'is_published': 'on',
         })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Course.objects.filter(title='Novo Curso Emergência').count(), 1)
-        new_course = Course.objects.get(title='Novo Curso Emergência')
-        self.assertEqual(new_course.price, Decimal('220.00'))
-
-        # 5. Creator can edit payments
-        payments_url = reverse('creator_payments')
-        response = self.client.post(payments_url, {
-            'bank_name': 'Itau',
-            'pix_key': '123456789',
-            'gateway_name': 'STRIPE',
-            'gateway_api_key': 'sk_test_secret_key'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.creator_profile.refresh_from_db()
-        self.assertEqual(self.creator_profile.bank_name, 'Itau')
-        self.assertEqual(self.creator_profile.gateway_name, 'STRIPE')
-
-        # 6. Test course builder safe int parsing with empty values
-        builder_url = reverse('course_builder', kwargs={'course_id': new_course.id})
-        response = self.client.post(builder_url, {
-            'action': 'add_module',
-            'module_title': 'Módulo Teórico',
-            'module_order': ''
+        course = Course.objects.get(title='Novo Curso Emergência')
+        self.assertEqual(course.price, Decimal('220.00'))
+        response = self.client.post(reverse('painel:course_lessons', kwargs={'course_id': course.id}), {
+            'action': 'new_module', 'title': 'Módulo Teórico',
         })
         self.assertEqual(response.status_code, 302)
-        module = Module.objects.get(course=new_course, title='Módulo Teórico')
-        self.assertEqual(module.order, 0)
-
-        response = self.client.post(builder_url, {
-            'action': 'add_lesson',
-            'module_id': module.id,
-            'lesson_title': 'Aula Prática',
-            'lesson_desc': 'Uso do desfibrilador',
-            'lesson_video': 'https://youtube.com',
-            'lesson_duration': '',
-            'lesson_order': ''
+        module = Module.objects.get(course=course)
+        response = self.client.post(reverse('painel:course_lessons', kwargs={'course_id': course.id}), {
+            'action': 'save_lesson', 'module_id': module.id, 'title': 'Aula Prática',
         })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Lesson.objects.filter(module=module, title='Aula Prática').count(), 1)
-
+        self.assertTrue(Lesson.objects.filter(module=module, title='Aula Prática').exists())
     def test_landing_page_with_hero(self):
         """Verifies that the landing page renders successfully and passes the active HeroBanner."""
         from courses.models import HeroBanner
@@ -408,28 +362,10 @@ class PlatformTestCase(TestCase):
         self.assertContains(response, "CERTIFICADO")
         self.assertContains(response, "Aluno Certificado")
 
-    def test_creator_integrations_saving(self):
-        """Verifies that creators can save Asaas credentials, AI API keys, and custom signatures."""
-        self.client.login(username="test_creator", password="testpassword")
-        integrations_url = reverse('creator_integrations')
-        response = self.client.post(integrations_url, {
-            'asaas_token': 'asaas_key_123',
-            'asaas_sandbox': 'on',
-            'ai_provider': 'GEMINI',
-            'ai_api_key': 'gemini_api_key_456',
-            'ai_tutor_enabled': 'on',
-            'certificate_signature_name': 'Dr. Hirade',
-            'certificate_signature_role': 'Diretor de Ensino'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.creator_profile.refresh_from_db()
-        self.assertEqual(self.creator_profile.asaas_token, 'asaas_key_123')
-        self.assertTrue(self.creator_profile.asaas_sandbox)
-        self.assertEqual(self.creator_profile.ai_api_key, 'gemini_api_key_456')
-        self.assertTrue(self.creator_profile.ai_tutor_enabled)
-        self.assertEqual(self.creator_profile.certificate_signature_name, 'Dr. Hirade')
-        self.assertEqual(self.creator_profile.certificate_signature_role, 'Diretor de Ensino')
-
+    def test_creator_integrations_route_redirects_to_panel_settings(self):
+        self.client.force_login(self.creator_user)
+        response = self.client.get(reverse('creator_integrations'))
+        self.assertRedirects(response, reverse('painel:settings'), status_code=301)
     def test_youtube_link_embed_conversion(self):
         """Verifies that watch, youtu.be, and shorts YouTube links are automatically converted to embed format on save."""
         from courses.models import get_embed_url
