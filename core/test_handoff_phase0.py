@@ -16,12 +16,15 @@ class HandoffPhaseZeroTests(TestCase):
         )
 
     def test_public_placeholders_and_site_context(self):
-        for name in ('verify_certificate', 'password_reset'):
+        for name in ('verify_certificate',):
             response = self.client.get(reverse(name))
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, 'Em construção')
             self.assertContains(response, 'css/cetremer.css')
             self.assertEqual(response.context['site'].school_name, 'CETREMER')
+        response = self.client.get(reverse('password_reset'))
+        self.assertContains(response, 'Esqueci minha senha')
+        self.assertContains(response, 'css/cetremer.css')
 
     def test_student_placeholders_render_with_sidebar(self):
         self.client.force_login(self.student)

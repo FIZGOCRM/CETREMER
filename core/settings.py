@@ -150,6 +150,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MATERIAL_MAX_MB = 20
 
 AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend', 'django.contrib.auth.backends.ModelBackend']
+EMAIL_BACKEND = 'core.email_backend.SiteEmailBackend'
+DEFAULT_FROM_EMAIL = 'CETREMER <noreply@cetremer.local>'
 
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'

@@ -1,39 +1,23 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Entrar · TheMembers{% endblock %}
-
-{% block content %}
-<div class="container" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding-top: 48px; padding-bottom: 48px;">
-    <div class="glass-card" style="width: 100%; max-width: 440px;">
-        <h2 style="font-size: 24px; margin-bottom: 12px; font-weight: 700; text-align: center;">Bem-vindo de Volta</h2>
-        <p style="color: var(--text-secondary); font-size: 13px; text-align: center; margin-bottom: 24px;">Insira suas credenciais para acessar a sua área de membros.</p>
-
-        {% if error %}
-            <div style="background: rgba(234, 8, 61, 0.1); border: 1px solid var(--border-focus); border-radius: var(--border-radius-sm); padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #fff;">
-                ⚠️ {{ error }}
-            </div>
-        {% endif %}
-
-        <form method="post" action="{% url 'login' %}">
-            {% csrf_token %}
-            {% if next %}
-                <input type="hidden" name="next" value="{{ next }}">
-            {% endif %}
-            <div class="form-group">
-                <label for="username">Nome de Usuário</label>
-                <input type="text" id="username" name="username" class="form-control" placeholder="seu_usuario" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
-            </div>
-            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 12px; padding: 14px;">Entrar</button>
-        </form>
-
-        <p style="color: var(--text-muted); font-size: 13px; text-align: center; margin-top: 24px;">
-            Não tem uma conta? <a href="{% url 'register' %}" style="color: var(--accent-color); font-weight: 600;">Cadastre-se aqui</a>.
-        </p>
-    </div>
+﻿{% extends 'base_core.html' %}
+{% block title %}Entrar · CETREMER{% endblock %}
+{% block body %}
+<div class="auth">
+  <section class="auth__brand">
+    <a class="auth__brand-link" href="{% url 'landing' %}"><span class="auth__brand-name">{{ site.school_name|default:'CETREMER' }}</span><span class="auth__brand-tag">Centro de Treinamento em Emergência</span></a>
+    <div class="auth__pitch"><h1 class="auth__title">Sua área do aluno</h1><p class="auth__lead">Continue aprendendo com quem atua todos os dias na emergência.</p></div>
+    <span class="auth__foot">Aprenda fazendo, com quem faz.</span>
+  </section>
+  <main class="auth__main">
+    <form class="auth__form" method="post" action="{% url 'login' %}">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+      {% include 'partials/messages.html' %}
+      <div class="stack gap-6"><h2 class="auth__heading">Entrar</h2><p class="muted">Use o e-mail cadastrado na compra.</p></div>
+      <div class="field"><label class="field__label" for="username">E-mail</label><input class="input" type="email" name="username" id="username" autocomplete="email" value="{{ request.POST.username|default:'' }}" required></div>
+      <div class="field"><div class="field__head"><label class="field__label" for="password">Senha</label><a href="{% url 'password_reset' %}">Esqueci minha senha</a></div><input class="input" type="password" name="password" id="password" autocomplete="current-password" required></div>
+      <button class="btn btn--primary btn--xl" type="submit">Entrar</button>
+      <p class="auth__switch">Ainda não tem conta? <a href="{% url 'register' %}">Criar conta</a></p>
+      <p class="auth__note">Comprou pela Eduzz ou Hotmart? Use “Esqueci minha senha” no primeiro acesso.</p>
+    </form>
+  </main>
 </div>
 {% endblock %}

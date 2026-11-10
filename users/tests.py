@@ -11,13 +11,15 @@ class PublicAccountTests(TestCase):
         for role in ('CREATOR', 'ADMIN'):
             username = role.lower()
             response = self.client.post(reverse('register'), {
-                'username': username,
+                'full_name': username,
                 'email': f'{username}@example.com',
                 'password': 'ComplexStudentPassword123!',
+                'password_confirm': 'ComplexStudentPassword123!',
+                'terms': 'on',
                 'role': role,
             })
             self.assertEqual(response.status_code, 302)
-            user = User.objects.get(username=username)
+            user = User.objects.get(email=f'{username}@example.com')
             self.assertEqual(user.role, User.Role.STUDENT)
             self.assertTrue(hasattr(user, 'student_profile'))
             self.assertFalse(hasattr(user, 'creator_profile'))
@@ -25,7 +27,8 @@ class PublicAccountTests(TestCase):
 
     def test_registration_rejects_weak_password(self):
         response = self.client.post(reverse('register'), {
-            'username': 'weakstudent', 'email': 'weak@example.com', 'password': '1',
+            'full_name': 'Weak Student', 'email': 'weak@example.com', 'password': '1',
+            'password_confirm': '1', 'terms': 'on',
         })
         self.assertEqual(response.status_code, 200)
         self.assertFalse(User.objects.filter(username='weakstudent').exists())

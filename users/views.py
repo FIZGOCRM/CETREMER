@@ -1,63 +1,91 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import views as auth_views
+from django.contrib import messages
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.urls import reverse_lazy
+from django.utils.text import slugify
 from .models import User
 
+
 def login_view(request):
-    """Authenticates and logs in existing users, checking the redirect path."""
     next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
     if request.user.is_authenticated:
         return redirect(next_url)
-    
     error = None
     if request.method == 'POST':
-        u = request.POST.get('username')
-        p = request.POST.get('password')
-        user = authenticate(request, username=u, password=p)
+        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
         if user is not None:
             login(request, user)
             return redirect(next_url)
-        else:
-            error = "Nome de usuário ou senha inválidos."
-            
+        error = 'E-mail ou senha incorretos. Confira e tente de novo.'
     return render(request, 'login.html', {'error': error, 'next': next_url})
 
+
 def logout_view(request):
-    """Logs out active users and redirects to the landing page."""
-    if request.method == 'POST' or request.method == 'GET':
-        logout(request)
+    logout(request)
     return redirect('landing')
 
+
 def register_view(request):
-    """Registers public users as students and logs them in."""
     next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
     if request.user.is_authenticated:
         return redirect(next_url)
-        
     error = None
     if request.method == 'POST':
-        u = request.POST.get('username')
-        e = request.POST.get('email')
-        p = request.POST.get('password')
-        
-        if not u or not e or not p:
-            error = "Todos os campos são obrigatórios."
-        elif User.objects.filter(username=u).exists():
-            error = "Este nome de usuário já existe."
-        elif User.objects.filter(email=e).exists():
-            error = "Este endereço de e-mail já está registrado."
+        full_name = request.POST.get('full_name', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirmation = request.POST.get('password_confirm', '')
+        if not full_name or not email or not password or not confirmation:
+            error = 'Preencha todos os campos.'
+        elif password != confirmation:
+            error = 'As senhas não coincidem.'
+        elif not request.POST.get('terms'):
+            error = 'Aceite os termos para criar sua conta.'
+        elif User.objects.filter(email__iexact=email).exists():
+            error = 'Este e-mail já está cadastrado.'
         else:
+            base = slugify(email.split('@')[0]).replace('-', '_') or 'aluno'
+            username = base
+            suffix = 2
+            while User.objects.filter(username=username).exists():
+                username = f'{base}{suffix}'
+                suffix += 1
             try:
-                validate_password(p, user=User(username=u, email=e, role=User.Role.STUDENT))
+                validate_password(password, user=User(username=username, email=email, role=User.Role.STUDENT))
             except ValidationError as exc:
                 error = ' '.join(exc.messages)
             else:
-                user = User.objects.create_user(username=u, email=e, password=p, role=User.Role.STUDENT)
-                login(request, user)
+                user = User.objects.create_user(username=username, email=email, password=password, role=User.Role.STUDENT)
+                user.student_profile.full_name = full_name
+                user.student_profile.save(update_fields=['full_name'])
+                login(request, user, backend='users.backends.EmailBackend')
                 return redirect(next_url)
-            
     return render(request, 'register.html', {'error': error, 'next': next_url})
+
+
+class PasswordResetView(auth_views.PasswordResetView):
+    template_name = 'registration/password_reset_form.html'
+    email_template_name = 'registration/password_reset_email.txt'
+    subject_template_name = 'registration/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+
+class PasswordResetDoneView(auth_views.PasswordResetDoneView):
+    template_name = 'registration/password_reset_done.html'
+
+
+class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
+    template_name = 'registration/password_reset_confirm.html'
+    success_url = reverse_lazy('password_reset_complete')
+
+
+class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):
+    def get(self, request, *args, **kwargs):
+        messages.success(request, 'Senha criada. Entre com seu e-mail e a nova senha.')
+        return redirect('login')
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import update_session_auth_hash
