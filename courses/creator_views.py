@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.text import slugify
 from decimal import Decimal
 
-from courses.models import Course, Module, Lesson, Enrollment
+from courses.models import Course, Module, Lesson, LessonMaterial, Enrollment
 from sales.models import Order
 from users.models import CreatorProfile
 
@@ -138,16 +138,16 @@ def course_builder(request, course_id):
             order = safe_int(request.POST.get('lesson_order'), 0)
             
             if title:
-                Lesson.objects.create(
+                lesson = Lesson.objects.create(
                     module=module,
                     title=title,
                     description=desc,
                     video_url=vid,
                     duration_seconds=dur,
-                    download_url=d_url,
-                    download_name=d_name,
                     order=order
                 )
+                if d_url:
+                    LessonMaterial.objects.create(lesson=lesson, title=d_name or 'Material complementar', url=d_url)
                 
         elif action == 'delete_module':
             mod_id = request.POST.get('module_id')

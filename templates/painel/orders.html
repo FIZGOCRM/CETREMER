@@ -1,0 +1,72 @@
+﻿{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Pedidos (HANDOFF-v2 8.9, só administrador). Contexto: rows, page, period, periods, status, statuses (slug, label, count), metrics, q, has_any e, com ?pedido=,
+o contexto de painel/_order_drawer.html (order, events) e selected.
+{% endcomment %}
+{% block admin_title %}Pedidos{% endblock %}
+{% block crumbs %}Pedidos{% endblock %}
+{% block content %}
+<div class="alert alert--info" role="status">{% include 'partials/icon.html' with name='info' size=18 %}<span>Os pedidos entram aqui quando o pagamento estiver ligado. Até lá, esta lista mostra só pedidos de teste.</span></div>
+
+<div class="row row--between gap-16">
+  <h1 class="page-title">Pedidos</h1>
+  <div class="row gap-10">
+    <form method="get" class="row gap-8">
+      {% if status != 'todos' %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+      <label class="sr-only" for="periodo">Período</label>
+      <select class="select" id="periodo" name="periodo">{% for value, label in periods %}<option value="{{ value }}"{% if value == period %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+      <label class="sr-only" for="q">Buscar pedido</label>
+      <input class="input" id="q" type="search" name="q" value="{{ q }}" placeholder="Buscar aluno, curso ou #pedido">
+      <button class="btn btn--secondary" type="submit">Filtrar</button>
+    </form>
+    <a class="btn btn--secondary" href="{% url 'painel:orders_export' %}">Exportar CSV</a>
+  </div>
+</div>
+
+<div class="metric-grid">
+  <div class="metric metric--sm"><span class="metric__label">Receita líquida</span><strong class="metric__value">{{ metrics.revenue|brl }}</strong></div>
+  <div class="metric metric--sm"><span class="metric__label">Pedidos pagos</span><strong class="metric__value">{{ metrics.paid }}</strong></div>
+  <div class="metric metric--sm"><span class="metric__label">Aguardando pagamento</span><strong class="metric__value">{{ metrics.pending }}</strong></div>
+  <div class="metric metric--sm"><span class="metric__label">Ticket médio</span><strong class="metric__value">{% if metrics.average is None %}–{% else %}{{ metrics.average|brl }}{% endif %}</strong></div>
+</div>
+
+<div class="seg" role="group" aria-label="Status do pedido">
+  {% for item in statuses %}<a class="seg__btn"{% if item.slug == status %} aria-current="page"{% endif %} href="?{% if item.slug != 'todos' %}status={{ item.slug }}&{% endif %}periodo={{ period }}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ item.label }} <span class="seg__count">{{ item.count }}</span></a>{% endfor %}
+</div>
+
+{% if rows %}
+<div class="table-wrap">
+  <table class="table table--w780">
+    <thead><tr><th>Pedido</th><th>Aluno</th><th>Curso</th><th class="num">Valor</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for order in rows %}
+      <tr>
+        <td><a class="cell-title" href="?pedido={{ order.id }}" data-drawer-url="{% url 'painel:orders' %}?pedido={{ order.id }}&parcial=1" data-drawer-target="drawer-pedido" data-drawer-param="pedido" data-drawer-value="{{ order.id }}">#{{ order.id }}</a><span class="text-13 muted"> {{ order.created_at|date:"d/m · H:i" }}</span></td>
+        <td><div class="cell-stack"><strong>{{ order.student_name }}</strong><span class="muted">{{ order.method_label }}</span></div></td>
+        <td>{{ order.course.short_name|default:order.course.title }}</td>
+        <td class="num">{{ order.amount|brl }}</td>
+        <td><span class="badge {{ order.status_badge }}">{{ order.status_label }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<div class="row row--between gap-12">
+  <span class="text-14 muted">Mostrando {{ rows|length }} de {{ page.paginator.count }} {% if page.paginator.count == 1 %}pedido{% else %}pedidos{% endif %}</span>
+  <div class="row gap-8">
+    {% if page.has_previous %}<a class="btn btn--secondary btn--sm" href="?pagina={{ page.previous_page_number }}&periodo={{ period }}{% if status != 'todos' %}&status={{ status }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Anterior</a>{% endif %}
+    {% if page.has_next %}<a class="btn btn--secondary btn--sm" href="?pagina={{ page.next_page_number }}&periodo={{ period }}{% if status != 'todos' %}&status={{ status }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Próxima</a>{% endif %}
+  </div>
+</div>
+{% else %}
+<div class="empty-state card">
+  <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='receipt' size=24 %}</span>
+  <h2 class="empty-state__title">{% if has_any %}Nenhum pedido neste filtro{% else %}Nenhum pedido ainda{% endif %}</h2>
+  {% if has_any %}<a class="btn btn--secondary" href="{% url 'painel:orders' %}">Limpar filtros</a>{% endif %}
+</div>
+{% endif %}
+
+<dialog class="drawer drawer--560" id="drawer-pedido"{% if selected %} data-autoopen="pedido"{% endif %} aria-labelledby="drawer-pedido-t">
+  <div data-drawer-content>{% if selected %}{% include 'painel/_order_drawer.html' %}{% endif %}</div>
+</dialog>
+{% endblock %}

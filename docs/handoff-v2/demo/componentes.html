@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Componentes v2 · CETREMER</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="cetremer.css">
+<script src="site.js" defer></script>
+<script src="ui.js" defer></script>
+</head>
+<body>
+<!-- DEMONSTRAÇÃO: os onclick, onsubmit e style="" deste arquivo existem só para simular o servidor sem backend.
+     Nos templates do projeto continuam PROIBIDOS (HANDOFF-v2, seção 1). Copie a estrutura e as classes, nunca esses atributos. -->
+<input type="hidden" name="csrfmiddlewaretoken" value="demo">
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+<template data-toast data-kind="ok" data-action-label="Ver aluno" data-action-href="#alunos">Exemplo de mensagem do Django convertida em toast</template>
+
+<div class="app app--aluno">
+  <aside class="sidebar" aria-label="Menu">
+    <a class="brand" href="#"><span class="brand__name">CETREMER</span><span class="brand__tag">Centro de Treinamento em Emergência</span></a>
+    <nav class="sidenav" aria-label="Menu principal">
+      <a class="sidenav__link" href="#" aria-current="page"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+      <a class="sidenav__link" href="#"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Aulas ao vivo<span class="badge badge--warning sidenav__pill">Qui</span></a>
+      <a class="sidenav__link" href="#"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="sidenav__badge">2</span></a>
+      <a class="sidenav__link" href="#"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Certificados<span class="sidenav__badge">1</span></a>
+      <a class="sidenav__link" href="#"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Minha conta</a>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="help-card"><span class="eyebrow muted">Seu progresso</span><span class="help-card__title">2 de 5 aulas concluídas</span>
+        <div class="progress" role="progressbar" aria-label="Progresso geral" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100"><div class="progress__bar" style="width: 40%"></div></div></div>
+      <a class="btn btn--secondary" href="#"><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 0 1 5 .3c0 1.7-2.5 2.2-2.5 3.7M12 17v.5"></path></svg>Ajuda pelo WhatsApp</a>
+    </div>
+  </aside>
+  <div class="app__content">
+    <header class="topbar topbar--v2">
+      <div class="topbar__heading"><nav class="crumbs" aria-label="Você está em"><a href="#">Área do aluno</a><span class="crumbs__sep">/</span><span>Componentes</span></nav><h1 class="topbar__title">Componentes v2</h1></div>
+      <div class="topbar__actions">
+        <button type="button" class="topbar-search" data-cmdk-open><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span class="topbar-search__text">Buscar aula, curso ou dúvida</span><span class="kbd">Ctrl K</span></button>
+        <div class="popover" data-popover>
+          <button type="button" class="icon-btn icon-btn--plain" aria-label="Avisos, 3 não lidos" aria-haspopup="true" aria-expanded="false" data-popover-toggle><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg><span class="bell__count" data-count="3" aria-hidden="true">3</span></button>
+          <div class="menu menu--wide" data-popover-panel hidden role="dialog" aria-label="Avisos">
+            <div class="notif__head">Avisos<button type="button" class="btn btn--ghost btn--xs" id="demo-readall">Marcar todos como lidos</button></div>
+            <a class="notif__item is-unread" href="#"><span class="notif__dot"></span><span class="stack gap-2"><span class="notif__title">O instrutor respondeu sua dúvida</span><span class="notif__meta">BLS · Profundidade da compressão · há 2 h</span></span></a>
+            <a class="notif__item is-unread" href="#"><span class="notif__dot"></span><span class="stack gap-2"><span class="notif__title">Aula ao vivo na quinta, 12/11, às 20h</span><span class="notif__meta">Plantão Sem GPT · lembrete 1 h antes</span></span></a>
+            <a class="notif__item" href="#"><span class="notif__dot"></span><span class="stack gap-2"><span class="notif__title">Seu certificado está pronto para emitir</span><span class="notif__meta">Plantão Sem GPT · ontem</span></span></a>
+            <a class="notif__foot" href="#">Escolher quais avisos recebo por e-mail</a>
+          </div>
+        </div>
+        <div class="popover" data-popover>
+          <button type="button" class="user-btn" aria-label="Menu da conta" aria-haspopup="menu" aria-expanded="false" data-popover-toggle><span class="avatar" aria-hidden="true">JS</span><span class="user-btn__name">Jane</span><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+          <div class="menu" data-popover-panel hidden role="menu">
+            <div class="menu__head"><span class="fw-600">Jane Student</span><span class="text-13 muted">jane@student.com</span></div>
+            <a role="menuitem" class="menu__item" href="#"><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Minha conta</a>
+            <a role="menuitem" class="menu__item" href="#"><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg>Pedidos e acessos</a>
+            <div class="menu__sep"></div>
+            <button type="button" role="menuitem" class="menu__item menu__item--danger"><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"></path><path d="M10 17l-5-5 5-5M5 12h11"></path></svg>Sair</button>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="conteudo" class="page page--gap-32">
+
+      <section class="card card--pad stack gap-16" id="toasts">
+        <h2 class="card__title">1. Toasts (canto inferior direito)</h2>
+        <div class="row gap-10">
+          <button type="button" class="btn btn--primary" id="t-ok">Sucesso</button>
+          <button type="button" class="btn btn--secondary" id="t-undo">Com Desfazer (8 s)</button>
+          <button type="button" class="btn btn--secondary" id="t-info">Informação</button>
+          <button type="button" class="btn btn--danger-outline" id="t-err">Erro (não some)</button>
+          <button type="button" class="btn btn--secondary" data-copy="https://cetremer.com.br/certificado/verificar/?codigo=7F3K92QA" data-copy-toast="Link de verificação copiado"><span data-label>Copiar com aviso</span></button>
+        </div>
+      </section>
+
+      <section class="card card--clip" id="passos">
+        <div class="task-list__head"><h2 class="card__title">2. Próximos passos (dispensar com Desfazer)</h2><span class="text-13 muted">3 itens</span></div>
+        <div class="task" id="step-cpf"><span class="task__icon task__icon--warn"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l10 18H2z"></path><path d="M12 10v5M12 18v.5"></path></svg></span><span class="task__text"><span class="task__title">Informe nome completo e CPF</span><span class="task__meta">Sem isso o certificado não pode ser emitido. Leva 1 minuto.</span></span><span class="badge badge--warning">Pendente</span><a class="btn btn--secondary btn--xs" href="#">Completar dados</a><button type="button" class="icon-btn icon-btn--plain" aria-label="Dispensar este aviso" data-demo-dismiss="#step-cpf"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+        <div class="task" id="step-live"><span class="task__icon"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg></span><span class="task__text"><span class="task__title">Aula ao vivo · Plantão Sem GPT</span><span class="task__meta">Quinta, 12/11, das 20h às 21h30 (horário de Brasília).</span></span><span class="badge badge--blue">Em 2 dias</span><a class="btn btn--secondary btn--xs" href="#">Ver detalhes</a><button type="button" class="icon-btn icon-btn--plain" aria-label="Dispensar este aviso" data-demo-dismiss="#step-live"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+        <div class="task" id="step-resp"><span class="task__icon task__icon--ok"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg></span><span class="task__text"><span class="task__title">O instrutor respondeu sua dúvida</span><span class="task__meta">BLS · Profundidade da compressão em adulto obeso</span></span><span class="badge badge--success">Nova resposta</span><a class="btn btn--secondary btn--xs" href="#">Ler resposta</a><button type="button" class="icon-btn icon-btn--plain" aria-label="Dispensar este aviso" data-demo-dismiss="#step-resp"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+      </section>
+
+      <section class="card card--clip" id="abas">
+        <div class="tabs" role="tablist" data-tabs aria-label="Seções do curso">
+          <button type="button" role="tab" class="tab" id="tab-a" aria-controls="panel-a" aria-selected="true" data-tab="conteudo">Conteúdo</button>
+          <button type="button" role="tab" class="tab" id="tab-b" aria-controls="panel-b" aria-selected="false" tabindex="-1" data-tab="materiais">Materiais <span class="tab__count">2</span></button>
+          <button type="button" role="tab" class="tab" id="tab-c" aria-controls="panel-c" aria-selected="false" tabindex="-1" data-tab="duvidas">Dúvidas <span class="tab__count">3</span></button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-a" aria-labelledby="tab-a">
+          <p class="text-2">3. Abas com setas do teclado. Abaixo, controle segmentado e chips.</p>
+          <div class="row gap-16 mt-auto" style="margin-top:12px">
+            <div class="seg" role="group" aria-label="Filtrar"><a class="seg__btn" href="#" aria-current="page">Todos <span class="seg__count">2</span></a><a class="seg__btn" href="#">Em andamento <span class="seg__count">1</span></a><a class="seg__btn" href="#">Concluídos <span class="seg__count">1</span></a></div>
+            <div class="chips"><a class="chip" href="#" aria-current="page">Todos os cursos</a><a class="chip" href="#">BLS</a><a class="chip" href="#">Plantão Sem GPT</a></div>
+          </div>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-b" aria-labelledby="tab-b" hidden>
+          <div class="stack gap-8"><span class="sk sk--title sk--w60"></span><span class="sk sk--line sk--w80"></span><span class="sk sk--line sk--w40"></span><p class="text-13 muted">Estado carregando (esqueleto).</p></div>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-c" aria-labelledby="tab-c" hidden>
+          <div class="empty-state"><span class="empty-state__icon"><svg class="icon" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg></span><span class="empty-state__title">Nenhuma dúvida com esses filtros</span><span class="empty-state__text">Tente outro curso ou outra situação.</span><a class="btn btn--secondary btn--xs" href="#">Limpar filtros</a></div>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-16" id="paineis">
+        <h2 class="card__title">4. Painel lateral, diálogos por risco e janela de conclusão</h2>
+        <div class="row gap-10">
+          <button type="button" class="btn btn--primary" data-drawer-open="drawer-emitir" data-drawer-param="emitir" data-drawer-value="plantao">Conferir dados e emitir</button>
+          <button type="button" class="btn btn--secondary" data-dialog-open="dlg-warn">Remover acesso (afeta alunos)</button>
+          <button type="button" class="btn btn--danger-outline" data-dialog-open="dlg-danger">Arquivar curso (alto risco)</button>
+          <button type="button" class="btn btn--secondary" data-dialog-open="celebrate">Janela de fim de curso</button>
+        </div>
+      </section>
+
+      <form class="card card--pad-lg stack gap-18" id="form-conta" data-dirty-form data-dirtybar="dirtybar" onsubmit="event.preventDefault(); CTM.toast('Alterações salvas'); this.dispatchEvent(new CustomEvent('ctm:saved', {bubbles:true}));">
+        <h2 class="card__title">5. Barra de alterações não salvas (mude qualquer campo; Ctrl+S salva)</h2>
+        <div class="form-grid">
+          <div class="field" data-dirty-label="nome"><label class="field__label" for="f-nome">Nome completo</label><input class="input" id="f-nome" name="full_name" value="Jane Student"></div>
+          <div class="field" data-dirty-label="CPF"><label class="field__label" for="f-cpf">CPF</label><input class="input" id="f-cpf" name="cpf" value="123.456.789-09"></div>
+        </div>
+        <div class="switch-row" style="padding-left:0;padding-right:0" data-dirty-label="lembrete de aula ao vivo"><span class="switch-row__text"><span class="switch-row__title">Lembrete de aula ao vivo</span><span class="switch-row__hint">1 hora antes, com o link do Google Meet.</span></span><button type="button" class="switch" role="switch" aria-checked="true" aria-label="Lembrete de aula ao vivo" data-switch-input="pref_live"></button><input type="hidden" name="pref_live" id="pref_live" value="1"></div>
+        <div class="field"><label class="field__label" for="pw-new">Nova senha (mostrar e regras)</label>
+          <div class="input-wrap"><input class="input" id="pw-new" type="password" name="new_password"><button type="button" class="input-wrap__btn" data-reveal="pw-new">Mostrar</button></div>
+          <ul class="pw-rules" data-pw-rules="pw-new"><li data-rule="len"><svg class="icon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Pelo menos 8 caracteres</li><li data-rule="mix"><svg class="icon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>Letras e números</li></ul></div>
+        <a href="https://example.com" class="link-strong">Link interno (com mudanças pergunta "Sair sem salvar?")</a>
+      </form>
+      <div class="dirtybar" id="dirtybar" hidden role="region" aria-label="Alterações não salvas">
+        <svg class="icon dirtybar__icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg><span class="dirtybar__msg" data-dirty-msg>Alterações não salvas</span>
+        <button type="button" class="dirtybar__discard" data-dirty-discard>Descartar</button>
+        <button type="submit" class="btn btn--primary" form="form-conta">Salvar alterações</button>
+      </div>
+
+      <section class="card card--clip" id="alunos">
+        <form data-bulk data-bulkbar="bulkbar-alunos" onsubmit="event.preventDefault();">
+          <div class="card--pad-sm"><h2 class="card__title">6. Seleção em massa</h2></div>
+          <div class="bulkbar" id="bulkbar-alunos" hidden style="margin: 0 16px 12px"><span data-bulk-count>0 selecionados</span><button type="button" class="btn btn--secondary btn--xs">Liberar curso</button><button type="button" class="btn btn--secondary btn--xs">Reenviar acesso</button><button type="button" class="btn btn--danger-text btn--xs">Remover de um curso</button><button type="button" class="btn btn--ghost btn--xs" data-bulk-clear>Limpar seleção</button></div>
+          <div class="table-wrap table-wrap--bare"><table class="table table--w640"><thead><tr><th class="col-check"><input type="checkbox" data-bulk-all aria-label="Selecionar todos"></th><th>Aluno</th><th>Cursos</th><th>Situação</th></tr></thead><tbody>
+          <tr><td><input type="checkbox" name="ids" value="1" data-bulk-item aria-label="Selecionar test student"></td><td>test student</td><td><span class="badge badge--blue">BLS</span></td><td><span class="badge badge--success">Ativo</span></td></tr>
+          <tr><td><input type="checkbox" name="ids" value="2" data-bulk-item aria-label="Selecionar Jane Student"></td><td>Jane Student</td><td><span class="badge badge--blue">BLS</span></td><td><span class="badge badge--success">Ativo</span></td></tr>
+          <tr><td><input type="checkbox" name="ids" value="3" data-bulk-item aria-label="Selecionar test 1"></td><td>test 1</td><td><span class="badge badge--teal">Plantão</span></td><td><span class="badge badge--warning">Aguardando 1º acesso</span></td></tr>
+          </tbody></table></div>
+        </form>
+      </section>
+
+      <section class="stack gap-16" id="aula">
+        <h2 class="card__title">7. Peças da aula</h2>
+        <div class="player"><div class="player__empty">Player (Vimeo) aqui</div>
+          <div class="resume-chip" id="resume-chip"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>Continuando de onde você parou: <strong data-resume-time>03:12</strong><button type="button" class="resume-chip__btn">Recomeçar</button><button type="button" class="resume-chip__close" aria-label="Fechar aviso" onclick="this.parentNode.hidden=true"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div></div>
+        <div class="done-banner" role="status"><svg class="icon" aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg><div class="done-banner__text"><span class="done-banner__title">Aula concluída</span><span class="done-banner__sub">Próxima: Operação e Segurança do DEA</span></div><button type="button" class="btn btn--quiet btn--sm">Ficar nesta aula</button><a class="btn btn--primary" href="#">Ir para a próxima aula<svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></a></div>
+        <p class="auto-note"><svg class="icon" aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 11v6M12 7.5v.5"></path></svg>A aula também é marcada sozinha quando você assiste 90% do vídeo.</p>
+      </section>
+
+      <section class="card live-next" id="aovivo">
+        <div class="date-tile"><span class="date-tile__wd">Qui</span><span class="date-tile__day">12</span><span class="date-tile__mon">nov</span></div>
+        <div class="live-next__body"><div class="row gap-8"><span class="eyebrow">Próximo encontro</span><span class="badge badge--blue">Em 1 minuto (demo)</span></div>
+          <h2 class="course-hero-v2__title text-24">8. Botão que libera no horário</h2>
+          <div class="meta-line"><span class="meta-line__item"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>20h00 às 21h30 (horário de Brasília)</span><span class="meta-line__item"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Google Meet</span></div>
+          <div class="row gap-10"><a class="btn btn--primary" aria-disabled="true" id="demo-join" data-enabled-href="https://meet.google.com/"><svg class="icon" data-lock-icon aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Entrar no Google Meet</a><a class="btn btn--secondary" href="#"><svg class="icon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg>Adicionar ao Google Agenda</a></div>
+          <span class="text-13 muted" data-enable-hint data-enabled-hint="A sala já está aberta. O link abre o Google Meet em uma nova aba.">O botão de entrar libera 15 minutos antes do início.</span>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-12">
+        <h2 class="card__title">9. Prévia espelhada (certificado)</h2>
+        <div class="form-grid"><div class="field"><label class="field__label" for="m-n">Nome</label><input class="input" id="m-n" value="Jane Student" data-mirror="#pv-name" data-mirror-upper></div><div class="field"><label class="field__label" for="m-c">CPF</label><input class="input" id="m-c" value="123.456.789-09" data-mirror="#pv-cpf" data-mirror-cpf></div></div>
+        <div class="cert-preview-text"><span class="eyebrow muted">Prévia do texto</span><span>Certificamos que <strong id="pv-name">JANE STUDENT</strong>, CPF <span id="pv-cpf">***.456.789-**</span>, concluiu o curso <strong>Plantão Sem GPT</strong>.</span></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<nav class="bottom-nav" aria-label="Menu"><a class="bottom-nav__link" href="#" aria-current="page"><svg class="icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a><a class="bottom-nav__link" href="#"><svg class="icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Ao vivo</a><a class="bottom-nav__link" href="#"><svg class="icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade</a><a class="bottom-nav__link" href="#"><svg class="icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Certificados</a><a class="bottom-nav__link" href="#"><svg class="icon" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Conta</a></nav>
+
+<dialog class="drawer" id="drawer-emitir" aria-labelledby="de-t">
+  <div class="drawer__head"><div class="stack gap-4"><span class="drawer__eyebrow">Plantão Sem GPT</span><span class="drawer__title" id="de-t">Emitir certificado</span></div><button type="button" class="icon-btn icon-btn--plain" aria-label="Fechar" data-drawer-close><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button></div>
+  <form class="drawer__body" id="f-emitir" data-dirty-form onsubmit="event.preventDefault(); this.closest('dialog').close(); CTM.toast('Certificado emitido. Enviamos o link para seu e-mail');">
+    <p class="text-2">Esses dados vão impressos no certificado. Depois de emitido, só o suporte consegue corrigir.</p>
+    <div class="field"><label class="field__label" for="e-n">Nome completo</label><input class="input" id="e-n" name="full_name" value="Jane Student"><span class="hint">Do jeito que está no seu documento, com acentos.</span></div>
+    <div class="field"><label class="field__label" for="e-c">CPF</label><input class="input is-valid" id="e-c" name="cpf" value="123.456.789-09"><span class="field-ok"><svg class="icon" aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"></path></svg>CPF válido</span></div>
+    <label class="check"><input type="checkbox" required> Conferi meu nome e CPF</label>
+  </form>
+  <div class="drawer__foot"><button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button><button type="submit" class="btn btn--primary" form="f-emitir">Emitir certificado</button></div>
+</dialog>
+
+<dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-warn" aria-labelledby="dw-t"><div class="dialog__body">
+  <span class="dialog__eyebrow">Afeta alunos</span><h2 class="dialog__title" id="dw-t">Remover acesso ao BLS?</h2>
+  <p class="dialog__text">test student deixa de ver o curso na hora. O progresso (1 de 4 aulas) fica guardado e volta se você liberar de novo.</p>
+  <label class="check"><input type="checkbox" checked> Avisar o aluno por e-mail</label>
+  <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="button" class="btn btn--danger" data-dialog-close onclick="CTM.toast('Acesso removido. O progresso foi guardado')">Remover acesso</button></div></div></dialog>
+
+<dialog class="dialog dialog--520 dialog--modal dialog--danger" id="dlg-danger" aria-labelledby="dd-t"><form class="dialog__body" onsubmit="event.preventDefault(); this.closest('dialog').close(); CTM.toast('Curso arquivado', {undo: function(){ CTM.toast('Arquivamento desfeito', {kind:'info'}); } });">
+  <span class="dialog__eyebrow">Alto risco</span><h2 class="dialog__title" id="dd-t">Arquivar BLS · Suporte Básico de Vida?</h2>
+  <p class="dialog__text">O curso sai do site e da área dos 3 alunos matriculados. Pedidos e certificados emitidos continuam válidos.</p>
+  <div class="field"><label class="field__label" for="dd-in">Digite BLS para confirmar</label><input class="input" id="dd-in" data-confirm-text="BLS" autocomplete="off"></div>
+  <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger" data-confirm-submit disabled>Arquivar curso</button></div></form></dialog>
+
+<dialog class="dialog dialog--modal dialog--celebrate" id="celebrate" aria-labelledby="fim"><div class="dialog__body">
+  <span class="celebrate__icon"><svg class="icon" aria-hidden="true" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg></span><h2 class="celebrate__title" id="fim">Você concluiu o BLS</h2>
+  <p class="text-2">Todas as 4 aulas foram concluídas. Falta só conferir nome e CPF para emitir o certificado.</p>
+  <div class="dialog__actions" style="justify-content:center"><button type="button" class="btn btn--secondary" data-dialog-close>Rever aulas</button><a class="btn btn--primary" href="#"><svg class="icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Emitir certificado</a></div></div></dialog>
+
+<dialog class="dialog dialog--modal" id="leave-dialog" aria-labelledby="leave-title"><div class="dialog__body">
+  <h2 class="dialog__title" id="leave-title">Sair sem salvar?</h2><p class="dialog__text">Você alterou esta página. Se sair agora, essas alterações se perdem.</p>
+  <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-leave="discard">Descartar e sair</button><button type="button" class="btn btn--primary" data-leave="save">Salvar e sair</button></div></div></dialog>
+
+<dialog class="cmdk" id="cmdk" data-search-url="cmdk-demo.html" aria-label="Buscar">
+  <div class="cmdk__field"><svg class="icon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><input class="cmdk__input" type="search" placeholder="Buscar aula, curso ou dúvida" aria-label="Buscar" autocomplete="off"><span class="kbd">Esc</span></div>
+  <div class="cmdk__results" data-cmdk-results role="listbox" aria-label="Resultados"></div>
+  <div class="cmdk__foot"><span><span class="kbd">↑</span> <span class="kbd">↓</span> navegar</span><span><span class="kbd">Enter</span> abrir</span><span>Busca só nos cursos que você tem</span></div>
+</dialog>
+
+<script>document.getElementById('demo-join').setAttribute('data-enable-at', new Date(Date.now() + 60000).toISOString());</script>
+<script>
+/* Só para a demonstração: simula respostas do servidor sem backend. */
+document.addEventListener('DOMContentLoaded', function () {
+  document.getElementById('t-ok').onclick = function () { CTM.toast('Aula concluída. Progresso salvo'); };
+  document.getElementById('t-undo').onclick = function () { CTM.toast('Aula excluída', { undo: function () { CTM.toast('Exclusão desfeita', { kind: 'info' }); } }); };
+  document.getElementById('t-info').onclick = function () { CTM.toast('Alterações descartadas', { kind: 'info' }); };
+  document.getElementById('t-err').onclick = function () { CTM.toast('Não foi possível salvar. Confira sua conexão e tente de novo.', { kind: 'error' }); };
+  document.getElementById('demo-readall').onclick = function () { document.querySelectorAll('.notif__item.is-unread').forEach(function (i) { i.classList.remove('is-unread'); }); document.querySelectorAll('.bell__count').forEach(function (c) { c.setAttribute('data-count','0'); }); CTM.toast('Avisos marcados como lidos'); };
+  document.querySelectorAll('[data-demo-dismiss]').forEach(function (b) { b.onclick = function () { var t = document.querySelector(b.getAttribute('data-demo-dismiss')); t.hidden = true; CTM.toast('Aviso dispensado', { undo: function () { t.hidden = false; } }); }; });
+});
+</script>
+</body>
+</html>

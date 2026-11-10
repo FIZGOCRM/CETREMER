@@ -1,0 +1,21 @@
+{% extends 'base_core.html' %}
+{% block title %}Primeiro acesso · CETREMER{% endblock %}
+{% block body %}
+<div class="auth-center">
+  <a class="auth-center__brand" href="{% url 'landing' %}"><span class="brand__name">CETREMER</span><span class="brand__tag">Centro de Treinamento em Emergência</span></a>
+  <div class="auth-center__stack">
+    <form class="auth-card" method="post">
+      {% csrf_token %}
+      <h1 class="auth-card__title">Primeiro acesso</h1>
+      <p class="muted">Informe o e-mail cadastrado e o código temporário entregue pelo administrador para criar sua senha.</p>
+      {% include 'partials/messages.html' %}
+      <div class="field"><label class="field__label" for="id_email">E-mail cadastrado</label><input class="input" type="email" id="id_email" name="email" autocomplete="email" value="{{ request.POST.email|default:'' }}" required></div>
+      <div class="field"><label class="field__label" for="id_code">Código temporário</label><input class="input" type="text" id="id_code" name="code" inputmode="numeric" pattern="[0-9]{10}" autocomplete="one-time-code" maxlength="10" required></div>
+      <div class="field"><label class="field__label" for="id_password">Nova senha</label><input class="input" type="password" id="id_password" name="password" autocomplete="new-password" required><span class="hint">Mínimo de 8 caracteres, sem ser só números.</span></div>
+      <div class="field"><label class="field__label" for="id_password_confirm">Confirmar senha</label><input class="input" type="password" id="id_password_confirm" name="password_confirm" autocomplete="new-password" required></div>
+      <button class="btn btn--primary btn--xl" type="submit">Criar senha</button>
+      <a href="{% url 'login' %}">Voltar para o login</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

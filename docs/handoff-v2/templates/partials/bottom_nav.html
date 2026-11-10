@@ -1,0 +1,10 @@
+{# Barra inferior do aluno (só aparece abaixo de 720px pelo CSS, seção 48). Incluir em base_aluno.html e em lesson_detail.html não. #}
+{% with u=request.resolver_match.url_name %}
+<nav class="bottom-nav" aria-label="Menu">
+  <a class="bottom-nav__link" href="{% url 'dashboard' %}"{% if u == 'dashboard' or u == 'course_home' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="home" size=22 %}Início</a>
+  <a class="bottom-nav__link" href="{% url 'live_classes' %}"{% if u == 'live_classes' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="video" size=22 %}Ao vivo</a>
+  <a class="bottom-nav__link" href="{% url 'community' %}"{% if u == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" size=22 %}Comunidade</a>
+  <a class="bottom-nav__link" href="{% url 'certificates' %}"{% if u == 'certificates' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="award" size=22 %}Certificados</a>
+  <a class="bottom-nav__link" href="{% url 'settings' %}"{% if u == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="user" size=22 %}Conta</a>
+</nav>
+{% endwith %}

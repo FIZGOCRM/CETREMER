@@ -1,0 +1,145 @@
+{% extends 'base_admin.html' %}{% load cetremer ui static %}
+{% comment %}
+Curso · Configurações (HANDOFF-v2 8.5). Contexto: course, tab, categories, modules (release_type/release_value), sessions, price_text, access_choices,
+signer_missing, admin, orders_total, can_delete e os totais do cabeçalho.
+O formulário principal tem as seções Geral, Preço e acesso, Liberação, Aulas ao vivo (só o link do Meet) e Certificado.
+Encontros ao vivo e a zona de risco ficam em formulários próprios, fora dele.
+{% endcomment %}
+{% block admin_title %}{{ course.title }} · Configurações{% endblock %}
+{% block crumbs %}<a href="{% url 'painel:courses' %}">Cursos</a> / {{ course.title }}{% endblock %}
+{% block content %}
+{% include 'painel/_course_head.html' %}
+<div class="split">
+  <nav class="vtabs" aria-label="Seções desta página">
+    <a class="vtab" href="#geral">Geral</a>
+    <a class="vtab" href="#preco">Preço e acesso</a>
+    <a class="vtab" href="#liberacao">Liberação do conteúdo</a>
+    <a class="vtab" href="#ao-vivo">Aulas ao vivo</a>
+    <a class="vtab" href="#certificado">Certificado</a>
+    <a class="vtab" href="#risco">Zona de risco</a>
+  </nav>
+  <div class="split__main stack gap-16">
+    <form class="stack gap-16" id="settings-form" method="post" action="{% url 'painel:course_settings' course.id %}" data-dirty-form data-dirtybar="dirtybar" data-async>
+      {% csrf_token %}
+      <section class="card card--pad stack gap-16" id="geral">
+        <div class="stack"><h2 class="card__title">Geral</h2><p class="card__sub">Nome e identificação do curso no site e no painel.</p></div>
+        <div class="field" data-dirty-label="título"><label class="field__label" for="cs-title">Título</label><input class="input" id="cs-title" name="title" value="{{ course.title }}" required maxlength="200"></div>
+        <div class="form-grid form-grid--200">
+          <div class="field" data-dirty-label="categoria"><label class="field__label" for="cs-category">Categoria</label><select class="select" id="cs-category" name="category"><option value="">Sem categoria</option>{% for cat in categories %}<option value="{{ cat.id }}"{% if course.category_id == cat.id %} selected{% endif %}>{{ cat.name }}</option>{% endfor %}</select></div>
+          <div class="field" data-dirty-label="sigla da capa"><label class="field__label" for="cs-short">Sigla da capa</label><input class="input" id="cs-short" name="short_name" maxlength="12" value="{{ course.short_name }}"></div>
+        </div>
+        <div class="field" data-dirty-label="endereço da página"><label class="field__label" for="cs-slug">Endereço da página</label>
+          <div class="input-affix"><span class="input-affix__text">cetremer.com.br/cursos/</span><input class="input" id="cs-slug" name="slug" value="{{ course.slug }}" maxlength="50" aria-describedby="cs-slug-hint"></div>
+          <span class="hint" id="cs-slug-hint">Trocar o endereço quebra links já divulgados. O antigo redireciona por 90 dias.</span></div>
+      </section>
+
+      <section class="card card--pad stack gap-16" id="preco">
+        <div class="stack"><h2 class="card__title">Preço e acesso</h2><p class="card__sub">Usado no checkout e no certificado.</p></div>
+        <div class="form-grid form-grid--200">
+          <div class="field" data-dirty-label="preço"><label class="field__label" for="cs-price">Preço</label>
+            <div class="input-affix"><span class="input-affix__text">R$</span><input class="input" id="cs-price" name="price" inputmode="decimal" autocomplete="off" value="{{ price_text }}"></div></div>
+          <div class="field" data-dirty-label="carga horária"><label class="field__label" for="cs-workload">Carga horária</label>
+            <div class="input-affix"><input class="input" id="cs-workload" name="workload_hours" inputmode="numeric" value="{{ course.workload_hours|default_if_none:'' }}"><span class="input-affix__text">horas</span></div></div>
+          <div class="field" data-dirty-label="prazo de acesso"><label class="field__label" for="cs-access">Prazo de acesso</label>
+            <select class="select" id="cs-access" name="access_months">{% for value, label in access_choices %}<option value="{{ value }}"{% if course.access_months|stringformat:'s' == value or not course.access_months and not value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <span class="hint">Alunos importados contam o prazo a partir da importação.</span></div>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-16 release-section" id="liberacao">
+        <div class="stack"><h2 class="card__title">Liberação do conteúdo</h2><p class="card__sub">Escolha quando cada parte fica disponível para o aluno.</p></div>
+        <div class="form-grid" data-dirty-label="liberação do conteúdo">
+          <label class="option-card"><input type="radio" name="release_mode" value="all"{% if course.release_mode != 'scheduled' %} checked{% endif %}><span class="stack"><span class="fw-600">Tudo na matrícula</span><span class="text-13 muted">O aluno vê todas as aulas no primeiro acesso.</span></span></label>
+          <label class="option-card"><input type="radio" name="release_mode" value="scheduled"{% if course.release_mode == 'scheduled' %} checked{% endif %}><span class="stack"><span class="fw-600">Programada por módulo</span><span class="text-13 muted">Libera em dias após a matrícula ou numa data.</span></span></label>
+        </div>
+        <div class="release-box stack gap-12">
+          <div class="table-wrap"><table class="table release-table">
+            <thead><tr><th>Módulo</th><th>Libera</th><th>Valor</th></tr></thead>
+            <tbody>{% for module in modules %}
+              <tr class="release-row" data-dirty-label="liberação do módulo {{ forloop.counter }}">
+                <td>Módulo {{ forloop.counter }} · {{ module.title }}</td>
+                <td><label class="sr-only" for="rt-{{ module.id }}">Quando libera o módulo {{ module.title }}</label><select class="select" id="rt-{{ module.id }}" name="release_type_{{ module.id }}"><option value="now"{% if module.release_type == 'now' %} selected{% endif %}>Na matrícula</option><option value="days"{% if module.release_type == 'days' %} selected{% endif %}>Dias após a matrícula</option><option value="date"{% if module.release_type == 'date' %} selected{% endif %}>Em uma data</option></select></td>
+                <td><label class="sr-only" for="rv-{{ module.id }}">Valor da liberação de {{ module.title }}</label><input class="input release-value release-value--days" id="rv-{{ module.id }}" name="release_days_{{ module.id }}" inputmode="numeric" placeholder="dias" value="{% if module.release_type == 'days' %}{{ module.release_value }}{% endif %}"><input class="input release-value release-value--date" type="date" name="release_date_{{ module.id }}" aria-label="Data de liberação de {{ module.title }}" value="{% if module.release_type == 'date' %}{{ module.release_value }}{% endif %}"></td>
+              </tr>{% endfor %}</tbody>
+          </table></div>
+          <label class="check"><input type="hidden" name="notify_module_release" value="0"><input type="checkbox" name="notify_module_release" value="1"{% if course.notify_module_release %} checked{% endif %}> Avisar o aluno por e-mail quando um módulo for liberado</label>
+        </div>
+      </section>
+
+      <section class="card card--pad stack gap-16" id="ao-vivo-link">
+        <div class="stack"><h2 class="card__title">Link do Google Meet</h2><p class="card__sub">Padrão do curso. Cada encontro pode ter um link próprio.</p></div>
+        <div class="field" data-dirty-label="link do Google Meet"><label class="sr-only" for="cs-meet">Link do Google Meet</label><input class="input" id="cs-meet" name="live_meet_url" type="url" value="{{ course.live_meet_url|default:'' }}" placeholder="https://meet.google.com/..."></div>
+      </section>
+
+      <section class="card card--pad stack gap-16" id="certificado">
+        <div class="stack"><h2 class="card__title">Certificado</h2><p class="card__sub">Assinatura e logo ficam em Configurações da escola.</p></div>
+        <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-cert-on">Emitir certificado neste curso</span><span class="text-13 muted">Liberado com 100% das aulas publicadas concluídas e nome e CPF preenchidos.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if course.certificate_enabled %}true{% else %}false{% endif %}" aria-labelledby="lbl-cert-on" data-switch-input="certificate_enabled" data-dirty-label="certificado"></button><input type="hidden" name="certificate_enabled" id="certificate_enabled" value="{% if course.certificate_enabled %}1{% else %}0{% endif %}"></div>
+        {% if signer_missing %}<div class="alert alert--warning" role="status">{% include 'partials/icon.html' with name='alert' size=18 %}<span>Responsável técnico ainda não definido.{% if admin %} <a href="{% url 'painel:settings' %}?secao=certificado">Definir</a>{% endif %}</span></div>{% endif %}
+        <a class="btn btn--ghost btn--xs self-start" href="{% url 'painel:course_certificate_sample' course.id %}" target="_blank" rel="noopener">Ver certificado de exemplo</a>
+      </section>
+    </form>
+
+    <section class="card card--pad stack gap-12" id="ao-vivo">
+      <div class="row row--between gap-12"><div class="stack"><h2 class="card__title">Encontros ao vivo</h2><p class="card__sub">Aparecem em Aulas ao vivo, na área do aluno.</p></div>
+        <button type="button" class="btn btn--secondary btn--xs" data-dialog-open="dlg-session-new">{% include 'partials/icon.html' with name='plus' size=14 stroke='2.4' %}Adicionar encontro</button></div>
+      {% if sessions %}
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Data</th><th>Horário</th><th>Título</th><th>Gravação</th><th><span class="sr-only">Ações</span></th></tr></thead>
+        <tbody>{% for session in sessions %}<tr>
+          <td>{{ session.date_value }}</td><td>{{ session.start_value }} às {{ session.end_value }}</td><td>{{ session.title }}</td>
+          <td>{% if session.recording_url %}<a href="{{ session.recording_url }}" target="_blank" rel="noopener">Ver gravação</a>{% else %}–{% endif %}</td>
+          <td><button type="button" class="btn btn--secondary btn--xs" data-dialog-open="dlg-session-{{ session.id }}">Editar</button></td></tr>{% endfor %}</tbody>
+      </table></div>
+      <p class="hint">Horários de Brasília.</p>
+      {% else %}<p class="muted">Nenhum encontro marcado.</p>{% endif %}
+    </section>
+
+    <section class="card card--danger card--pad stack gap-4" id="risco">
+      <div class="stack"><h2 class="card__title">Zona de risco</h2><p class="card__sub">Ações que mudam o acesso dos alunos.</p></div>
+      {% if course.status == 'published' %}
+      <div class="risk-row"><span class="risk-row__text"><span class="fw-600">Mover para rascunho</span><span class="text-13 muted">Sai do site. {% if students_total == 1 %}O aluno matriculado continua{% else %}Os {{ students_total }} alunos matriculados continuam{% endif %} assistindo.</span></span>
+        <form method="post" action="{% url 'painel:course_status' course.id %}" data-async>{% csrf_token %}<input type="hidden" name="para" value="draft"><button type="submit" class="btn btn--secondary">Mover para rascunho</button></form></div>
+      {% endif %}
+      {% if course.status != 'archived' %}
+      <div class="risk-row"><span class="risk-row__text"><span class="fw-600">Arquivar curso</span><span class="text-13 muted">Some do site e da área do aluno. Pode ser restaurado depois.</span></span>
+        <button type="button" class="btn btn--danger-outline" data-dialog-open="dlg-archive">Arquivar curso</button></div>
+      {% endif %}
+      <div class="risk-row"><span class="risk-row__text"><span class="fw-600">Excluir definitivamente</span><span class="text-13 muted" id="delete-why">Só disponível para cursos sem alunos e sem pedidos.</span></span>
+        <button type="button" class="btn btn--danger" data-dialog-open="dlg-delete"{% if not can_delete %} disabled title="Este curso tem alunos ou pedidos. Arquive o curso em vez de excluir." aria-describedby="delete-why"{% endif %}>Excluir definitivamente</button></div>
+    </section>
+  </div>
+</div>
+
+<div class="dirtybar" id="dirtybar" hidden role="region" aria-label="Alterações não salvas">
+  {% include 'partials/icon.html' with name='alert' size=20 class='dirtybar__icon' %}
+  <span class="dirtybar__msg" data-dirty-msg>Alterações não salvas</span>
+  <button type="button" class="dirtybar__discard" data-dirty-discard>Descartar</button>
+  <button type="submit" class="btn btn--primary" form="settings-form">Salvar alterações</button>
+</div>
+
+{% include 'painel/_session_dialog.html' with session=None %}
+{% for session in sessions %}{% include 'painel/_session_dialog.html' %}{% endfor %}
+
+{% if course.status != 'archived' %}
+<dialog class="dialog dialog--520 dialog--modal dialog--danger" id="dlg-archive" aria-labelledby="dlg-archive-t">
+  <form method="post" action="{% url 'painel:course_status' course.id %}" class="dialog__body" data-async>{% csrf_token %}<input type="hidden" name="para" value="archived">
+    <span class="dialog__eyebrow">Alto risco</span>
+    <h2 class="dialog__title" id="dlg-archive-t">Arquivar {% if course.short_name %}{{ course.short_name }} · {% endif %}{{ course.title }}?</h2>
+    <p class="dialog__text">O curso sai do site e da área {% if students_total == 1 %}do aluno matriculado{% else %}dos {{ students_total }} alunos matriculados{% endif %}. Pedidos e certificados emitidos continuam válidos.</p>
+    <div class="field"><label class="field__label" for="arch-confirm">Digite {{ course.short_name|default:course.title }} para confirmar</label><input class="input" id="arch-confirm" name="confirmar" data-confirm-text="{{ course.short_name|default:course.title }}" autocomplete="off"></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger" data-confirm-submit disabled>Arquivar curso</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% if can_delete %}
+<dialog class="dialog dialog--520 dialog--modal dialog--danger" id="dlg-delete" aria-labelledby="dlg-delete-t">
+  <form method="post" action="{% url 'painel:course_delete' course.id %}" class="dialog__body" data-async>{% csrf_token %}
+    <span class="dialog__eyebrow">Alto risco</span>
+    <h2 class="dialog__title" id="dlg-delete-t">Excluir {% if course.short_name %}{{ course.short_name }} · {% endif %}{{ course.title }}?</h2>
+    <p class="dialog__text">Os módulos, as aulas e os materiais do curso serão apagados de vez. Essa ação não tem Desfazer.</p>
+    <div class="field"><label class="field__label" for="del-confirm">Digite {{ course.short_name|default:course.title }} para confirmar</label><input class="input" id="del-confirm" name="confirmar" data-confirm-text="{{ course.short_name|default:course.title }}" autocomplete="off"></div>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger" data-confirm-submit disabled>Excluir definitivamente</button></div>
+  </form>
+</dialog>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,1 @@
+{% if posts %}<span class="text-13 fw-600 text-2">Talvez já tenha resposta:</span>{% for post in posts %}<a href="{% url 'community' %}?duvida={{ post.id }}">{{ post.title }}</a>{% endfor %}{% endif %}

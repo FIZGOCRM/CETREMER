@@ -1,0 +1,21 @@
+{% load cetremer ui %}{% comment %}
+Prévia da página de venda (HANDOFF-v2 8.4). Mostra o que está SALVO, não o digitado. Contexto: course, preview (computador|celular), preview_url,
+lessons_published, modules_total. O id #sales-preview é o alvo do `replace` ao salvar.
+{% endcomment %}
+<div class="preview-frame{% if preview == 'celular' %} preview-frame--mobile{% endif %}" id="sales-preview">
+  <div class="preview-frame__bar">
+    <span class="fw-600">Pré-visualização</span>
+    <div class="seg" role="group" aria-label="Tamanho da prévia">
+      <a class="seg__btn"{% if preview != 'celular' %} aria-current="page"{% endif %} href="?previa=computador">Computador</a>
+      <a class="seg__btn"{% if preview == 'celular' %} aria-current="page"{% endif %} href="?previa=celular">Celular</a>
+    </div>
+  </div>
+  <div class="card__body stack gap-12">
+    <div class="course-card__cover {{ course.cover_class }}">{% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% else %}{{ course.short_name|default:course.title }}{% endif %}</div>
+    <h2 class="card__title">{{ course.title }}</h2>
+    {% if course.tagline %}<p class="text-2">{{ course.tagline }}</p>{% endif %}
+    <span class="fw-600">{{ course.price|brl }}</span>
+    <span class="text-13 muted">{{ modules_total|plural_pt:"módulo,módulos" }} · {{ lessons_published|plural_pt:"aula publicada,aulas publicadas" }}{% if course.workload_hours %} · {{ course.workload_hours }} horas{% endif %}</span>
+    <a class="btn btn--secondary btn--sm self-start" href="{{ preview_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='external' size=16 %}Abrir página completa em nova aba</a>
+  </div>
+</div>

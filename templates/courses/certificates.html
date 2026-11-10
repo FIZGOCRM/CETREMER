@@ -1,0 +1,111 @@
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Certificados · CETREMER{% endblock %}
+{% block page_title %}Certificados{% endblock %}
+{% block page_class %}page--gap-24{% endblock %}
+{% block content %}
+<div class="row gap-12">
+  <div class="card stat"><span class="stat__label">Emitidos</span><span class="stat__value">{{ stats.issued }}</span></div>
+  <div class="card stat"><span class="stat__label">Prontos para emitir</span><span class="stat__value{% if stats.ready %} text-success{% endif %}">{{ stats.ready }}</span></div>
+  <div class="card stat"><span class="stat__label">Em andamento</span><span class="stat__value">{{ stats.in_progress }}</span></div>
+</div>
+
+{% for item in items %}
+{% with c=item.course %}
+<article class="card cert-row{% if item.state == 'ready' %} is-ready{% endif %}">
+  {% if item.state == 'issued' %}
+  <div class="cert-row__thumb cert-row__thumb--doc" aria-hidden="true">
+    <span class="eyebrow">{{ site.school_name }}</span>
+    <span class="fw-600">Certificado de conclusão</span>
+    <span class="text-13">{{ item.certificate.student_name }}</span>
+    <span class="text-13 muted">{{ item.certificate.course_title }}</span>
+  </div>
+  {% else %}
+  <div class="cert-row__thumb {{ c.cover_class }}">{{ c.short_name|default:c.title }}</div>
+  {% endif %}
+
+  <div class="cert-row__body">
+    <div class="row gap-8">
+      <h2 class="cert-row__title">{{ c.title }}</h2>
+      {% if item.state == 'ready' %}<span class="badge badge--success">Pronto para emitir</span>
+      {% elif item.state == 'issued' %}<span class="badge badge--success">{% include 'partials/icon.html' with name='check' size=14 stroke='2.4' %}Emitido</span>
+      {% elif item.started %}<span class="badge badge--blue">Em andamento</span>
+      {% else %}<span class="badge badge--gray">Não iniciado</span>{% endif %}
+    </div>
+
+    {% if item.state == 'ready' %}
+      <div class="req-mini is-ok">{% include 'partials/icon.html' with name='check-circle' size=18 %}<span>{{ item.done }} de {{ item.total|plural_pt:"aula concluída,aulas concluídas" }}</span></div>
+      {% if not item.data_ok %}<div class="req-mini">{% include 'partials/icon.html' with name='alert' size=18 %}<span>Confira nome e CPF antes de emitir</span></div>{% endif %}
+      <div class="row gap-10"><button type="button" class="btn btn--primary" data-drawer-open="drawer-emitir-{{ c.slug }}">{% include 'partials/icon.html' with name='award' size=16 %}Conferir dados e emitir</button></div>
+
+    {% elif item.state == 'issued' %}
+      <span class="text-13 muted">Emitido em {{ item.certificate.issued_at|date:"d/m/Y" }} · código {{ item.certificate.code|codigo_cert }}{% if item.certificate.workload_hours %} · carga horária {{ item.certificate.workload_hours }}h{% endif %}</span>
+      <div class="row gap-10">
+        <a class="btn btn--primary" href="{% url 'issue_certificate' c.slug %}?imprimir=1">{% include 'partials/icon.html' with name='download' size=16 %}Baixar PDF</a>
+        <button type="button" class="btn btn--secondary" data-copy="{{ item.verify_url }}" data-copy-toast="Link de verificação copiado">{% include 'partials/icon.html' with name='link' size=16 %}Copiar link de verificação</button>
+        <a class="btn btn--secondary" href="{{ item.linkedin_url }}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='share' size=16 %}Adicionar ao LinkedIn</a>
+      </div>
+
+    {% else %}
+      {% include 'partials/progress.html' with value=item.pct label='Progresso em '|add:c.title %}
+      <span class="progress-label">{{ item.done }} de {{ item.total|plural_pt:"aula,aulas" }}</span>
+      <div class="req-mini">{% include 'partials/icon.html' with name='circle' size=18 %}<span>Concluir {% if item.total == 1 %}a aula{% else %}as {{ item.total }} aulas{% endif %} · {{ item.remaining|falta_pt|lower }}</span></div>
+      {% if item.data_ok %}
+      <div class="req-mini is-ok">{% include 'partials/icon.html' with name='check-circle' size=18 %}<span>Nome e CPF informados</span></div>
+      {% else %}
+      <div class="req-mini">{% include 'partials/icon.html' with name='circle' size=18 %}<span>Informar nome completo e CPF · <a class="link-strong" href="{% url 'settings' %}?secao=certificado">completar agora</a></span></div>
+      {% endif %}
+      <div class="row gap-10">
+        {% if item.next_lesson %}<a class="btn btn--secondary" href="{% url 'lesson_detail' c.slug item.next_lesson.id %}">{% include 'partials/icon.html' with name='play' size=16 %}Continuar curso</a>{% else %}<a class="btn btn--secondary" href="{% url 'course_home' c.slug %}">{% include 'partials/icon.html' with name='play' size=16 %}Continuar curso</a>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</article>
+{% endwith %}
+{% empty %}
+<div class="card empty-state">
+  <span class="empty-state__icon">{% include 'partials/icon.html' with name='award' size=24 %}</span>
+  <span class="empty-state__title">Você ainda não tem certificados</span>
+  <span class="empty-state__text">Quando você tiver um curso com certificado, ele aparece aqui.</span>
+</div>
+{% endfor %}
+
+<div class="card card--pad-sm row gap-12">
+  <span class="text-primary">{% include 'partials/icon.html' with name='shield' size=22 %}</span>
+  <span class="grow">Qualquer pessoa pode conferir se um certificado CETREMER é verdadeiro pelo código, sem precisar de login.</span>
+  <a class="btn btn--secondary btn--xs" href="{% url 'verify_certificate' %}">Página de verificação</a>
+</div>
+
+{% for item in items %}{% if item.state == 'ready' %}{% with c=item.course %}
+<dialog class="drawer drawer--560" id="drawer-emitir-{{ c.slug }}" aria-labelledby="emitir-title-{{ c.slug }}"{% if open_issue == c.slug %} data-autoopen="emitir"{% endif %}>
+  <form class="stack" method="post" action="{% url 'certificate_issue' c.slug %}" data-async>
+    {% csrf_token %}
+    <div class="drawer__head">
+      <div class="stack"><span class="drawer__eyebrow">{{ c.title }}</span><h2 class="drawer__title" id="emitir-title-{{ c.slug }}">Emitir certificado</h2></div>
+      <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+    </div>
+    <div class="drawer__body">
+      <p class="text-2">Esses dados vão impressos no certificado. Depois de emitido, só o suporte consegue corrigir.</p>
+      <div class="field">
+        <label class="field__label" for="emitir-nome-{{ c.slug }}">Nome completo</label>
+        <input class="input" id="emitir-nome-{{ c.slug }}" name="full_name" value="{{ profile_name }}" required data-mirror="#preview-name-{{ c.slug }}" data-mirror-upper autocomplete="name">
+        <span class="hint">Do jeito que está no seu documento, com acentos.</span>
+      </div>
+      <div class="field">
+        <label class="field__label" for="emitir-cpf-{{ c.slug }}">CPF</label>
+        <input class="input" id="emitir-cpf-{{ c.slug }}" name="cpf" value="{{ profile_cpf|cpf }}" required inputmode="numeric" autocomplete="off" data-cpf data-mirror="#preview-cpf-{{ c.slug }}" data-mirror-cpf>
+        <span class="field-ok" hidden>{% include 'partials/icon.html' with name='check' size=14 stroke='2.4' %}CPF válido</span>
+      </div>
+      <div class="cert-preview-text">
+        <span class="eyebrow muted">Prévia do texto</span>
+        <span>Certificamos que <strong id="preview-name-{{ c.slug }}">{{ profile_name|upper|default:"NOME COMPLETO" }}</strong>, CPF <span id="preview-cpf-{{ c.slug }}">{{ profile_cpf_masked }}</span>, concluiu o curso <strong>{{ c.title }}</strong>{% if c.workload_hours %}, com carga horária de {{ c.workload_hours }} horas{% endif %}, em {{ item.completed_on|date:"d/m/Y" }}.</span>
+      </div>
+      <label class="check"><input type="checkbox" name="confirm" value="1" required> Conferi meu nome e CPF</label>
+    </div>
+    <div class="drawer__foot">
+      <button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Emitir certificado</button>
+    </div>
+  </form>
+</dialog>
+{% endwith %}{% endif %}{% endfor %}
+{% endblock %}

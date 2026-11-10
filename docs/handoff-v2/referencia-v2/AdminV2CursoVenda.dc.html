@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>BLS · Página de venda · Admin CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.bi{width:36px;min-height:36px;padding:0;border-radius:8px;border:1px solid transparent;background:transparent;color:#5B6472;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.bi:hover{background:#EEF1F5;color:#0F1B2D}
+.nl{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:10px;color:#C9D3DF;font-size:14px;font-weight:500;text-decoration:none}
+.nl:hover{background:#1E2E45;color:#FFFFFF}.nl[aria-current]{background:#1E2E45;color:#FFFFFF;font-weight:600}
+.ng{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9FB0C4}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:2px solid transparent;color:#5B6472;font-size:14px;font-weight:600;text-decoration:none}
+.tab:hover{color:#0F1B2D}.tab[aria-current]{color:#0F1B2D;border-bottom-color:#0B63C4}
+.cnt{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:#EEF1F5;color:#3A4556}
+.lb{font-size:13px;font-weight:600;color:#0F1B2D}
+.hint{font-size:12px;color:#5B6472}
+.in{width:100%;font:inherit;font-size:14px;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box}
+.ta{width:100%;font:inherit;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box;resize:vertical}
+.drag{width:28px;height:36px;border:0;background:none;color:#8A97A8;cursor:grab;display:flex;align-items:center;justify-content:center;flex:none}
+.sec{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+.sec h2{margin:0;font-size:16px;font-weight:600}
+.seg{min-height:32px;padding:0 10px;border:0;border-radius:8px;background:transparent;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.seg[aria-pressed="true"]{background:#FFFFFF;color:#0F1B2D;box-shadow:0 1px 2px rgba(15,27,45,.12)}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<aside style="flex: 1 1 240px; max-width: 100%; background: #0F1B2D; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+<a href="AdminV2Inicio.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; text-decoration: none">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 9px; background: #0B63C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px">C</span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #FFFFFF">CETREMER</span><span style="font-size: 12px; color: #9FB0C4">Painel administrativo</span></span>
+</a>
+<nav aria-label="Menu administrativo" style="display: flex; flex-direction: column; gap: 2px">
+<span class="ng">Visão geral</span>
+<a class="nl" href="AdminV2Inicio.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<span class="ng">Conteúdo</span>
+<a class="nl" href="AdminV2Cursos.dc.html" aria-current="page"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg>Cursos</a>
+<span class="ng">Pessoas</span>
+<a class="nl" href="AdminV2Alunos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-6 7-6s7 2 7 6"></path><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-6"></path></svg>Alunos</a>
+<a class="nl" href="AdminV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="nb" aria-label="3 dúvidas sem resposta">3</span></a>
+<span class="ng">Vendas</span>
+<a class="nl" href="AdminV2Pedidos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>Pedidos</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px">
+<a class="nl" href="AdminV2Config.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>Configurações</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid #2D3F58">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #1E2E45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: none">AD</span>
+<span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.3"><span style="color: #FFFFFF; font-size: 14px; font-weight: 600">Administrador</span><span style="color: #9FB0C4; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">admin@cetremer.com.br</span></span>
+</div>
+</div>
+</aside>
+
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column; position: relative">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 32px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<nav aria-label="Trilha" style="flex: 1 1 200px; display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: #5B6472"><a href="AdminV2Cursos.dc.html" style="color: #5B6472">Cursos</a><span aria-hidden="true">/</span><span style="color: #0F1B2D; font-weight: 600">BLS · Suporte Básico de Vida</span></nav>
+<label style="flex: 0 1 320px; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #E3E8EF; background: #F8FAFC; color: #5B6472; box-sizing: border-box">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar no painel</span>
+<input type="search" placeholder="Buscar aluno, curso ou pedido" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: #0F1B2D; outline: none">
+<span class="kbd">Ctrl K</span>
+</label>
+<a class="b bp" href="AdminV2Padroes.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Criar</a>
+</header>
+
+<section style="background: #FFFFFF; border-bottom: 1px solid #E3E8EF; padding: 20px 32px 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; align-items: center; gap: 16px; min-width: 0">
+<span aria-hidden="true" style="width: 72px; height: 48px; border-radius: 10px; background: #034C8C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; flex: none">BLS</span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; line-height: 1.25">BLS · Suporte Básico de Vida</h1>
+<span class="pill" style="color: #145C33; background: #E9F6EE"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: #1F8A4C"></span>Publicado</span>
+</div>
+<span style="font-size: 13px; color: #5B6472">2 módulos · 4 aulas · 28 min de vídeo · 3 alunos · R$ 150,00</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a class="b bs" href="Aula.dc.html">Ver como aluno</a>
+<a class="b bs" href="CursoPreview.dc.html">Página de venda ao vivo</a>
+</div>
+</div>
+<nav aria-label="Seções do curso" style="display: flex; gap: 28px; margin-top: 16px; overflow-x: auto">
+<a class="tab" href="AdminV2CursoConteudo.dc.html">Conteúdo</a>
+<a class="tab" href="AdminV2CursoVenda.dc.html" aria-current="page">Página de venda</a>
+<a class="tab" href="AdminV2CursoConfig.dc.html">Configurações</a>
+<a class="tab" href="AdminV2Alunos.dc.html">Alunos<span class="cnt">3</span></a>
+</nav>
+</section>
+
+<main style="padding: 24px 32px 120px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; max-width: 1280px; width: 100%; box-sizing: border-box">
+
+<form style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section class="card sec">
+<h2>Apresentação</h2>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="v-sub">Chamada curta</label>
+<input id="v-sub" class="in" type="text" value="Curso credenciado pela AHA com RCP de alta qualidade, desengasgo e uso do DEA." maxlength="160" aria-describedby="v-sub-h">
+<span id="v-sub-h" class="hint">Aparece abaixo do título e nos cards do site. 87 de 160 caracteres.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="v-desc">Descrição completa</label>
+<textarea id="v-desc" class="ta" rows="5">Curso credenciado pela American Heart Association (AHA). Aprenda RCP de alta qualidade, manobras de desengasgo e uso do Desfibrilador Externo Automático (DEA).</textarea>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<span aria-hidden="true" style="width: 180px; aspect-ratio: 3 / 2; border-radius: 10px; background: #034C8C; color: #FFFFFF; display: flex; align-items: flex-end; padding: 12px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px">BLS</span>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lb">Capa</span>
+<span class="hint">3:2, mínimo 1200 × 800 px. Você ajusta o enquadramento depois de enviar.</span>
+<div style="display: flex; gap: 8px"><label class="b bs" style="cursor: pointer">Trocar imagem<input type="file" accept="image/*" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"></label><button type="button" class="b bg">Remover</button></div>
+</div>
+</div>
+</section>
+
+<section class="card sec">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2>O que o aluno vai aprender</h2>
+<span class="hint">{{ objCount }} itens · ideal entre 4 e 6</span>
+</div>
+<ul style="list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{ objectives }}" as="o" hint-placeholder-count="3">
+<li style="display: flex; align-items: center; gap: 6px">
+<button type="button" class="drag" aria-label="Mover item"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></button>
+<label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)" for="obj-{{ o.i }}">Objetivo {{ o.i }}</label>
+<input id="obj-{{ o.i }}" class="in" type="text" value="{{ o.text }}">
+<button type="button" class="bi" aria-label="Remover objetivo {{ o.i }}" onClick="{{ o.remove }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</li>
+</sc-for>
+</ul>
+<button type="button" class="b bs" onClick="{{ addObjective }}" style="align-self: flex-start; border-style: dashed; color: #0B63C4; border-color: #9DBBDD">+ Adicionar item</button>
+</section>
+
+<section class="card sec">
+<h2>Para quem é</h2>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="v-pub">Público</label>
+<textarea id="v-pub" class="ta" rows="3" placeholder="Ex.: profissionais de saúde, estudantes, brigadistas e equipes que precisam da certificação AHA."></textarea>
+<span class="hint">Se ficar vazio, a seção não aparece no site.</span>
+</div>
+</section>
+
+<section class="card sec">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px">
+<h2>Perguntas frequentes</h2>
+<button type="button" class="b bg" style="min-height: 34px">+ Pergunta</button>
+</div>
+<details open style="border: 1px solid #E3E8EF; border-radius: 10px; padding: 12px 14px">
+<summary style="font-weight: 600; cursor: pointer">Como recebo o certificado?</summary>
+<p style="margin: 8px 0 0; font-size: 14px; color: #3A4556">Ao concluir todas as aulas, o certificado fica disponível na área do aluno, com código de verificação.</p>
+</details>
+<details style="border: 1px solid #E3E8EF; border-radius: 10px; padding: 12px 14px">
+<summary style="font-weight: 600; cursor: pointer">Por quanto tempo tenho acesso?</summary>
+<p style="margin: 8px 0 0; font-size: 14px; color: #5B6472">Defina o prazo em Configurações · Acesso.</p>
+</details>
+</section>
+
+<section class="card sec">
+<h2>Aulas grátis</h2>
+<p style="margin: 0; font-size: 14px; color: #3A4556">Quem ainda não comprou pode assistir às aulas marcadas como grátis na aba Conteúdo.</p>
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #F8FAFC; border: 1px solid #E3E8EF">
+<span style="font-size: 14px">Nenhuma aula grátis</span>
+<a href="AdminV2CursoConteudo.dc.html" style="font-size: 14px; font-weight: 600">Escolher aula</a>
+</div>
+</section>
+</form>
+
+<aside aria-label="Pré-visualização" style="flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<span style="font-size: 13px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Pré-visualização</span>
+<div role="group" aria-label="Tamanho da pré-visualização" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #E9EDF2">
+<button type="button" class="seg" aria-pressed="{{ isDesk }}" onClick="{{ setDesk }}">Computador</button>
+<button type="button" class="seg" aria-pressed="{{ isMob }}" onClick="{{ setMob }}">Celular</button>
+</div>
+</div>
+<div class="card" style="overflow: hidden; align-self: center; width: {{ previewWidth }}; max-width: 100%">
+<div style="background: #0F1B2D; color: #FFFFFF; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 11px; color: #C9D3DF">Cursos / Essenciais AHA</span>
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px; line-height: 1.2">BLS · Suporte Básico de Vida</span>
+<span style="font-size: 12px; color: #DCE3EC">Curso credenciado pela AHA com RCP de alta qualidade, desengasgo e uso do DEA.</span>
+<span style="display: flex; flex-wrap: wrap; gap: 6px"><span style="font-size: 11px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.12)">8 horas</span><span style="font-size: 11px; padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,.12)">4 aulas</span></span>
+</div>
+<div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 10px">
+<span style="font-weight: 700; font-size: 14px">O que você vai aprender</span>
+<sc-for list="{{ objectives }}" as="o" hint-placeholder-count="3">
+<span style="display: flex; gap: 8px; font-size: 13px; color: #3A4556"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1F8A4C" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 3px"><path d="M5 12l5 5 9-10"></path></svg>{{ o.text }}</span>
+</sc-for>
+<div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #EEF1F5">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px">R$ 150,00</span>
+<span style="font-size: 12px; font-weight: 600; color: #FFFFFF; background: #0B63C4; padding: 8px 12px; border-radius: 8px">Comprar agora</span>
+</div>
+</div>
+</div>
+<a href="CursoPreview.dc.html" style="align-self: center; font-size: 14px; font-weight: 600">Abrir página completa em nova aba</a>
+</aside>
+
+</main>
+
+<div role="region" aria-label="Alterações não salvas" style="position: sticky; bottom: 0; margin-top: auto; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 32px; background: #0F1B2D; color: #FFFFFF">
+<span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #E0A100"></span>
+<span style="flex: 1; min-width: 200px; font-size: 14px">Você tem alterações não salvas na página de venda.</span>
+<button type="button" class="b" style="background: transparent; color: #DCE3EC; border-color: #2D3F58">Descartar</button>
+<button type="button" class="b" style="background: #FFFFFF; color: #0F1B2D">Salvar alterações</button>
+</div>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1600}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mobile: false, objectives: ['Reconhecer uma parada cardiorrespiratória e acionar o serviço de emergência', 'Fazer compressões torácicas de alta qualidade', 'Usar o DEA com segurança', 'Desobstruir vias aéreas em adultos e bebês'] };
+  }
+  renderVals() {
+    const list = this.state.objectives;
+    return {
+      objCount: list.length,
+      objectives: list.map((text, idx) => ({ i: idx + 1, text, remove: () => this.setState({ objectives: list.filter((_, j) => j !== idx) }) })),
+      addObjective: () => this.setState({ objectives: [...list, 'Novo item'] }),
+      isDesk: String(!this.state.mobile), isMob: String(this.state.mobile),
+      setDesk: () => this.setState({ mobile: false }), setMob: () => this.setState({ mobile: true }),
+      previewWidth: this.state.mobile ? '320px' : '100%'
+    };
+  }
+}
+</script>
+</body>
+</html>

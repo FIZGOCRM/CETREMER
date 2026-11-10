@@ -1,0 +1,22 @@
+{% load static %}<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}CETREMER · Centro de Treinamento em Emergência{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}Capacitação e simulação realística em emergência com quem atua no SAMU e na sala vermelha.{% endblock %}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/cetremer.css' %}">
+<script src="{% static 'js/site.js' %}" defer></script>
+<script src="{% static 'js/ui.js' %}" defer></script>{# v2 #}
+{% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+{% csrf_token %}{# v2: token disponível para o ui.js em toda página #}
+{% include "partials/toasts.html" %}{# v2: mensagens do Django viram toast #}
+{% block body %}{% endblock %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>

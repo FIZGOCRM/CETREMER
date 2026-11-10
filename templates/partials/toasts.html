@@ -1,0 +1,6 @@
+{% load ui %}
+{# Incluir UMA vez em base_core.html, logo depois de abrir <body>. Substitui partials/messages.html nos layouts logados. #}
+<div class="toast-stack" id="toast-stack" aria-live="polite"></div>
+{% for message in messages %}{% toast_meta message as meta %}
+<template data-toast data-kind="{{ meta.kind }}"{% if meta.undo %} data-undo-url="{{ meta.undo }}"{% endif %}{% if meta.action_label %} data-action-label="{{ meta.action_label }}" data-action-href="{{ meta.action_href }}"{% endif %}>{{ message }}</template>
+{% endfor %}

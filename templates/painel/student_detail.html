@@ -1,0 +1,160 @@
+{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Ficha do aluno (HANDOFF-v2 8.7). Contexto: student, profile, name, aba, blocks, orders, certificates, activity, status, last_seen, source,
+courses_open, has_password, missing_cpf, missing_name, counts.
+{% endcomment %}
+{% block admin_title %}{{ name }}{% endblock %}
+{% block crumbs %}<a href="{% url 'painel:students' %}">Alunos</a> / {{ name }}{% endblock %}
+{% block content %}
+<div class="row row--between gap-16">
+  <div class="row gap-16">
+    <span class="avatar avatar--64 avatar--soft" aria-hidden="true">{{ name|iniciais }}</span>
+    <div class="stack gap-4">
+      <div class="row gap-10"><h1 class="page-title">{{ name }}</h1>
+        {% if status == 'active' %}<span class="badge badge--success">Ativo</span>{% elif status == 'waiting' %}<span class="badge badge--warning">Aguardando 1º acesso</span>{% else %}<span class="badge badge--gray">Sem cursos</span>{% endif %}</div>
+      <span class="text-14 muted">{{ student.email }} · aluno desde {{ student.date_joined|date:"d/m/Y" }}{% if source %} · {{ source|lower }}{% endif %}</span>
+    </div>
+  </div>
+  <div class="row gap-10">
+    <form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="resend_access"><button type="submit" class="btn btn--secondary">Reenviar e-mail de acesso</button></form>
+    <button type="button" class="btn btn--primary" data-dialog-open="dlg-enroll-student">{% include 'partials/icon.html' with name='plus' size=16 stroke='2.4' %}Liberar curso</button>
+    <div class="popover" data-popover>
+      <button type="button" class="icon-btn" aria-label="Mais ações" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>{% include 'partials/icon.html' with name='more' size=18 %}</button>
+      <div class="menu" data-popover-panel hidden role="menu">
+        <button type="button" role="menuitem" class="menu__item" data-drawer-open="drawer-dados">Editar dados</button>
+        <form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="reset_password"><button type="submit" role="menuitem" class="menu__item">Enviar link para criar nova senha</button></form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav class="tabs" aria-label="Seções da ficha">
+  <a class="tab"{% if aba == 'cursos' %} aria-current="page"{% endif %} href="?aba=cursos">Cursos <span class="tab__count">{{ counts.cursos }}</span></a>
+  <a class="tab"{% if aba == 'pedidos' %} aria-current="page"{% endif %} href="?aba=pedidos">Pedidos <span class="tab__count">{{ counts.pedidos }}</span></a>
+  <a class="tab"{% if aba == 'certificados' %} aria-current="page"{% endif %} href="?aba=certificados">Certificados <span class="tab__count">{{ counts.certificados }}</span></a>
+  <a class="tab"{% if aba == 'atividade' %} aria-current="page"{% endif %} href="?aba=atividade">Atividade <span class="tab__count">{{ counts.atividade }}</span></a>
+</nav>
+
+<div class="split">
+  <main class="split__main stack gap-16">
+    {% if aba == 'cursos' %}
+      {% for block in blocks %}
+      <section class="card card--clip" id="scourse-{{ block.course.id }}">
+        <div class="card--pad-sm">{% include 'painel/_student_course_progress.html' with open=False %}</div>
+        {% if block.enrollment.is_active %}
+        <div class="row gap-16 card--pad-sm">
+          <button type="button" class="btn btn--link" data-dialog-open="dlg-reset-{{ block.course.id }}">Zerar progresso do curso</button>
+          <button type="button" class="btn btn--link-danger" data-dialog-open="dlg-remove-{{ block.course.id }}">Remover acesso a este curso</button>
+        </div>
+        {% endif %}
+      </section>
+      {% empty %}
+      <div class="empty-state card"><h2 class="empty-state__title">Nenhum curso liberado</h2><p class="empty-state__text">Use "Liberar curso" para dar acesso a {{ name }}.</p></div>
+      {% endfor %}
+    {% elif aba == 'pedidos' %}
+      {% if orders %}
+      <div class="table-wrap"><table class="table"><thead><tr><th>Pedido</th><th>Curso</th><th>Valor</th><th>Status</th></tr></thead><tbody>
+        {% for order in orders %}<tr><td>#{{ order.id }} · {{ order.created_at|date:"d/m H:i" }}</td><td>{{ order.course.short_name|default:order.course.title }}</td><td>{{ order.amount|brl }}</td><td><span class="badge badge--md">{{ order.get_status_display }}</span></td></tr>{% endfor %}
+      </tbody></table></div>
+      {% else %}<div class="empty-state card"><h2 class="empty-state__title">Nenhum pedido deste aluno</h2></div>{% endif %}
+    {% elif aba == 'certificados' %}
+      {% if certificates %}
+      <div class="table-wrap"><table class="table"><thead><tr><th>Código</th><th>Curso</th><th>Emitido em</th></tr></thead><tbody>
+        {% for certificate in certificates %}<tr><td>{{ certificate.code }}</td><td>{{ certificate.course_title }}</td><td>{{ certificate.issued_at|date:"d/m/Y" }}</td></tr>{% endfor %}
+      </tbody></table></div>
+      {% else %}<div class="empty-state card"><h2 class="empty-state__title">Nenhum certificado emitido</h2></div>{% endif %}
+    {% else %}
+      <section class="card card--pad-sm">
+        {% if activity %}<ul class="timeline">{% for item in activity %}<li class="timeline__item">{{ item.text }}<span class="timeline__when">{{ item.created_at|ago_pt }}</span></li>{% endfor %}</ul>
+        {% else %}<p class="text-2">Nenhuma atividade registrada para este aluno ainda.</p>{% endif %}
+      </section>
+    {% endif %}
+  </main>
+
+  <aside class="split__side split__side--320 stack gap-16">
+    <section class="card card--pad-sm stack gap-12" aria-labelledby="dados">
+      <div class="row row--between"><h2 class="card__title" id="dados">Dados pessoais</h2><button type="button" class="btn btn--ghost btn--xs" data-drawer-open="drawer-dados">Editar</button></div>
+      <dl class="dl dl--compact">
+        <dt>Nome completo</dt><dd>{% if profile.full_name %}{{ profile.full_name }}{% else %}<span class="text-danger">Não informado</span>{% endif %}</dd>
+        <dt>CPF</dt><dd>{% if profile.cpf %}{{ profile.cpf }}{% else %}<span class="text-danger">Não informado</span>{% endif %}</dd>
+        <dt>E-mail</dt><dd>{{ student.email }}</dd>
+      </dl>
+      {% if missing_cpf %}
+      <div class="alert alert--warning" role="status">{% include 'partials/icon.html' with name='alert' size=18 %}<span>Sem CPF o certificado fica bloqueado.</span></div>
+      <form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="request_data"><button type="submit" class="btn btn--link">Pedir ao aluno por e-mail</button></form>
+      {% endif %}
+    </section>
+
+    <section class="card card--pad-sm stack gap-12" aria-labelledby="acesso">
+      <h2 class="card__title" id="acesso">Acesso</h2>
+      <dl class="dl dl--compact">
+        <dt>Último acesso</dt><dd>{% if last_seen %}{{ last_seen|seen_pt }}{% else %}<span class="text-danger">Nunca acessou</span>{% endif %}</dd>
+        <dt>Primeiro acesso</dt><dd>{% if profile.first_access_at %}feito em {{ profile.first_access_at|date:"d/m/Y" }}{% else %}ainda não{% endif %}</dd>
+        <dt>E-mail de acesso</dt><dd>{% if profile.access_email_sent_at %}enviado em {{ profile.access_email_sent_at|date:"d/m/Y" }}{% else %}ainda não enviado{% endif %}</dd>
+      </dl>
+      <form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="reset_password"><button type="submit" class="btn btn--secondary">Enviar link para criar nova senha</button></form>
+      {% if not has_password %}<form method="post" action="{% url 'painel:student_action' student.id %}" data-async>{% csrf_token %}<input type="hidden" name="action" value="generate_first_access"><button type="submit" class="btn btn--ghost btn--xs">Gerar código de primeiro acesso</button></form>{% endif %}
+    </section>
+
+    <section class="card card--pad-sm stack gap-8" aria-labelledby="notas">
+      <h2 class="card__title" id="notas">Anotações internas</h2>
+      <div class="field"><label class="sr-only" for="notes">Anotações internas</label>
+        <textarea class="textarea" id="notes" name="notes" rows="4" data-autosave-url="{% url 'painel:student_notes' student.id %}" placeholder="Visível só para a equipe. Ex.: pediu reenvio do certificado por WhatsApp.">{{ profile.staff_notes }}</textarea>
+        <span class="autosave-state" data-autosave-state aria-live="polite"></span>
+        <span class="hint">Salva automaticamente.</span></div>
+    </section>
+  </aside>
+</div>
+
+<dialog class="drawer drawer--560" id="drawer-dados" aria-labelledby="drawer-dados-t">
+  <form class="stack gap-0 lesson-drawer" method="post" action="{% url 'painel:student_action' student.id %}" data-async>
+    {% csrf_token %}<input type="hidden" name="action" value="edit">
+    <div class="drawer__head"><div class="stack"><span class="drawer__eyebrow">{{ name }}</span><h2 class="drawer__title" id="drawer-dados-t">Editar dados</h2></div>
+      <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button></div>
+    <div class="drawer__body">
+      <div class="field"><label class="field__label" for="ed-name">Nome completo</label><input class="input" id="ed-name" name="full_name" value="{{ profile.full_name|default:'' }}" maxlength="255"></div>
+      <div class="field"><label class="field__label" for="ed-cpf">CPF</label><input class="input" id="ed-cpf" name="cpf" inputmode="numeric" value="{{ profile.cpf|default:'' }}" data-cpf><span class="hint">Só números ou com pontos e traço.</span></div>
+      <div class="field"><label class="field__label" for="ed-email">E-mail</label><input class="input" id="ed-email" name="email" type="email" value="{{ student.email }}" required></div>
+    </div>
+    <div class="drawer__foot"><button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button><button type="submit" class="btn btn--primary">Salvar dados</button></div>
+  </form>
+</dialog>
+
+<dialog class="dialog dialog--520 dialog--modal" id="dlg-enroll-student" aria-labelledby="dlg-enroll-student-t">
+  <form method="post" action="{% url 'painel:student_enroll' %}" class="dialog__body" data-async>
+    {% csrf_token %}<input type="hidden" name="email" value="{{ student.email }}">
+    <span class="dialog__eyebrow">Criar</span>
+    <h2 class="dialog__title" id="dlg-enroll-student-t">Liberar curso para {{ name }}</h2>
+    {% if courses_open %}
+    <div class="field"><label class="field__label" for="es-course">Curso</label><select class="select" id="es-course" name="course" required>{% for c in courses_open %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select></div>
+    <label class="check"><input type="checkbox" name="send_email" value="1" checked> Enviar e-mail de acesso agora</label>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--primary">Liberar curso</button></div>
+    {% else %}
+    <p class="dialog__text">Este aluno já tem acesso a todos os cursos.</p>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Fechar</button></div>
+    {% endif %}
+  </form>
+</dialog>
+
+{% for block in blocks %}{% if block.enrollment.is_active %}
+<dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-remove-{{ block.course.id }}" aria-labelledby="dlg-remove-{{ block.course.id }}-t">
+  <form method="post" action="{% url 'painel:student_action' student.id %}" class="dialog__body" data-async>
+    {% csrf_token %}<input type="hidden" name="action" value="unenroll"><input type="hidden" name="course_id" value="{{ block.course.id }}">
+    <span class="dialog__eyebrow">Afeta alunos</span>
+    <h2 class="dialog__title" id="dlg-remove-{{ block.course.id }}-t">Remover acesso ao {{ block.course.short_name|default:block.course.title }}?</h2>
+    <p class="dialog__text">{{ name }} deixa de ver o curso na hora. O progresso ({{ block.done }} de {{ block.total|plural_pt:"aula,aulas" }}) fica guardado e volta se você liberar de novo.</p>
+    <label class="check"><input type="checkbox" name="notify" value="1"> Avisar o aluno por e-mail</label>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger">Remover acesso</button></div>
+  </form>
+</dialog>
+<dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-reset-{{ block.course.id }}" aria-labelledby="dlg-reset-{{ block.course.id }}-t">
+  <form method="post" action="{% url 'painel:student_action' student.id %}" class="dialog__body" data-async>
+    {% csrf_token %}<input type="hidden" name="action" value="reset_progress"><input type="hidden" name="course_id" value="{{ block.course.id }}">
+    <span class="dialog__eyebrow">Afeta alunos</span>
+    <h2 class="dialog__title" id="dlg-reset-{{ block.course.id }}-t">Zerar o progresso de {{ name }} no {{ block.course.short_name|default:block.course.title }}?</h2>
+    <p class="dialog__text">{% if block.done == 1 %}A aula concluída volta{% else %}As {{ block.done }} aulas concluídas voltam{% endif %} para não assistida{% if block.done != 1 %}s{% endif %}. Não dá para desfazer.</p>
+    <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger">Zerar progresso</button></div>
+  </form>
+</dialog>
+{% endif %}{% endfor %}
+{% endblock %}

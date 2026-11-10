@@ -4,8 +4,9 @@ from django.urls import reverse
 from django.contrib.auth import login
 import uuid
 
+from core.activity import log_enrolled
 from users.models import User, StudentProfile
-from courses.models import Course, Enrollment
+from courses.models import Course, Enrollment, Lesson
 from .models import Order, OrderBump
 
 def checkout(request, course_slug):
@@ -18,7 +19,10 @@ def checkout(request, course_slug):
             # If already enrolled, redirect to the course lessons directly
             already_enrolled = Enrollment.objects.filter(student=student_profile, course=course).exists()
             if already_enrolled:
-                return redirect('lesson_detail', course_slug=course.slug, lesson_order=1)
+                first_lesson = Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order', 'id').first()
+                if first_lesson:
+                    return redirect('lesson_detail', course_slug=course.slug, lesson_id=first_lesson.id)
+                return redirect('course_preview', course_slug=course.slug)
             
     # Retrieve eligible order bumps associated with this course
     order_bumps = OrderBump.objects.filter(parent_course=course).select_related('bump_course')
@@ -137,7 +141,8 @@ def process_checkout(request, course_slug):
         status=Order.Status.COMPLETED,
         transaction_id=transaction_id
     )
-    Enrollment.objects.get_or_create(student=student_profile, course=course)
+    _, created = Enrollment.objects.get_or_create(student=student_profile, course=course, defaults={'source': 'purchase'})
+    if created: log_enrolled(student_profile.user, course)
     
     # 3. Create transaction records and Enrollments for chosen order bump upsells
     if selected_bumps_str:
@@ -153,11 +158,14 @@ def process_checkout(request, course_slug):
                     status=Order.Status.COMPLETED,
                     transaction_id=str(uuid.uuid4())
                 )
-                Enrollment.objects.get_or_create(student=student_profile, course=bump.bump_course)
+                Enrollment.objects.get_or_create(student=student_profile, course=bump.bump_course, defaults={'source': 'purchase'})
             except OrderBump.DoesNotExist:
                 pass
                 
+    first_lesson = Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order', 'id').first()
+    destination = (reverse('lesson_detail', kwargs={'course_slug': course.slug, 'lesson_id': first_lesson.id})
+                   if first_lesson else reverse('course_preview', kwargs={'course_slug': course.slug}))
     return JsonResponse({
         'status': 'success',
-        'redirect_url': reverse('lesson_detail', kwargs={'course_slug': course.slug, 'lesson_order': 1})
+        'redirect_url': destination
     })

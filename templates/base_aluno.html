@@ -1,0 +1,75 @@
+{% extends "base_core.html" %}
+{% load cetremer ui %}
+{% comment %}
+v2 · Layout da área do aluno. Blocos: crumbs, page_title, page_class, content, footer.
+Contexto do context processor core.context_processors.student_shell (HANDOFF-v2 3.2).
+O antigo {% include "partials/messages.html" %} SAI daqui: mensagens agora são toast (base_core).
+{% endcomment %}
+{% block body_class %}{% endblock %}
+{% block body %}
+<div class="app app--aluno">
+  {% include "partials/sidebar_aluno_v2.html" %}
+  <div class="app__content">
+    <header class="topbar topbar--v2">
+      <div class="topbar__heading">
+        <nav class="crumbs" aria-label="Você está em">{% block crumbs %}<span>Área do aluno</span>{% endblock %}</nav>
+        <h1 class="topbar__title">{% block page_title %}{% endblock %}</h1>
+      </div>
+      <div class="topbar__actions">
+        <button type="button" class="topbar-search" data-cmdk-open aria-label="Buscar aula, curso ou dúvida">
+          {% include "partials/icon.html" with name="search" size=18 %}
+          <span class="topbar-search__text">Buscar aula, curso ou dúvida</span><span class="kbd">Ctrl K</span>
+        </button>
+        <div class="popover" data-popover>
+          <button type="button" class="icon-btn icon-btn--plain" aria-label="Avisos{% if unread_count %}, {{ unread_count|plural_pt:"não lido,não lidos" }}{% endif %}" aria-haspopup="true" aria-expanded="false" data-popover-toggle>
+            {% include "partials/icon.html" with name="bell" size=20 %}
+            <span class="bell__count" data-count="{{ unread_count }}" aria-hidden="true">{{ unread_count }}</span>
+          </button>
+          <div class="menu menu--wide" data-popover-panel hidden role="dialog" aria-label="Avisos">
+            <div class="notif__head">Avisos{% if unread_count %}<button type="button" class="btn btn--ghost btn--xs" data-notif-read-all="{% url 'notifications_read_all' %}">Marcar todos como lidos</button>{% endif %}</div>
+            {% for n in notifications %}
+            <a class="notif__item{% if not n.read_at %} is-unread{% endif %}" href="{% url 'notification_open' n.id %}">
+              <span class="notif__dot" aria-hidden="true"></span>
+              <span class="stack gap-2"><span class="notif__title">{{ n.title }}</span><span class="notif__meta">{{ n.meta }} · {{ n.created_at|timesince }} atrás</span></span>
+            </a>
+            {% empty %}
+            <p class="notif__empty">Nenhum aviso por enquanto.</p>
+            {% endfor %}
+            <a class="notif__foot" href="{% url 'settings' %}?secao=avisos">Escolher quais avisos recebo por e-mail</a>
+          </div>
+        </div>
+        <div class="popover" data-popover>
+          <button type="button" class="user-btn" aria-label="Menu da conta" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>
+            <span class="avatar" aria-hidden="true">{% if user_avatar_url %}<img src="{{ user_avatar_url }}" alt="">{% else %}{{ user_initials }}{% endif %}</span>
+            <span class="user-btn__name">{{ user_first_name }}</span>
+            {% include "partials/icon.html" with name="chevron-down" size=16 class="muted" %}
+          </button>
+          <div class="menu" data-popover-panel hidden role="menu">
+            <div class="menu__head"><span class="fw-600">{{ user_full_name }}</span><span class="text-13 muted">{{ request.user.email }}</span></div>
+            <a role="menuitem" class="menu__item" href="{% url 'settings' %}">{% include "partials/icon.html" with name="user" size=18 %}Minha conta</a>
+            <a role="menuitem" class="menu__item" href="{% url 'settings' %}?secao=pedidos">{% include "partials/icon.html" with name="receipt" size=18 %}Pedidos e acessos</a>
+            {% if site.whatsapp_url %}<a role="menuitem" class="menu__item" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">{% include "partials/icon.html" with name="help" size=18 %}Ajuda pelo WhatsApp</a>{% endif %}
+            <div class="menu__sep"></div>
+            <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" role="menuitem" class="menu__item menu__item--danger">{% include "partials/icon.html" with name="logout" size=18 %}Sair</button></form>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="conteudo" class="page {% block page_class %}{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+    {% block footer %}
+    <footer class="footer-app">
+      <span>© {% now "Y" %} {{ site.school_name|default:"CETREMER" }} · Centro de Treinamento em Emergência</span>
+      <span class="footer-app__links">
+        <a href="{{ site.terms_url|default:'#' }}">Termos de Uso</a>
+        <a href="{{ site.privacy_url|default:'#' }}">Política de Privacidade</a>
+      </span>
+    </footer>
+    {% endblock %}
+  </div>
+</div>
+{% include "partials/bottom_nav.html" %}
+{% url 'search' as search_url %}{% include "partials/cmdk.html" with search_url=search_url %}
+{% include "partials/leave_dialog.html" %}
+{% endblock %}

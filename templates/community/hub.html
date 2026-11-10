@@ -1,141 +1,117 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Comunidade · CetrEmer{% endblock %}
-
+﻿{% extends 'base_aluno.html' %}{% load cetremer ui %}
+{% block title %}Comunidade · CETREMER{% endblock %}
+{% block page_title %}Comunidade{% endblock %}
+{% block page_class %}page--gap-24{% endblock %}
 {% block content %}
-<div class="container" style="padding-top: 48px; min-height: 100vh; padding-bottom: 96px;">
-    
-    <!-- Top Header and stats -->
-    <div style="margin-bottom: 36px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-        <div>
-            <h1 style="font-family: var(--font-title); font-size: 28px; font-weight: 850; color: #fff; margin-bottom: 8px;">
-                💬 Comunidade de Alunos
-            </h1>
-            <p style="color: var(--text-secondary); font-size: 14px;">Tire dúvidas, colabore com colegas e interaja com os instrutores médicos.</p>
-        </div>
+<div class="split">
+  <main class="split__main gap-16">
+    <div class="toolbar">
+      <form method="get" class="grow">
+        <label class="sr-only" for="q">Buscar nas dúvidas</label>
+        <input class="input" type="search" id="q" name="q" value="{{ q }}" placeholder="Buscar nas dúvidas">
+        {% if situation != 'todas' %}<input type="hidden" name="situacao" value="{{ situation }}">{% endif %}
+        {% if course_filter %}<input type="hidden" name="curso" value="{{ course_filter }}">{% endif %}
+      </form>
+      <a class="btn btn--primary" href="?nova=1" data-drawer-open="drawer-nova">{% include 'partials/icon.html' with name='plus' size=16 %}Nova pergunta</a>
+    </div>
+    <div class="row row--between gap-12">
+      <div class="seg" role="group" aria-label="Situação">
+        <a class="seg__btn"{% if situation == 'todas' %} aria-current="page"{% endif %} href="?{% if course_filter %}curso={{ course_filter }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}">Todas</a>
+        <a class="seg__btn"{% if situation == 'sem-resposta' %} aria-current="page"{% endif %} href="?situacao=sem-resposta{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Sem resposta</a>
+        <a class="seg__btn"{% if situation == 'respondidas' %} aria-current="page"{% endif %} href="?situacao=respondidas{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Respondidas</a>
+        <a class="seg__btn"{% if situation == 'minhas' %} aria-current="page"{% endif %} href="?situacao=minhas{% if course_filter %}&curso={{ course_filter }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Minhas</a>
+      </div>
+      <div class="chips">
+        <a class="chip"{% if not course_filter %} aria-current="page"{% endif %} href="?{% if situation != 'todas' %}situacao={{ situation }}&{% endif %}{% if q %}q={{ q|urlencode }}{% endif %}">Todos os cursos</a>
+        {% for c in my_courses %}<a class="chip"{% if course_filter == c.slug %} aria-current="page"{% endif %} href="?curso={{ c.slug }}{% if situation != 'todas' %}&situacao={{ situation }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">{{ c.short_name|default:c.title }}</a>{% endfor %}
+        <a class="chip"{% if course_filter == 'geral' %} aria-current="page"{% endif %} href="?curso=geral{% if situation != 'todas' %}&situacao={{ situation }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}">Discussão geral</a>
+      </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px; align-items: start;">
-        
-        <!-- Left Side: Discussion Feed -->
-        <div style="display: flex; flex-direction: column; gap: 24px;">
-            {% for post in posts %}
-                <div class="glass-card" style="padding: 24px;">
-                    <!-- User Meta Row -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="background: rgba(0, 153, 255, 0.15); color: var(--accent-color); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px;">
-                                {{ post.author.username|slice:":2"|upper }}
-                            </div>
-                            <div>
-                                <div style="font-size: 14px; font-weight: 700; color: #fff;">{{ post.author.username }}</div>
-                                <div style="font-size: 11px; color: var(--text-muted);">{{ post.created_at|date:"d/m/Y H:i" }}</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Categorization Tag -->
-                        {% if post.course %}
-                            <span style="font-size: 10px; font-weight: 700; color: var(--accent-color); background: rgba(0, 153, 255, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(0, 153, 255, 0.15);">
-                                📚 {{ post.course.title }}
-                            </span>
-                        {% else %}
-                            <span style="font-size: 10px; font-weight: 700; color: #9b59b6; background: rgba(155, 89, 182, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(155, 89, 182, 0.15);">
-                                🌐 Discussão Geral
-                            </span>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Post Content -->
-                    <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 10px;">
-                        {{ post.title }}
-                    </h3>
-                    <p style="color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
-                        {{ post.content|linebreaksbr }}
-                    </p>
-                    
-                    <!-- Toggle comments collapse and counter -->
-                    <div style="border-top: 1px solid var(--border-color); padding-top: 16px; display: flex; flex-direction: column; gap: 16px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">
-                                💬 {{ post.comments.count }} respostas
-                            </span>
-                        </div>
-                        
-                        <!-- Replies list -->
-                        {% if post.comments.all %}
-                            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-                                {% for comment in post.comments.all %}
-                                    <div style="background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); padding: 12px; border-radius: 6px; margin-left: 16px;">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                            <span style="font-size: 12px; font-weight: 700; color: #fff;">
-                                                {{ comment.author.username }}
-                                            </span>
-                                            <span style="font-size: 10px; color: var(--text-muted);">
-                                                {{ comment.created_at|date:"d/m/Y H:i" }}
-                                            </span>
-                                        </div>
-                                        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.4; margin: 0;">
-                                            {{ comment.content }}
-                                        </p>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        
-                        <!-- Inline comment form -->
-                        <form action="{% url 'create_comment' post_id=post.id %}" method="post" style="display: flex; gap: 12px; margin-top: 12px;">
-                            {% csrf_token %}
-                            <input type="text" name="content" class="form-control" placeholder="Escreva uma resposta..." required style="padding: 10px 14px; font-size: 13px;">
-                            <button type="submit" class="btn btn-secondary" style="padding: 10px 18px; font-size: 12px; height: auto;">
-                                Responder
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            {% empty %}
-                <div class="glass-card" style="padding: 48px; text-align: center; color: var(--text-muted);">
-                    <span style="font-size: 40px; display: block; margin-bottom: 16px;">💬</span>
-                    Nenhum tópico criado na comunidade ainda. Compartilhe sua primeira dúvida ao lado!
-                </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Right Side: Create Post Form -->
-        <div class="glass-card" style="padding: 28px; position: sticky; top: 100px; z-index: 10;">
-            <h3 style="font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
-                💡 Criar Novo Tópico
-            </h3>
-            
-            <form action="{% url 'create_hub_post' %}" method="post">
-                {% csrf_token %}
-                
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="course_id" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Categoria / Curso</label>
-                    <select id="course_id" name="course_id" class="form-control" style="background-color: var(--bg-primary); color: #fff;">
-                        <option value="general">🌐 Discussão Geral</option>
-                        {% for course in my_courses %}
-                            <option value="{{ course.id }}">📚 {{ course.title }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label for="title" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Título da Dúvida</label>
-                    <input type="text" id="title" name="title" class="form-control" placeholder="Ex: Dúvida sobre DEA no BLS" required>
-                </div>
-                
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label for="content" style="display: block; font-size: 13px; margin-bottom: 6px; color: var(--text-secondary);">Descrição</label>
-                    <textarea id="content" name="content" class="form-control" rows="5" placeholder="Descreva em detalhes sua dúvida ou sugestão..." required style="resize: vertical;"></textarea>
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%; border: none; font-weight: 700; border-radius: 4px; padding: 12px;">
-                    Publicar Tópico
-                </button>
-            </form>
-        </div>
-        
+    {% if posts %}
+    <div class="card card--clip">
+      {% for post in posts %}
+      <a class="list-row-link thread{% if post.has_unread_answer and post.author_id == user.id %} is-unread{% endif %}{% if post.is_new %} is-new{% endif %}"
+         href="?duvida={{ post.id }}" data-drawer-url="?duvida={{ post.id }}&parcial=1" data-drawer-target="drawer-conversa" data-drawer-param="duvida" data-drawer-value="{{ post.id }}">
+        <span class="avatar" aria-hidden="true">{{ post.author_name|iniciais }}</span>
+        <span class="thread__text">
+          <span class="row gap-8">{% if post.is_pinned %}<span class="text-warning" aria-label="Fixada">{% include 'partials/icon.html' with name='star' size=16 %}</span>{% endif %}<span class="thread__title">{{ post.title }}</span>{% if post.is_answered_cache %}<span class="badge badge--success">Respondida pelo instrutor</span>{% else %}<span class="badge badge--warning">Aguardando resposta</span>{% endif %}</span>
+          <span class="thread__preview">{{ post.content|truncatechars:160 }}</span>
+          <span class="text-13 muted">{{ post.author_name }} · {% if post.course %}{{ post.course.short_name|default:post.course.title }}{% else %}Discussão geral{% endif %}{% if post.lesson_position %} · Aula {{ post.lesson_position }}{% endif %}{% if post.lesson %} · {{ post.lesson.title }}{% endif %} · {{ post.created_at|timesince }} atrás</span>
+        </span>
+        <span class="thread__replies">{% include 'partials/icon.html' with name='chat' size=16 %}{{ post.replies }}</span>
+      </a>
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="card empty-state">
+      <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='chat' size=24 %}</span>
+      {% if situation == 'minhas' %}
+      <span class="empty-state__title">Você ainda não perguntou nada aqui</span>
+      <span class="empty-state__text">Use o botão Nova pergunta ou pergunte direto da aula.</span>
+      {% else %}
+      <span class="empty-state__title">Nenhuma dúvida com esses filtros</span>
+      <span class="empty-state__text">Tente outro curso ou outra situação.</span>
+      {% endif %}
+      {% if has_filters %}<a class="btn btn--secondary btn--xs" href="{% url 'community' %}">Limpar filtros</a>{% endif %}
+    </div>
+    {% endif %}
+  </main>
+
+  <aside class="split__side split__side--300 stack gap-16">
+    <div class="card card--pad-sm stack gap-12">
+      <h2 class="card__title">Como funciona</h2>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='check-circle' size=18 %}<span class="text-14">Pergunte de dentro da aula para a dúvida já ir com o nome da aula.</span></div>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='mail' size=18 %}<span class="text-14">Você recebe um e-mail quando o instrutor responder.</span></div>
+      <div class="row gap-10">{% include 'partials/icon.html' with name='star' size=18 %}<span class="text-14">Resposta do instrutor aparece em destaque, no topo da conversa.</span></div>
+    </div>
+    <div class="card card--pad-sm stack gap-8">
+      <h2 class="card__title">Combinados</h2>
+      <p class="text-14 muted">Sem dados de pacientes, sem prescrição individual e sem divulgação. A equipe pode ocultar posts fora das regras.</p>
+    </div>
+  </aside>
 </div>
+
+<dialog class="drawer drawer--600" id="drawer-conversa" aria-labelledby="conversa-title"{% if open_post %} data-autoopen="duvida"{% endif %}>
+  <div data-drawer-content>{% if thread %}{% include 'community/_thread_drawer.html' with post=thread.post is_author=thread.is_author official=thread.official others=thread.others %}{% endif %}</div>
+</dialog>
+
+<dialog class="drawer drawer--560" id="drawer-nova" aria-labelledby="nova-title"{% if compose_open %} data-autoopen="nova"{% endif %}>
+  <form class="stack" method="post" action="{% url 'community_create' %}" data-async>
+    {% csrf_token %}
+    <div class="drawer__head">
+      <h2 class="drawer__title" id="nova-title">Nova pergunta</h2>
+      <button type="button" class="icon-btn icon-btn--plain" data-drawer-close aria-label="Fechar">{% include 'partials/icon.html' with name='x' size=20 %}</button>
+    </div>
+    <div class="drawer__body">
+      <div class="field">
+        <label class="field__label" for="nova-curso">Curso</label>
+        <select class="select" id="nova-curso" name="course">
+          {% for c in my_courses %}<option value="{{ c.id }}"{% if compose_course.id == c.id %} selected{% endif %}>{{ c.title }}</option>{% endfor %}
+          <option value="general"{% if not compose_course %} selected{% endif %}>Discussão geral</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-aula">Aula (opcional)</label>
+        <select class="select" id="nova-aula" name="lesson">
+          <option value="">Nenhuma aula</option>
+          {% for course, group in lessons_by_course %}<optgroup label="{{ course.title }}">{% for lesson in group %}<option value="{{ lesson.id }}"{% if compose_lesson.id == lesson.id %} selected{% endif %}>Aula {{ lesson.position }} · {{ lesson.title }}</option>{% endfor %}</optgroup>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-titulo">Título</label>
+        <input class="input" id="nova-titulo" name="title" maxlength="200" required autocomplete="off" data-suggest-url="{% url 'community_suggest' %}" data-suggest-box="#suggest-box">
+        <div class="suggest-box" id="suggest-box" hidden></div>
+      </div>
+      <div class="field">
+        <label class="field__label" for="nova-detalhes">Detalhes</label>
+        <textarea class="textarea" id="nova-detalhes" name="content" rows="5" required placeholder="Conte o contexto. Se for sobre um trecho do vídeo, diga o minuto."></textarea>
+      </div>
+    </div>
+    <div class="drawer__foot">
+      <button type="button" class="btn btn--quiet" data-drawer-close>Cancelar</button>
+      <button type="submit" class="btn btn--primary">Publicar pergunta</button>
+    </div>
+  </form>
+</dialog>
 {% endblock %}

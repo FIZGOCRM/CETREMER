@@ -53,24 +53,25 @@ cp .env.example .env
 ```
 *(No Windows PowerShell use `copy .env.example .env`)*
 
-Se desejar, edite o arquivo `.env` para ajustar a porta, modo `DEBUG` ou chave secreta `SECRET_KEY`.
+Preencha `SECRET_KEY` e `FIELD_ENCRYPTION_KEY` antes de iniciar. Gere valores únicos:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+O `DEBUG` usa `False` por padrão fora do ambiente local. Guarde as chaves do `.env`: dados criptografados dependem de `FIELD_ENCRYPTION_KEY` para leitura.
 
 ---
 
 ### 6. Banco de Dados e Dados Iniciais
-O banco de dados SQLite (`db.sqlite3`) já vem pré-configurado e versionado com todos os dados.
-
-Caso queira recriar o banco ou carregar a base limpa a partir do dump:
+O banco SQLite local (`db.sqlite3`) não é versionado. Para criar a base com os dados de demonstração:
 ```bash
-# Executar migrações
 python manage.py migrate
-
-# (Opcional) Restaurar dados completos do dump
 python manage.py loaddata data_dump.json
-
-# (Opcional) Ou recriar a base com dados de demonstração
-python seed.py
 ```
+
+`python seed.py` recria os dados de demonstração e apaga usuários, cursos e matrículas locais; use apenas quando quiser reiniciar a base.
 
 ---
 
@@ -89,9 +90,20 @@ Acesse no navegador:
 
 | Perfil | Usuário / E-mail | Senha | Descrição |
 | :--- | :--- | :--- | :--- |
-| **Administrador** | `admin` (`admin@cetremer.com.br`) | `password123` | Acesso total ao Django Admin (`/admin`) |
-| **Produtor / Criador** | `john_creator` (`john@creator.com`) | `password123` | Acesso ao Portal do Criador (`/creator`) |
+| **Administrador** | `admin` (`admin@cetremer.com.br`) | `password123` | Painel `/painel/` e Django Admin `/admin/` |
+| **Produtor / Criador** | `john_creator` (`john@creator.com`) | `password123` | Painel `/painel/` |
 | **Aluno** | `jane_student` (`jane@student.com`) | `password123` | Acesso à Área do Aluno & Aulas (`/dashboard`) |
+
+---
+
+## Primeiro acesso de aluno cadastrado pelo administrador
+
+1. No painel `/painel/alunos/`, use **Matricular aluno**. O envio de e-mail é opcional e fica desmarcado por padrão.
+2. O painel exibe um código temporário de 10 dígitos **uma única vez**. Entregue ao aluno junto com o e-mail cadastrado por um canal seguro. O código expira em 7 dias e bloqueia após 5 tentativas incorretas.
+3. O aluno abre `/primeiro-acesso/`, informa e-mail e código e cria sua senha. Depois entra em `/login/` com o mesmo e-mail.
+4. Para um aluno importado ou que perdeu o código, abra o detalhe em `/painel/alunos/` e use **Gerar novo código de primeiro acesso**. Isso invalida o código anterior.
+
+**Enviar link por e-mail** continua disponível como ação explícita se o SMTP for configurado. Sem SMTP, no ambiente local o link aparece apenas no console; a plataforma informa isso no painel. Alunos que já têm senha usam **Esqueci minha senha**.
 
 ---
 
@@ -99,9 +111,11 @@ Acesse no navegador:
 
 * **Catálogo & Landing Page:** `http://localhost:8000/`
 * **Área do Aluno (Player de Vídeo e Aulas):** `http://localhost:8000/dashboard/`
-* **Portal do Criador (Gestão de Cursos e Métricas):** `http://localhost:8000/creator/`
+* **Painel de gestão:** `http://localhost:8000/painel/`
 * **Comunidade & Fórum de Discussão:** `http://localhost:8000/community/`
-* **Painel Administrativo:** `http://localhost:8000/admin/`
+* **Administração técnica do Django:** `http://localhost:8000/admin/`
+
+Para incorporar vídeos do Vimeo, configure em cada vídeo **Privacidade > Incorporar > Somente em domínios que eu escolher** e inclua o domínio de produção e `localhost`.
 
 ---
 

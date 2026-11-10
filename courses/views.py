@@ -1,14 +1,20 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, Http404
+from django.db.models import Prefetch
+from datetime import timedelta
+
+from django.http import Http404, JsonResponse
+from django.utils import timezone
 import json
 
-from .models import Course, Module, Lesson, Progress, Enrollment
+from .models import Course, CourseSlugRedirect, Module, Lesson, Progress, Enrollment
+from .home_views import active_enrollment
 from community.models import CommunityPost
 
 def landing(request):
     """Lists published courses on landing page, checking enrollment details if logged in."""
-    courses = Course.objects.filter(is_published=True).select_related('creator__user')
+    courses = Course.objects.filter(status='published').select_related('creator__user', 'category')
+    from .models import Category
     
     # Query active Hero Banner
     from .models import HeroBanner
@@ -25,20 +31,35 @@ def landing(request):
         'courses': courses,
         'enrolled_courses': enrolled_courses,
         'hero': hero
+        , 'categories': Category.objects.all()
     })
 
 def course_preview(request, course_slug):
     """Renders the public Udemy-style course landing/preview page with syllabus and buy options."""
-    course = get_object_or_404(Course, slug=course_slug)
-    
+    course = Course.objects.filter(slug=course_slug).first()
+    if course is None:
+        # Endereço antigo: redireciona por 90 dias depois que o curso mudou de endereço (HANDOFF-v2 8.5).
+        moved = CourseSlugRedirect.objects.filter(old_slug=course_slug, created_at__gte=timezone.now() - timedelta(days=90)).select_related('course').first()
+        if moved is None:
+            raise Http404
+        return redirect('course_preview', course_slug=moved.course.slug, permanent=True)
+    if request.user.is_authenticated and request.GET.get('preview') != '1' and active_enrollment(request.user, course):
+        return redirect('course_home', course_slug=course.slug)
+
     is_enrolled = False
     if request.user.is_authenticated:
         if request.user.role == 'STUDENT':
             student_profile = request.user.student_profile
             is_enrolled = Enrollment.objects.filter(student=student_profile, course=course).exists()
             
-    modules = Module.objects.filter(course=course).prefetch_related('lessons')
-    total_lessons = Lesson.objects.filter(module__course=course).count()
+    modules = Module.objects.filter(course=course).prefetch_related(Prefetch('lessons', queryset=Lesson.objects.filter(status='published')))
+    total_lessons = Lesson.objects.filter(status='published', module__course=course).count()
+    first_lesson = Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order', 'id').first()
+    from .student_views import ordered_lessons, progress_info
+    lessons = ordered_lessons(course)
+    next_lesson = first_lesson
+    if is_enrolled:
+        next_lesson = progress_info(request.user.student_profile, course, lessons)['next_lesson']
     
     # Calculate total duration
     total_seconds = sum(l.duration_seconds for m in modules for l in m.lessons.all())
@@ -55,7 +76,11 @@ def course_preview(request, course_slug):
         'modules': modules,
         'total_lessons': total_lessons,
         'duration_str': duration_str,
-        'is_enrolled': is_enrolled
+        'is_enrolled': is_enrolled,
+        'first_lesson': first_lesson
+        , 'next_lesson': next_lesson,
+        'total_seconds': total_seconds,
+        'has_materials': Lesson.objects.filter(status='published', module__course=course, materials__isnull=False).exists(),
     })
 
 @login_required
@@ -68,7 +93,7 @@ def dashboard(request):
     enrollments_qs = Enrollment.objects.filter(student=student_profile)
     enrolled_course_ids = set(enrollments_qs.values_list('course_id', flat=True))
     
-    all_courses = Course.objects.filter(is_published=True).select_related('creator__user')
+    all_courses = Course.objects.filter(status='published').select_related('creator__user', 'category')
     
     essentials = []
     specialties = []
@@ -76,7 +101,7 @@ def dashboard(request):
     
     for course in all_courses:
         is_locked = course.id not in enrolled_course_ids
-        total_lessons = Lesson.objects.filter(module__course=course).count()
+        total_lessons = Lesson.objects.filter(status='published', module__course=course).count()
         completed_lessons = 0
         progress_percent = 0
         
@@ -90,16 +115,17 @@ def dashboard(request):
             
         item = {
             'course': course,
+            'first_lesson': Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order', 'id').first(),
             'is_locked': is_locked,
             'total_lessons_count': total_lessons,
             'completed_lessons_count': completed_lessons,
             'progress_percent': progress_percent
         }
         
-        # Categorize by slug for custom sliders
-        if course.slug in ['suporte-basico-vida-bls', 'suporte-avancado-cardiologia-acls']:
+        # Keep the legacy dashboard groups until the phase 3 template is replaced.
+        if course.category and course.category.slug == 'essenciais-aha':
             essentials.append(item)
-        elif course.slug in ['suporte-avancado-pediatria-pals', 'plantao-sem-gpt']:
+        elif course.category and course.category.slug == 'especialidades-medicas':
             specialties.append(item)
         else:
             leigos.append(item)
@@ -122,31 +148,25 @@ def dashboard(request):
         'specialties': specialties,
         'leigos': leigos,
         'overall_progress': overall_progress,
-        'active_live_course': active_live_course
+        'active_live_course': active_live_course,
+        'spotlight_lesson': Lesson.objects.filter(status='published', module__course__slug='plantao-sem-gpt').order_by('module__order', 'order', 'id').first()
     })
 
 @login_required
-def lesson_detail(request, course_slug, lesson_order):
-    """Renders visual video container, modules list sidebar, and comment feed, enrolling students automatically."""
+def lesson_detail(request, course_slug, lesson_id):
+    """Renders an enrolled student's lesson by its stable ID."""
     course = get_object_or_404(Course, slug=course_slug)
-    
-    # Automatically enroll student when they open the course lessons
-    if request.user.role == 'STUDENT':
-        student_profile = request.user.student_profile
-        Enrollment.objects.get_or_create(student=student_profile, course=course)
-    else:
-        student_profile = None
+    lesson = get_object_or_404(Lesson, id=lesson_id, module__course=course)
+    if request.user.role != 'STUDENT':
+        return redirect('course_preview', course_slug=course.slug)
+    student_profile = request.user.student_profile
+    if not Enrollment.objects.filter(student=student_profile, course=course).exists():
+        return redirect('course_preview', course_slug=course.slug)
 
     # Retrieve all sorted lessons
-    lessons = Lesson.objects.filter(module__course=course).order_by('module__order', 'order')
+    lessons = Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order')
     total_lessons = lessons.count()
-    if total_lessons == 0:
-        raise Http404("This course has no lessons yet.")
-        
-    # Get active lesson by order field
-    lesson = lessons.filter(order=lesson_order).first()
-    if not lesson:
-        lesson = lessons.first()
+
         
     # Fetch modules accordion structure
     modules = Module.objects.filter(course=course).prefetch_related('lessons')
@@ -180,79 +200,21 @@ def lesson_detail(request, course_slug, lesson_order):
     })
 
 @login_required
-def toggle_progress(request, lesson_id):
-    """AJAX POST view toggling completion state and updating student points/level."""
-    if request.method != 'POST':
-        return JsonResponse({'status': 'error', 'message': 'Invalid HTTP request method.'}, status=400)
-        
-    lesson = get_object_or_404(Lesson, id=lesson_id)
-    course = lesson.module.course
-    student_profile = request.user.student_profile
-    
-    # Ensure enrollment exists
-    Enrollment.objects.get_or_create(student=student_profile, course=course)
-        
-    progress, created = Progress.objects.get_or_create(student=student_profile, lesson=lesson)
-    
-    if created:
-        progress.is_completed = True
-        progress.save()
-        student_profile.points += 10
-    else:
-        if progress.is_completed:
-            progress.is_completed = False
-            progress.save()
-            if student_profile.points >= 10:
-                student_profile.points -= 10
-        else:
-            progress.is_completed = True
-            progress.save()
-            student_profile.points += 10
-            
-    # Auto rank/title updates
-    student_profile.level = (student_profile.points // 50) + 1
-    if student_profile.level >= 5:
-        student_profile.title = "Grandmaster"
-    elif student_profile.level >= 3:
-        student_profile.title = "Scholar"
-    else:
-        student_profile.title = "Novice"
-    student_profile.save()
-            
-    # Calculate updated overall progress percentages
-    total_lessons = Lesson.objects.filter(module__course=course).count()
-    completed_lessons = Progress.objects.filter(
-        student=student_profile, 
-        lesson__module__course=course, 
-        is_completed=True
-    ).count()
-    
-    progress_percent = (completed_lessons / total_lessons) * 100 if total_lessons > 0 else 0
-    
-    return JsonResponse({
-        'status': 'success',
-        'is_completed': progress.is_completed,
-        'completed_count': completed_lessons,
-        'total_count': total_lessons,
-        'percentage': progress_percent
-    })
-
-@login_required
 def issue_certificate(request, course_slug):
     """Renders a beautiful A4 print-ready certificate for completed courses."""
     course = get_object_or_404(Course, slug=course_slug)
     
     if request.user.role != 'STUDENT':
-        raise Http404("Apenas alunos podem obter certificados.")
+        return redirect('course_preview', course_slug=course.slug)
         
     student_profile = request.user.student_profile
     
     # Verify enrollment
     if not Enrollment.objects.filter(student=student_profile, course=course).exists():
-        raise Http404("Você não está matriculado neste curso.")
+        return redirect('course_preview', course_slug=course.slug)
         
     # Calculate progress
-    total_lessons = Lesson.objects.filter(module__course=course).count()
+    total_lessons = Lesson.objects.filter(status='published', module__course=course).count()
     completed_lessons = Progress.objects.filter(
         student=student_profile, 
         lesson__module__course=course, 
@@ -265,6 +227,7 @@ def issue_certificate(request, course_slug):
     if progress_percent < 100:
         return render(request, 'courses/certificate_error.html', {
             'course': course,
+            'first_lesson': Lesson.objects.filter(status='published', module__course=course).order_by('module__order', 'order', 'id').first(),
             'progress_percent': progress_percent
         })
         

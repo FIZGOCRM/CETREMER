@@ -1,0 +1,108 @@
+﻿{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Início do painel (HANDOFF-v2 8.1). Contexto: greeting, period, periods, numbers, admin, attention, activity, courses_table.
+Receita (cartão e coluna) só aparece para administrador: instrutor não vê Pedidos.
+{% endcomment %}
+{% block admin_title %}Início{% endblock %}
+{% block crumbs %}Início{% endblock %}
+{% block topbar_actions %}<a class="btn btn--secondary btn--sm" href="{% url 'dashboard' %}" target="_blank" rel="noopener">{% include 'partials/icon.html' with name='eye' size=16 %}Ver como aluno</a>{% endblock %}
+{% block content %}
+<div class="row row--between gap-16">
+  <div class="stack gap-4">
+    <h1 class="page-title">{{ greeting }}, {{ user_first_name }}</h1>
+    <p class="page-intro">Resumo da escola e o que precisa da sua atenção hoje.</p>
+  </div>
+  <div class="seg" role="group" aria-label="Período">
+    {% for days in periods %}<a class="seg__btn"{% if days == period %} aria-current="page"{% endif %} href="?periodo={{ days }}">{{ days }} dias</a>{% endfor %}
+  </div>
+</div>
+
+<div class="metric-grid">
+  {% if admin %}
+  <div class="metric">
+    <span class="metric__label">Receita</span>
+    <strong class="metric__value">{{ numbers.revenue|brl }}</strong>
+    <span class="metric__foot">{{ numbers.paid_count|plural_pt:"pedido pago,pedidos pagos" }} · últimos {{ period }} dias</span>
+  </div>
+  {% endif %}
+  <div class="metric">
+    <span class="metric__label">Novos alunos</span>
+    <strong class="metric__value">{{ numbers.new_students }}</strong>
+    <span class="metric__foot">+{{ numbers.new_students }} no período</span>
+  </div>
+  <div class="metric">
+    <span class="metric__label">Alunos ativos</span>
+    <strong class="metric__value">{{ numbers.active_students }} de {{ numbers.students_total }}</strong>
+    <span class="metric__foot">assistiram a alguma aula</span>
+  </div>
+  <div class="metric">
+    <span class="metric__label">Certificados emitidos</span>
+    <strong class="metric__value">{{ numbers.certificates }}</strong>
+    <span class="metric__foot">{% if numbers.certificates %}no período{% else %}nenhuma conclusão ainda{% endif %}</span>
+  </div>
+</div>
+
+<div class="split">
+  <section class="card card--clip split__main" aria-labelledby="atencao">
+    <div class="task-list__head"><h2 class="card__title" id="atencao">Precisa da sua atenção</h2><span class="text-13 muted">{{ attention|length|plural_pt:"pendência,pendências" }}</span></div>
+    {% for item in attention %}
+    <a class="task" href="{{ item.url }}">
+      <span class="task__icon{% if item.kind %} task__icon--{{ item.kind }}{% endif %}" aria-hidden="true">{% include 'partials/icon.html' with name=item.icon size=20 %}</span>
+      <span class="task__text">
+        {% if item.key == 'questions' %}
+        <span class="task__title">{{ item.count|plural_pt:"dúvida sem resposta,dúvidas sem resposta" }}</span>
+        <span class="task__meta">A mais antiga está esperando {{ item.since|ago_pt }}</span>
+        {% elif item.key == 'youtube' %}
+        <span class="task__title">{% if item.count == 1 %}1 aula publicada ainda usa vídeo do YouTube{% else %}{{ item.count }} aulas publicadas ainda usam vídeo do YouTube{% endif %}</span>
+        <span class="task__meta">Troque pelo link do Vimeo antes de abrir as vendas</span>
+        {% elif item.key == 'signer' %}
+        <span class="task__title">Certificado sem responsável técnico</span>
+        <span class="task__meta">Os certificados saem sem assinatura até você preencher</span>
+        {% else %}
+        <span class="task__title">{% if item.count == 1 %}1 aluno nunca acessou{% else %}{{ item.count }} alunos nunca acessaram{% endif %}</span>
+        <span class="task__meta">Reenvie o e-mail de primeiro acesso em massa</span>
+        {% endif %}
+      </span>
+      <span class="btn btn--secondary btn--xs">{{ item.cta }}</span>
+    </a>
+    {% empty %}
+    <div class="task-list__done">{% include 'partials/icon.html' with name='check-circle' size=22 %}<span>Nada pendente. Tudo em dia.</span></div>
+    {% endfor %}
+  </section>
+
+  <aside class="split__side card card--pad-sm stack gap-14" aria-labelledby="atividade">
+    <div class="row row--between"><h2 class="card__title" id="atividade">Atividade recente</h2><a class="text-13 fw-600" href="{% url 'painel:students' %}">Ver tudo</a></div>
+    {% if activity %}
+    <ul class="timeline">
+      {% for item in activity %}
+      <li class="timeline__item">{{ item.before }}{% if item.lead %}<a class="fw-600" href="{{ item.url }}">{{ item.lead }}</a>{% endif %}{{ item.rest }}<span class="timeline__when">{{ item.created_at|ago_pt }}{% if item.by %} · por {{ item.by }}{% endif %}</span></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="text-2">Nada por aqui ainda. Matrículas, aulas concluídas e certificados aparecem neste lugar.</p>
+    {% endif %}
+  </aside>
+</div>
+
+<section class="card card--clip" aria-labelledby="desempenho">
+  <div class="task-list__head"><h2 class="card__title" id="desempenho">Cursos</h2><a class="text-13 fw-600" href="{% url 'painel:courses' %}">Gerenciar cursos</a></div>
+  <div class="table-wrap table-wrap--bare">
+    <table class="table table--w780">
+      <thead><tr><th>Curso</th><th>Alunos</th><th>Progresso médio</th><th>Concluíram</th>{% if admin %}<th class="num">Receita</th>{% endif %}</tr></thead>
+      <tbody>
+        {% for row in courses_table %}
+        <tr>
+          <td><a class="cell-media cell-title" href="{% url 'painel:course_content' row.course.id %}"><span class="course-tile course-tile--thumb {{ row.course.cover_class }}" aria-hidden="true">{{ row.course.short_name|default:row.course.title }}</span>{{ row.course.short_name }}{% if row.course.short_name %} · {% endif %}{{ row.course.title }}</a></td>
+          <td>{{ row.students }}</td>
+          <td>{% if row.avg_pct is None %}–{% else %}<div class="progress-inline"><div class="progress" role="progressbar" aria-label="Progresso médio {{ row.course.short_name|default:row.course.title }}" aria-valuenow="{{ row.avg_pct }}" aria-valuemin="0" aria-valuemax="100"><div class="progress__bar" style="width: {{ row.avg_pct }}%"></div></div><span class="progress-label">{{ row.avg_pct }}%</span></div>{% endif %}</td>
+          <td>{{ row.completed }}</td>
+          {% if admin %}<td class="num">{{ row.revenue|brl }}</td>{% endif %}
+        </tr>
+        {% empty %}
+        <tr><td class="empty" colspan="{% if admin %}5{% else %}4{% endif %}">Nenhum curso publicado ainda.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

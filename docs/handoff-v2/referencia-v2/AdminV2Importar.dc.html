@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Importar alunos · Admin CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.in{width:100%;font:inherit;font-size:14px;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box}
+.src{display:flex;flex-direction:column;gap:6px;padding:16px;border-radius:12px;border:1px solid #C9D3DF;background:#FFFFFF;cursor:pointer;text-align:left;font:inherit;color:#0F1B2D}
+.src[aria-pressed="true"]{border:2px solid #0B63C4;background:#E8F2FC;padding:15px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:12px;border:1px solid #E3E8EF;cursor:pointer;font-size:14px}
+.opt input{width:18px;height:18px;margin:2px 0 0;accent-color:#0B63C4;flex:none}
+th{text-align:left;font-weight:600;color:#5B6472;background:#F8FAFC;padding:10px 14px;font-size:13px;white-space:nowrap}
+td{padding:11px 14px;border-top:1px solid #EEF1F5;vertical-align:middle;font-size:14px}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-direction: column">
+
+<header style="display: flex; align-items: center; gap: 16px; padding: 14px 32px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<a href="AdminV2Alunos.dc.html" aria-label="Sair da importação" style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid #E3E8EF; display: flex; align-items: center; justify-content: center; color: #3A4556"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+<div style="display: flex; flex-direction: column; line-height: 1.3">
+<span style="font-size: 13px; color: #5B6472">Alunos</span>
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px">Importar alunos</h1>
+</div>
+<span style="margin-left: auto; font-size: 13px; color: #5B6472">Nada é importado até você confirmar no último passo.</span>
+</header>
+
+<nav aria-label="Etapas" style="background: #FFFFFF; border-bottom: 1px solid #E3E8EF; padding: 0 32px">
+<ol style="list-style: none; margin: 0 auto; padding: 16px 0; max-width: 920px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+<li aria-current="{{ s.current }}" style="display: flex; align-items: center; gap: 10px; min-width: 0">
+<span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 999px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; background: {{ s.bg }}; color: {{ s.fg }}; border: 2px solid {{ s.border }}; box-sizing: border-box">{{ s.mark }}</span>
+<span style="font-size: 14px; font-weight: {{ s.weight }}; color: {{ s.text }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ s.label }}</span>
+</li>
+</sc-for>
+</ol>
+</nav>
+
+<main style="flex: 1; width: 100%; max-width: 920px; margin: 0 auto; padding: 28px 24px 40px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+<sc-if value="{{ s1 }}" hint-placeholder-val="{{ false }}">
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 18px">De onde vem a lista?</h2><p style="margin: 0; color: #5B6472; font-size: 14px">Com Eduzz ou Hotmart, reconhecemos as colunas sozinhos.</p></div>
+<div role="group" aria-label="Origem" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+<sc-for list="{{ sources }}" as="o" hint-placeholder-count="3">
+<button type="button" class="src" aria-pressed="{{ o.pressed }}" onClick="{{ o.pick }}"><span style="font-weight: 600">{{ o.label }}</span><span style="font-size: 13px; color: #5B6472">{{ o.hint }}</span></button>
+</sc-for>
+</div>
+<label style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 32px; border-radius: 12px; border: 1px dashed #9DBBDD; background: #F8FAFC; text-align: center; cursor: pointer">
+<svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M5 20h14"></path></svg>
+<span style="font-weight: 600">vendas-eduzz-2026.csv</span>
+<span style="font-size: 13px; color: #5B6472">128 linhas lidas · 4 colunas · <span style="color: #0B63C4; font-weight: 600; text-decoration: underline">trocar arquivo</span></span>
+<input type="file" accept=".csv" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
+</label>
+<a href="#" style="font-size: 14px; font-weight: 600; align-self: flex-start">Baixar modelo CSV</a>
+</section>
+</sc-if>
+
+<sc-if value="{{ s2 }}" hint-placeholder-val="{{ true }}">
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 18px">Confira as colunas</h2><p style="margin: 0; color: #5B6472; font-size: 14px">Reconhecemos 3 de 4 colunas. Ajuste se algo estiver errado.</p></div>
+<div style="border: 1px solid #E3E8EF; border-radius: 12px; overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; min-width: 620px">
+<thead><tr><th>Coluna no arquivo</th><th>Exemplo</th><th style="width: 220px">Usar como</th></tr></thead>
+<tbody>
+<tr><td style="font-weight: 600">Nome do comprador</td><td style="color: #5B6472">Maria Souza</td><td><select class="in" aria-label="Usar Nome do comprador como"><option>Nome completo</option><option>Ignorar</option></select></td></tr>
+<tr><td style="font-weight: 600">E-mail do comprador</td><td style="color: #5B6472">maria@email.com</td><td><select class="in" aria-label="Usar E-mail do comprador como"><option>E-mail</option><option>Ignorar</option></select></td></tr>
+<tr><td style="font-weight: 600">Documento</td><td style="color: #5B6472">529.982.247-25</td><td><select class="in" aria-label="Usar Documento como"><option>CPF</option><option>Ignorar</option></select></td></tr>
+<tr><td style="font-weight: 600">Produto</td><td style="color: #5B6472">BLS Online</td><td><select class="in" aria-label="Usar Produto como"><option>Ignorar</option><option>Nome completo</option></select></td></tr>
+</tbody>
+</table>
+</div>
+<div style="display: flex; gap: 10px; padding: 12px 14px; border-radius: 10px; background: #E8F2FC; color: #034C8C; font-size: 14px"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M12 11v5"></path></svg><span>E-mail é obrigatório. Nome e CPF são opcionais, mas o certificado só sai com os dois.</span></div>
+</section>
+</sc-if>
+
+<sc-if value="{{ s3 }}" hint-placeholder-val="{{ false }}">
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 18px">Quais cursos esses alunos recebem?</h2><p style="margin: 0; color: #5B6472; font-size: 14px">Todos os alunos da lista ganham os cursos marcados.</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px">
+<label class="opt" style="border: 2px solid #0B63C4; background: #E8F2FC; padding: 13px"><input type="checkbox" checked><span>BLS · Suporte Básico de Vida</span></label>
+<label class="opt"><input type="checkbox"><span>ACLS · Suporte Avançado de Vida em Cardiologia</span></label>
+<label class="opt"><input type="checkbox"><span>PALS · Suporte Avançado de Vida em Pediatria</span></label>
+<label class="opt"><input type="checkbox"><span>DEA e Primeiros Socorros para Leigos</span></label>
+<label class="opt"><input type="checkbox"><span>Plantão Sem GPT</span></label>
+</div>
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="font-size: 14px; font-weight: 600; padding: 0; margin-bottom: 8px">E-mail de primeiro acesso</legend>
+<label class="opt"><input type="radio" name="mail" checked><span><span style="font-weight: 600">Enviar agora</span><br><span style="font-size: 13px; color: #5B6472">Cada aluno recebe o link para criar a senha.</span></span></label>
+<label class="opt"><input type="radio" name="mail"><span><span style="font-weight: 600">Não enviar agora</span><br><span style="font-size: 13px; color: #5B6472">Útil para testar. Você envia depois pela lista de alunos.</span></span></label>
+</fieldset>
+</section>
+</sc-if>
+
+<sc-if value="{{ s4 }}" hint-placeholder-val="{{ false }}">
+<section class="card" style="padding: 24px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-direction: column; gap: 4px"><h2 style="margin: 0; font-size: 18px">Revise antes de importar</h2><p style="margin: 0; color: #5B6472; font-size: 14px">128 linhas lidas de vendas-eduzz-2026.csv para o curso BLS.</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px">
+<div style="padding: 14px; border-radius: 12px; background: #E9F6EE; color: #145C33"><span style="display: block; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 24px">119</span><span style="font-size: 13px; font-weight: 600">novos alunos</span></div>
+<div style="padding: 14px; border-radius: 12px; background: #E8F2FC; color: #034C8C"><span style="display: block; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 24px">6</span><span style="font-size: 13px; font-weight: 600">já cadastrados, ganham o curso</span></div>
+<div style="padding: 14px; border-radius: 12px; background: #FDECEC; color: #8A1C1C"><span style="display: block; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 24px">3</span><span style="font-size: 13px; font-weight: 600">com erro, serão ignorados</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" class="pill" style="border: 0; font: inherit; font-size: 12px; font-weight: 600; background: #0F1B2D; color: #FFFFFF; padding: 6px 12px; cursor: pointer">Mostrar só erros (3)</button>
+<button type="button" class="pill" style="border: 1px solid #C9D3DF; font: inherit; font-size: 12px; font-weight: 600; background: #FFFFFF; color: #3A4556; padding: 6px 12px; cursor: pointer">Todos</button>
+</div>
+<div style="border: 1px solid #E3E8EF; border-radius: 12px; overflow-x: auto">
+<table style="width: 100%; border-collapse: collapse; min-width: 620px">
+<thead><tr><th>Linha</th><th>Nome</th><th>E-mail</th><th>Problema</th></tr></thead>
+<tbody>
+<tr><td>14</td><td>Carlos Lima</td><td>carlos@@email</td><td style="color: #8A1C1C; font-weight: 600">E-mail inválido</td></tr>
+<tr><td>57</td><td>Ana Paula</td><td>ana@email.com</td><td style="color: #8A1C1C; font-weight: 600">E-mail repetido na linha 22</td></tr>
+<tr><td>90</td><td>(vazio)</td><td>(vazio)</td><td style="color: #8A1C1C; font-weight: 600">Linha sem e-mail</td></tr>
+</tbody>
+</table>
+</div>
+<button type="button" class="b bg" style="align-self: flex-start; min-height: 36px">Baixar linhas com erro para corrigir</button>
+</section>
+</sc-if>
+
+</main>
+
+<footer style="position: sticky; bottom: 0; display: flex; align-items: center; gap: 12px; padding: 14px 32px; background: #FFFFFF; border-top: 1px solid #E3E8EF">
+<div style="width: 100%; max-width: 920px; margin: 0 auto; display: flex; align-items: center; gap: 12px">
+<button type="button" class="b bg" onClick="{{ back }}" disabled="{{ isFirst }}" style="opacity: {{ backOpacity }}">Voltar</button>
+<span style="margin-left: auto; font-size: 13px; color: #5B6472">Passo {{ step }} de 4</span>
+<button type="button" class="b bp" onClick="{{ next }}">{{ nextLabel }}</button>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1350}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 2, source: 'eduzz' }; }
+  renderVals() {
+    const step = this.state.step;
+    const labels = ['Arquivo', 'Colunas', 'Cursos', 'Revisar'];
+    const srcs = [['eduzz', 'Eduzz', 'Exportação de vendas'], ['hotmart', 'Hotmart', 'Exportação de compradores'], ['outro', 'Outra planilha', 'CSV com nome, e-mail e CPF']];
+    return {
+      step,
+      s1: step === 1, s2: step === 2, s3: step === 3, s4: step === 4,
+      isFirst: step === 1, backOpacity: step === 1 ? '.4' : '1',
+      nextLabel: step === 4 ? 'Importar 125 alunos' : 'Continuar',
+      back: () => this.setState({ step: Math.max(1, step - 1) }),
+      next: () => this.setState({ step: Math.min(4, step + 1) }),
+      sources: srcs.map(([id, label, hint]) => ({ label, hint, pressed: String(this.state.source === id), pick: () => this.setState({ source: id }) })),
+      steps: labels.map((label, i) => {
+        const n = i + 1, done = n < step, cur = n === step;
+        return {
+          label, current: cur ? 'step' : 'false',
+          mark: done ? '✓' : String(n),
+          bg: done ? '#1F8A4C' : (cur ? '#0B63C4' : '#FFFFFF'),
+          fg: done || cur ? '#FFFFFF' : '#5B6472',
+          border: done ? '#1F8A4C' : (cur ? '#0B63C4' : '#C9D3DF'),
+          weight: cur ? '700' : '500', text: cur ? '#0F1B2D' : '#5B6472'
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

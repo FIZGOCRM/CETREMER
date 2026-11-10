@@ -1,0 +1,111 @@
+{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Alunos (HANDOFF-v2 8.6). Contexto: rows (user, profile, name, courses, avg_pct, last_seen, status), page, q, course, filtro, counts, totals,
+courses, filtered, has_any, next_url.
+{% endcomment %}
+{% block admin_title %}Alunos{% endblock %}
+{% block crumbs %}Alunos{% endblock %}
+{% block content %}
+<div class="row row--between gap-16">
+  <div class="stack gap-4">
+    <h1 class="page-title">Alunos</h1>
+    <p class="page-intro">{{ totals.students|plural_pt:"aluno,alunos" }} · {{ totals.enrollments|plural_pt:"matrícula,matrículas" }} em {{ totals.courses|plural_pt:"curso,cursos" }}</p>
+  </div>
+  <div class="row gap-10">
+    <a class="btn btn--secondary" href="{% url 'painel:students_import' %}">Importar CSV</a>
+    <button type="button" class="btn btn--primary" data-dialog-open="dlg-enroll">{% include 'partials/icon.html' with name='plus' size=16 stroke='2.4' %}Matricular aluno</button>
+  </div>
+</div>
+
+{% if has_any %}
+<div class="chips" role="group" aria-label="Filtrar alunos">
+  <a class="chip"{% if filtro == 'todos' %} aria-current="page"{% endif %} href="?{% if q %}q={{ q|urlencode }}&{% endif %}{% if course %}curso={{ course.slug }}{% endif %}">Todos {{ counts.todos }}</a>
+  <a class="chip"{% if filtro == 'ativos' %} aria-current="page"{% endif %} href="?filtro=ativos{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Ativos {{ counts.ativos }}</a>
+  <a class="chip"{% if filtro == 'nunca' %} aria-current="page"{% endif %} href="?filtro=nunca{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Nunca acessaram {{ counts.nunca }}</a>
+  <a class="chip"{% if filtro == 'concluiram' %} aria-current="page"{% endif %} href="?filtro=concluiram{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Concluíram algum curso {{ counts.concluiram }}</a>
+  <a class="chip"{% if filtro == 'sem-dados' %} aria-current="page"{% endif %} href="?filtro=sem-dados{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Sem nome ou CPF {{ counts.sem_dados }}</a>
+  {% if counts.importados_hoje %}<a class="chip"{% if filtro == 'importados-hoje' %} aria-current="page"{% endif %} href="?filtro=importados-hoje">Importados hoje {{ counts.importados_hoje }}</a>{% endif %}
+</div>
+
+<form class="toolbar" method="get">
+  {% if filtro != 'todos' %}<input type="hidden" name="filtro" value="{{ filtro }}">{% endif %}
+  <label class="sr-only" for="q">Buscar por nome, e-mail ou CPF</label>
+  <input class="input" id="q" type="search" name="q" value="{{ q }}" placeholder="Buscar por nome, e-mail ou CPF">
+  <label class="sr-only" for="curso">Curso</label>
+  <select class="select" id="curso" name="curso"><option value="">Todos os cursos</option>{% for c in courses %}<option value="{{ c.slug }}"{% if course and course.id == c.id %} selected{% endif %}>{{ c.short_name|default:c.title }}</option>{% endfor %}</select>
+  <button class="btn btn--secondary" type="submit">Filtrar</button>
+</form>
+
+{% if rows %}
+<form method="post" action="{% url 'painel:students' %}" data-bulk data-bulkbar="bulkbar-alunos" class="stack gap-12">
+  {% csrf_token %}<input type="hidden" name="next" value="{{ next_url }}">
+  <div class="bulkbar" id="bulkbar-alunos" hidden role="region" aria-label="Ações para os alunos selecionados">
+    <span class="fw-600" data-bulk-count></span>
+    <label class="sr-only" for="bulk-course">Curso</label>
+    <select class="select" id="bulk-course" name="course">{% for c in courses %}<option value="{{ c.id }}">{{ c.short_name|default:c.title }}</option>{% endfor %}</select>
+    <button type="submit" class="btn btn--secondary btn--sm" name="action" value="enroll">Liberar curso</button>
+    <button type="submit" class="btn btn--secondary btn--sm" name="action" value="resend">Reenviar acesso</button>
+    <button type="submit" class="btn btn--secondary btn--sm" name="action" value="export">Exportar</button>
+    <button type="button" class="btn btn--danger-text btn--sm" data-dialog-open="dlg-bulk-remove">Remover de um curso</button>
+    <button type="button" class="btn btn--ghost btn--sm" data-bulk-clear>Limpar seleção</button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table table--w860">
+      <thead><tr>
+        <th><input type="checkbox" data-bulk-all aria-label="Selecionar todos"></th>
+        <th>Aluno</th><th>Cursos</th><th>Progresso médio</th><th>Último acesso</th><th>Situação</th><th><span class="sr-only">Abrir</span></th>
+      </tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><input type="checkbox" name="ids" value="{{ row.user.id }}" data-bulk-item aria-label="Selecionar {{ row.name }}"></td>
+          <td><a class="cell-media cell-title" href="{% url 'painel:student_detail' row.user.id %}"><span class="avatar avatar--32 avatar--soft" aria-hidden="true">{{ row.name|iniciais }}</span><span class="stack"><span>{{ row.name }}</span><span class="text-13 muted">{{ row.user.email }}</span></span></a></td>
+          <td>{% for item in row.courses %}<span class="badge {{ item.course.cover_class }}">{{ item.course.short_name|default:item.course.title }}</span> {% empty %}<span class="muted">–</span>{% endfor %}</td>
+          <td>{% if row.avg_pct is None %}–{% else %}<div class="progress-inline"><div class="progress" role="progressbar" aria-label="Progresso médio de {{ row.name }}" aria-valuenow="{{ row.avg_pct }}" aria-valuemin="0" aria-valuemax="100"><div class="progress__bar" style="width: {{ row.avg_pct }}%"></div></div><span class="progress-label">{{ row.avg_pct }}%</span></div>{% endif %}</td>
+          <td>{% if row.last_seen %}{{ row.last_seen|seen_pt }}{% else %}<span class="text-danger">Nunca acessou</span>{% endif %}</td>
+          <td>{% if row.status == 'active' %}<span class="badge badge--success">Ativo</span>{% elif row.status == 'waiting' %}<span class="badge badge--warning">Aguardando 1º acesso</span>{% else %}<span class="badge badge--gray">Sem cursos</span>{% endif %}</td>
+          <td><a class="icon-btn icon-btn--plain" href="{% url 'painel:student_detail' row.user.id %}" aria-label="Abrir ficha de {{ row.name }}">{% include 'partials/icon.html' with name='chevron-right' size=18 %}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-bulk-remove" aria-labelledby="dlg-bulk-remove-t">
+    <div class="dialog__body">
+      <span class="dialog__eyebrow">Afeta alunos</span>
+      <h2 class="dialog__title" id="dlg-bulk-remove-t">Remover os alunos selecionados de um curso?</h2>
+      <p class="dialog__text">Eles deixam de ver o curso na hora. O progresso fica guardado e volta se você liberar de novo.</p>
+      <div class="field"><label class="field__label" for="bulk-remove-course">Curso</label><select class="select" id="bulk-remove-course" name="remove_course">{% for c in courses %}<option value="{{ c.id }}">{{ c.short_name|default:c.title }}</option>{% endfor %}</select></div>
+      <label class="check"><input type="checkbox" name="notify" value="1"> Avisar os alunos por e-mail</label>
+      <div class="field"><label class="field__label" for="bulk-confirm">Digite REMOVER para confirmar</label><input class="input" id="bulk-confirm" name="confirmar" data-confirm-text="REMOVER" autocomplete="off"></div>
+      <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger" name="action" value="unenroll" data-confirm-submit disabled>Remover acesso</button></div>
+    </div>
+  </dialog>
+
+  <div class="row row--between gap-12">
+    <span class="text-14 muted">Mostrando {{ rows|length }} de {{ page.paginator.count }} {% if page.paginator.count == 1 %}aluno{% else %}alunos{% endif %}</span>
+    <div class="row gap-8">
+      {% if page.has_previous %}<a class="btn btn--secondary btn--sm" href="?pagina={{ page.previous_page_number }}{% if filtro != 'todos' %}&filtro={{ filtro }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Anterior</a>{% endif %}
+      {% if page.has_next %}<a class="btn btn--secondary btn--sm" href="?pagina={{ page.next_page_number }}{% if filtro != 'todos' %}&filtro={{ filtro }}{% endif %}{% if q %}&q={{ q|urlencode }}{% endif %}{% if course %}&curso={{ course.slug }}{% endif %}">Próxima</a>{% endif %}
+    </div>
+  </div>
+</form>
+{% else %}
+<div class="empty-state card">
+  <span class="empty-state__icon empty-state__icon--neutral">{% include 'partials/icon.html' with name='users' size=24 %}</span>
+  <h2 class="empty-state__title">{% if q or course %}Nenhum aluno{% if q %} com "{{ q }}"{% endif %}{% if course %} no curso {{ course.short_name|default:course.title }}{% endif %}{% else %}Nenhum aluno neste filtro{% endif %}</h2>
+  <p class="empty-state__text">Confira a grafia ou procure em todos os cursos.</p>
+  <a class="btn btn--secondary" href="{% url 'painel:students' %}">Limpar filtros</a>
+</div>
+{% endif %}
+{% else %}
+<div class="empty-state card">
+  <span class="empty-state__icon">{% include 'partials/icon.html' with name='users' size=24 %}</span>
+  <h2 class="empty-state__title">Nenhum aluno ainda</h2>
+  <p class="empty-state__text">Importe a lista da Eduzz ou da Hotmart, ou matricule alguém manualmente.</p>
+  <div class="row gap-10"><a class="btn btn--primary" href="{% url 'painel:students_import' %}">Importar CSV</a><button type="button" class="btn btn--secondary" data-dialog-open="dlg-enroll">Matricular</button></div>
+</div>
+{% endif %}
+{% endblock %}

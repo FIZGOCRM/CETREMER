@@ -1,4 +1,5 @@
 from django.test import TestCase
+from decimal import Decimal
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from users.models import StudentProfile, CreatorProfile
@@ -59,6 +60,82 @@ class PlatformTestCase(TestCase):
         self.assertEqual(self.student_profile.points, 0)
         self.assertEqual(self.student_profile.level, 1)
 
+    def test_unenrolled_student_cannot_open_lesson_or_certificate(self):
+        self.client.force_login(self.student_user)
+        lesson_url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': self.lesson.id})
+        preview_url = reverse('course_preview', kwargs={'course_slug': self.course.slug})
+        self.assertRedirects(self.client.get(lesson_url), preview_url)
+        self.assertRedirects(self.client.get(reverse('issue_certificate', kwargs={'course_slug': self.course.slug})), preview_url)
+        self.assertFalse(Enrollment.objects.filter(student=self.student_profile, course=self.course).exists())
+
+    def test_unenrolled_student_cannot_toggle_progress(self):
+        self.client.force_login(self.student_user)
+        response = self.client.post(reverse('toggle_progress', kwargs={'lesson_id': self.lesson.id}))
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Enrollment.objects.filter(student=self.student_profile, course=self.course).exists())
+        self.assertFalse(Progress.objects.filter(student=self.student_profile, lesson=self.lesson).exists())
+
+    def test_lesson_url_uses_id_and_rejects_missing_or_other_course_lesson(self):
+        second_module = Module.objects.create(course=self.course, title='Module 2', order=2)
+        second_lesson = Lesson.objects.create(module=second_module, title='Second lesson', order=1)
+        Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.client.force_login(self.student_user)
+        url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': second_lesson.id})
+        self.assertEqual(self.client.get(url).context['lesson'], second_lesson)
+        self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})).status_code, 404)
+        other_course = Course.objects.create(title='Other', slug='other', creator=self.creator_profile)
+        Enrollment.objects.create(student=self.student_profile, course=other_course)
+        self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': other_course.slug, 'lesson_id': second_lesson.id})).status_code, 404)
+
+    def test_nonexistent_lesson_returns_404_even_without_enrollment(self):
+        self.client.force_login(self.student_user)
+        url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_complete_lesson_is_idempotent_and_enrollment_is_required(self):
+        self.client.force_login(self.student_user)
+        url = reverse('complete_lesson', kwargs={'lesson_id': self.lesson.id})
+        self.assertEqual(self.client.post(url).status_code, 403)
+        Enrollment.objects.create(student=self.student_profile, course=self.course)
+        first = self.client.post(url)
+        second = self.client.post(url)
+        self.assertEqual(first.json(), second.json())
+        self.assertEqual(first.json()['percentage'], 100)
+        self.assertTrue(Progress.objects.get(student=self.student_profile, lesson=self.lesson).is_completed)
+
+    def test_lesson_access_updates_enrollment_and_renders_player(self):
+        enrollment = Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': self.lesson.id}))
+        self.assertContains(response, 'referrerpolicy="strict-origin-when-cross-origin"')
+        self.assertContains(response, 'data-course-progress')
+        enrollment.refresh_from_db()
+        self.assertIsNotNone(enrollment.last_accessed_at)
+
+    def test_certificate_issues_once_and_public_verification_hides_cpf(self):
+        from courses.models import Certificate
+        enrollment = Enrollment.objects.create(student=self.student_profile, course=self.course)
+        self.student_profile.full_name = 'Aluno Certificado'
+        self.student_profile.cpf = '52998224725'
+        self.student_profile.save()
+        Progress.objects.create(student=self.student_profile, lesson=self.lesson, is_completed=True)
+        self.client.force_login(self.student_user)
+        url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
+        issue_url = reverse('certificate_issue', kwargs={'course_slug': self.course.slug})
+        payload = {'full_name': 'Aluno Certificado', 'cpf': '529.982.247-25', 'confirm': '1'}
+        self.assertNotContains(self.client.get(url), 'CERTIFICADO</h1>')
+        self.assertEqual(Certificate.objects.filter(enrollment=enrollment).count(), 0)
+        self.client.post(issue_url, payload)
+        self.client.post(issue_url, payload)
+        self.assertContains(self.client.get(url), 'CERTIFICADO')
+        self.assertContains(self.client.get(url), 'Aluno Certificado')
+        self.assertEqual(Certificate.objects.filter(enrollment=enrollment).count(), 1)
+        code = enrollment.certificate.code
+        self.client.logout()
+        response = self.client.get(reverse('verify_certificate'), {'codigo': code.lower()[:4] + '-' + code.lower()[4:]})
+        self.assertContains(response, 'Certificado válido')
+        self.assertNotContains(response, '529.982.247-25')
+
     def test_anonymous_checkout_enrollment(self):
         """Verifies that a guest user can checkout directly, creating their account and enrollment."""
         # Process checkout POST without being logged in
@@ -80,6 +157,7 @@ class PlatformTestCase(TestCase):
         # Verify enrollment is created for new student
         enrolled = Enrollment.objects.filter(student=new_profile, course=self.course).exists()
         self.assertTrue(enrolled)
+        self.assertEqual(Enrollment.objects.get(student=new_profile, course=self.course).source, 'purchase')
 
     def test_checkout_generates_temporary_password_and_sends_email(self):
         """Verifies that guest checkout generates a temporary password, sends it via email, and the user can log in with it."""
@@ -145,29 +223,22 @@ class PlatformTestCase(TestCase):
         self.assertEqual(self.student_profile.points, 10)
 
     def test_profile_settings_update(self):
-        """Verifies that an authenticated student can edit their username, email, and password."""
+        """Verifies that an authenticated student can request an e-mail change and change the password."""
         self.client.login(username="test_student", password="testpassword")
-        
-        # Test Profile Update
         settings_url = reverse('settings')
-        response = self.client.post(settings_url, {
-            'action': 'profile_account',
-            'username': 'updated_student',
-            'email': 'updated@student.com'
-        })
-        self.assertEqual(response.status_code, 200)
+        response = self.client.post(settings_url, {'section': 'perfil', 'email': 'updated@student.com', 'display_name': 'Test'})
+        self.assertEqual(response.status_code, 302)
         self.student_user.refresh_from_db()
-        self.assertEqual(self.student_user.username, 'updated_student')
-        self.assertEqual(self.student_user.email, 'updated@student.com')
+        self.assertEqual(self.student_user.pending_email, 'updated@student.com')
+        self.assertNotEqual(self.student_user.email, 'updated@student.com')
 
-        # Test Password Change
         response = self.client.post(settings_url, {
-            'action': 'password',
+            'section': 'senha',
             'password_old': 'testpassword',
             'password_new': 'newpassword123',
             'password_confirm': 'newpassword123'
         })
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.student_user.refresh_from_db()
         self.assertTrue(self.student_user.check_password('newpassword123'))
 
@@ -175,16 +246,16 @@ class PlatformTestCase(TestCase):
         """Verifies that a student can browse the community hub and create discussions."""
         self.client.login(username="test_student", password="testpassword")
         
-        hub_url = reverse('community_hub')
+        hub_url = reverse('community')
         response = self.client.get(hub_url)
         self.assertEqual(response.status_code, 200)
 
         # Create hub post
-        create_url = reverse('create_hub_post')
+        create_url = reverse('community_create')
         response = self.client.post(create_url, {
             'title': 'Dúvida Geral',
             'content': 'Como funciona o ACLS?',
-            'course_id': 'general'
+            'course': 'general'
         })
         self.assertEqual(response.status_code, 302)
         from community.models import CommunityPost
@@ -193,73 +264,23 @@ class PlatformTestCase(TestCase):
         self.assertEqual(post.title, 'Dúvida Geral')
         self.assertIsNone(post.course)
 
-    def test_creator_portal_access_and_forms(self):
-        """Verifies that only creators can access the creator panel, create courses and update keys."""
-        from decimal import Decimal
-        # 1. Access without login redirects
-        creator_dashboard_url = reverse('creator_dashboard')
-        response = self.client.get(creator_dashboard_url)
+    def test_creator_routes_redirect_to_panel_and_new_course_form_works(self):
+        self.client.force_login(self.creator_user)
+        self.assertEqual(self.client.get(reverse('creator_dashboard')).status_code, 301)
+        self.assertEqual(self.client.get(reverse('creator_payments')).status_code, 301)
+        response = self.client.post(reverse('painel:course_create'), {'title': 'Novo Curso Emergência'})
         self.assertEqual(response.status_code, 302)
-
-        # 2. Student cannot access creator dashboard
-        self.client.login(username="test_student", password="testpassword")
-        response = self.client.get(creator_dashboard_url)
+        course = Course.objects.get(title='Novo Curso Emergência')
+        # B2: o diálogo só pede título e categoria; o curso nasce como rascunho com o "Módulo 1".
+        self.assertEqual(course.status, 'draft')
+        self.assertEqual(list(Module.objects.filter(course=course).values_list('title', flat=True)), ['Módulo 1'])
+        Module.objects.filter(course=course).delete()
+        response = self.client.post(reverse('painel:module_create', kwargs={'course_id': course.id}), {'title': 'Módulo Teórico'})
         self.assertEqual(response.status_code, 302)
-        self.client.logout()
-
-        # 3. Creator can access
-        self.client.login(username="test_creator", password="testpassword")
-        response = self.client.get(creator_dashboard_url)
-        self.assertEqual(response.status_code, 200)
-
-        # 4. Creator can create course
-        create_url = reverse('course_create')
-        response = self.client.post(create_url, {
-            'title': 'Novo Curso Emergência',
-            'description': 'Resgate de alta montanha.',
-            'price': '220.00',
-            'is_published': 'on'
-        })
+        module = Module.objects.get(course=course)
+        response = self.client.post(reverse('painel:lesson_quick_create', kwargs={'module_id': module.id}), {'title': 'Aula Prática'})
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Course.objects.filter(title='Novo Curso Emergência').count(), 1)
-        new_course = Course.objects.get(title='Novo Curso Emergência')
-        self.assertEqual(new_course.price, Decimal('220.00'))
-
-        # 5. Creator can edit payments
-        payments_url = reverse('creator_payments')
-        response = self.client.post(payments_url, {
-            'bank_name': 'Itau',
-            'pix_key': '123456789',
-            'gateway_name': 'STRIPE',
-            'gateway_api_key': 'sk_test_secret_key'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.creator_profile.refresh_from_db()
-        self.assertEqual(self.creator_profile.bank_name, 'Itau')
-        self.assertEqual(self.creator_profile.gateway_name, 'STRIPE')
-
-        # 6. Test course builder safe int parsing with empty values
-        builder_url = reverse('course_builder', kwargs={'course_id': new_course.id})
-        response = self.client.post(builder_url, {
-            'action': 'add_module',
-            'module_title': 'Módulo Teórico',
-            'module_order': ''
-        })
-        self.assertEqual(response.status_code, 302)
-        module = Module.objects.get(course=new_course, title='Módulo Teórico')
-        self.assertEqual(module.order, 0)
-
-        response = self.client.post(builder_url, {
-            'action': 'add_lesson',
-            'module_id': module.id,
-            'lesson_title': 'Aula Prática',
-            'lesson_desc': 'Uso do desfibrilador',
-            'lesson_video': 'https://youtube.com',
-            'lesson_duration': '',
-            'lesson_order': ''
-        })
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(Lesson.objects.filter(module=module, title='Aula Prática').count(), 1)
+        self.assertTrue(Lesson.objects.filter(module=module, title='Aula Prática', status='draft').exists())
 
     def test_landing_page_with_hero(self):
         """Verifies that the landing page renders successfully and passes the active HeroBanner."""
@@ -277,37 +298,24 @@ class PlatformTestCase(TestCase):
         self.assertContains(response, "Custom description text")
 
     def test_settings_page_saves_extended_profile(self):
-        """Verifies that the settings profile form saves Name, CPF, and Address for students."""
+        """Verifies that the settings forms save the profile and the certificate data for students."""
         self.client.login(username="test_student", password="testpassword")
         settings_url = reverse('settings')
-        
-        # 1. Update account details
         response = self.client.post(settings_url, {
-            'action': 'profile_account',
-            'username': 'test_student_mod',
-            'email': 'mod@test.com'
+            'section': 'perfil', 'email': self.student_user.email, 'display_name': 'Márcio', 'whatsapp': '(67) 99999-0000',
         })
-        self.assertEqual(response.status_code, 200)
-        
-        # 2. Update personal certification details
+        self.assertEqual(response.status_code, 302)
         response = self.client.post(settings_url, {
-            'action': 'profile_personal',
+            'section': 'certificado',
             'full_name': 'Márcio Hirade Filho',
-            'cpf': '111.222.333-44'
+            'cpf': '529.982.247-25'
         })
-        self.assertEqual(response.status_code, 200)
-        
-        # 3. Update residential address details
-        response = self.client.post(settings_url, {
-            'action': 'profile_address',
-            'address': 'Rua Principal, 123 - Campo Grande'
-        })
-        self.assertEqual(response.status_code, 200)
-        
+        self.assertEqual(response.status_code, 302)
         self.student_profile.refresh_from_db()
         self.assertEqual(self.student_profile.full_name, 'Márcio Hirade Filho')
-        self.assertEqual(self.student_profile.cpf, '111.222.333-44')
-        self.assertEqual(self.student_profile.address, 'Rua Principal, 123 - Campo Grande')
+        self.assertEqual(self.student_profile.cpf, '52998224725')
+        self.assertEqual(self.student_profile.display_name, 'Márcio')
+        self.assertEqual(self.student_profile.whatsapp, '67999990000')
 
     def test_certificate_blocked_if_incomplete(self):
         """Verifies that a student cannot generate a certificate if they haven't finished 100% of the lessons."""
@@ -328,36 +336,24 @@ class PlatformTestCase(TestCase):
         
         # Save StudentProfile full_name and CPF first to validate template renders
         self.student_profile.full_name = "Aluno Certificado"
-        self.student_profile.cpf = "000.000.000-00"
+        self.student_profile.cpf = "529.982.247-25"
         self.student_profile.save()
         
         cert_url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
+        response = self.client.get(cert_url)
+        self.assertContains(response, "Conferir dados e emitir")
+        self.client.post(reverse('certificate_issue', kwargs={'course_slug': self.course.slug}),
+                         {'full_name': 'Aluno Certificado', 'cpf': '529.982.247-25', 'confirm': '1'})
         response = self.client.get(cert_url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "CERTIFICADO")
         self.assertContains(response, "Aluno Certificado")
 
-    def test_creator_integrations_saving(self):
-        """Verifies that creators can save Asaas credentials, AI API keys, and custom signatures."""
-        self.client.login(username="test_creator", password="testpassword")
-        integrations_url = reverse('creator_integrations')
-        response = self.client.post(integrations_url, {
-            'asaas_token': 'asaas_key_123',
-            'asaas_sandbox': 'on',
-            'ai_provider': 'GEMINI',
-            'ai_api_key': 'gemini_api_key_456',
-            'ai_tutor_enabled': 'on',
-            'certificate_signature_name': 'Dr. Hirade',
-            'certificate_signature_role': 'Diretor de Ensino'
-        })
-        self.assertEqual(response.status_code, 200)
-        self.creator_profile.refresh_from_db()
-        self.assertEqual(self.creator_profile.asaas_token, 'asaas_key_123')
-        self.assertTrue(self.creator_profile.asaas_sandbox)
-        self.assertEqual(self.creator_profile.ai_api_key, 'gemini_api_key_456')
-        self.assertTrue(self.creator_profile.ai_tutor_enabled)
-        self.assertEqual(self.creator_profile.certificate_signature_name, 'Dr. Hirade')
-        self.assertEqual(self.creator_profile.certificate_signature_role, 'Diretor de Ensino')
+    def test_creator_integrations_route_redirects_to_panel_settings(self):
+        self.client.force_login(self.creator_user)
+        response = self.client.get(reverse('creator_integrations'))
+        # B1: Configurações é só de administrador; o instrutor é redirecionado e recebe 403 no destino.
+        self.assertRedirects(response, reverse('painel:settings'), status_code=301, target_status_code=403)
 
     def test_youtube_link_embed_conversion(self):
         """Verifies that watch, youtu.be, and shorts YouTube links are automatically converted to embed format on save."""

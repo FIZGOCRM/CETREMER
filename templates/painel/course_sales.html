@@ -1,0 +1,76 @@
+{% extends 'base_admin.html' %}{% load cetremer ui static %}
+{% comment %}
+Curso · Página de venda (HANDOFF-v2 8.4). Contexto: course, tab, objectives, faqs, free_lessons, tagline_size, tagline_max, preview, preview_url,
+lessons_published e os totais do cabeçalho.
+{% endcomment %}
+{% block admin_title %}{{ course.title }} · Página de venda{% endblock %}
+{% block crumbs %}<a href="{% url 'painel:courses' %}">Cursos</a> / {{ course.title }}{% endblock %}
+{% block content %}
+{% include 'painel/_course_head.html' %}
+<div class="split">
+  <form class="split__main stack gap-16" id="sales-form" method="post" enctype="multipart/form-data" action="{% url 'painel:course_sales' course.id %}" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}
+    <section class="card card--pad stack gap-16" id="apresentacao">
+      <h2 class="card__title">Apresentação</h2>
+      <div class="field" data-dirty-label="chamada curta"><label class="field__label" for="sv-tagline">Chamada curta</label><input class="input" id="sv-tagline" name="tagline" maxlength="{{ tagline_max }}" value="{{ course.tagline }}"><span class="hint" id="tagline-count">{{ tagline_size }} de {{ tagline_max }} caracteres</span></div>
+      <div class="field" data-dirty-label="descrição"><label class="field__label" for="sv-desc">Descrição completa</label><textarea class="textarea" id="sv-desc" name="description" rows="6">{{ course.description }}</textarea></div>
+    </section>
+
+    <section class="card card--pad stack gap-16" id="capa">
+      <h2 class="card__title">Capa</h2>
+      <div class="course-card__cover {{ course.cover_class }}">{% if course.cover_image %}<img src="{{ course.cover_image.url }}" alt="Capa de {{ course.title }}">{% else %}{{ course.short_name|default:course.title }}{% endif %}</div>
+      <div class="row gap-12" data-dirty-label="capa">
+        <label class="btn btn--secondary btn--sm" for="sv-cover">Trocar imagem</label><input class="sr-only" id="sv-cover" name="cover_image" type="file" accept="image/*">
+        {% if course.cover_image %}<label class="check"><input type="checkbox" name="remove_cover" value="1"> Remover</label>{% endif %}
+      </div>
+      <span class="hint">3:2, mínimo 1200 × 800 px. Você ajusta o enquadramento depois de enviar.</span>
+    </section>
+
+    <section class="card card--pad stack gap-16" id="aprender">
+      <h2 class="card__title">O que o aluno vai aprender</h2>
+      <fieldset class="fieldset" data-repeater data-dirty-label="o que o aluno vai aprender">
+        <legend class="hint">{{ objectives|length|plural_pt:"item,itens" }} · ideal entre 4 e 6</legend>
+        <div class="stack gap-8" data-repeater-list>{% for objective in objectives %}
+          <div class="row gap-8" data-repeater-item><input class="input" name="objectives" value="{{ objective }}" aria-label="Item"><button class="icon-btn" type="button" data-repeater-remove aria-label="Remover item">{% include 'partials/icon.html' with name='x' %}</button></div>{% endfor %}</div>
+        <button class="btn btn--dashed btn--sm self-start" type="button" data-repeater-add>+ Adicionar item</button>
+        <template data-repeater-template><div class="row gap-8" data-repeater-item><input class="input" name="objectives" aria-label="Item"><button class="icon-btn" type="button" data-repeater-remove aria-label="Remover item">{% include 'partials/icon.html' with name='x' %}</button></div></template>
+      </fieldset>
+    </section>
+
+    <section class="card card--pad stack gap-16" id="para-quem">
+      <h2 class="card__title">Para quem é</h2>
+      <div class="field" data-dirty-label="para quem é"><label class="sr-only" for="sv-audience">Para quem é</label><textarea class="textarea" id="sv-audience" name="target_audience" rows="3">{{ course.target_audience }}</textarea><span class="hint">Se ficar vazio, a seção não aparece no site.</span></div>
+    </section>
+
+    <section class="card card--pad stack gap-16" id="perguntas">
+      <h2 class="card__title">Perguntas frequentes</h2>
+      <fieldset class="fieldset" data-repeater data-dirty-label="perguntas frequentes">
+        <legend class="sr-only">Perguntas frequentes</legend>
+        <div class="stack gap-12" data-repeater-list>{% for faq in faqs %}
+          <div class="stack gap-8" data-repeater-item><div class="row gap-8"><input class="input" name="faq_question" value="{{ faq.question }}" maxlength="160" aria-label="Pergunta"><button class="icon-btn" type="button" data-repeater-remove aria-label="Remover pergunta">{% include 'partials/icon.html' with name='x' %}</button></div><textarea class="textarea" name="faq_answer" rows="2" aria-label="Resposta">{{ faq.answer }}</textarea></div>{% endfor %}</div>
+        <button class="btn btn--dashed btn--sm self-start" type="button" data-repeater-add>+ Pergunta</button>
+        <template data-repeater-template><div class="stack gap-8" data-repeater-item><div class="row gap-8"><input class="input" name="faq_question" maxlength="160" aria-label="Pergunta"><button class="icon-btn" type="button" data-repeater-remove aria-label="Remover pergunta">{% include 'partials/icon.html' with name='x' %}</button></div><textarea class="textarea" name="faq_answer" rows="2" aria-label="Resposta"></textarea></div></template>
+      </fieldset>
+    </section>
+
+    <section class="card card--pad stack gap-12" id="aulas-gratis">
+      <h2 class="card__title">Aulas grátis</h2>
+      <p class="text-2">Quem ainda não comprou pode assistir às aulas marcadas como grátis na aba Conteúdo.</p>
+      {% if free_lessons %}<ul class="list-plain stack gap-8">{% for lesson in free_lessons %}<li class="row gap-8">{% include 'partials/icon.html' with name='play-circle' size=18 %}<span>{{ lesson.title }} <span class="text-13 muted">· {{ lesson.module.title }}</span></span></li>{% endfor %}</ul>{% else %}<p class="muted">Nenhuma aula grátis</p>{% endif %}
+      <a class="btn btn--secondary btn--xs self-start" href="{% url 'painel:course_content' course.id %}">Escolher aula</a>
+    </section>
+  </form>
+
+  <aside class="split__side split__side--380 stack gap-12">
+    {% include 'painel/_sales_preview.html' %}
+    <span class="hint">A prévia atualiza quando você salva.</span>
+  </aside>
+</div>
+
+<div class="dirtybar" id="dirtybar" hidden role="region" aria-label="Alterações não salvas">
+  {% include 'partials/icon.html' with name='alert' size=20 class='dirtybar__icon' %}
+  <span class="dirtybar__msg" data-dirty-msg>Você tem alterações não salvas na página de venda.</span>
+  <button type="button" class="dirtybar__discard" data-dirty-discard>Descartar</button>
+  <button type="submit" class="btn btn--primary" form="sales-form">Salvar alterações</button>
+</div>
+{% endblock %}

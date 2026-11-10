@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Configurações · Admin CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.nl{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:10px;color:#C9D3DF;font-size:14px;font-weight:500;text-decoration:none}
+.nl:hover{background:#1E2E45;color:#FFFFFF}.nl[aria-current]{background:#1E2E45;color:#FFFFFF;font-weight:600}
+.ng{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9FB0C4}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.sub{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:0 12px;border:0;border-radius:10px;background:none;color:#3A4556;font:inherit;font-size:14px;font-weight:500;text-align:left;cursor:pointer}
+.sub:hover{background:#EEF1F5;color:#0F1B2D}
+.sub[aria-current="true"]{background:#FFFFFF;color:#0F1B2D;font-weight:600;box-shadow:0 1px 2px rgba(15,27,45,.08);border:1px solid #E3E8EF}
+.lb{font-size:13px;font-weight:600;color:#0F1B2D}
+.hint{font-size:12px;color:#5B6472}
+.in{width:100%;font:inherit;font-size:14px;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box}
+.f{display:flex;flex-direction:column;gap:6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.sec{padding:22px;display:flex;flex-direction:column;gap:16px}
+.sec h2{margin:0;font-size:16px;font-weight:600}
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid #EEF1F5;background:#F8FAFC;border-radius:0 0 14px 14px}
+.secret{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:42px;padding:0 6px 0 12px;border-radius:10px;border:1px solid #E3E8EF;background:#F8FAFC}
+.lrow{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid #EEF1F5;font-size:14px}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<aside style="flex: 1 1 240px; max-width: 100%; background: #0F1B2D; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+<a href="AdminV2Inicio.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; text-decoration: none">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 9px; background: #0B63C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px">C</span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #FFFFFF">CETREMER</span><span style="font-size: 12px; color: #9FB0C4">Painel administrativo</span></span>
+</a>
+<nav aria-label="Menu administrativo" style="display: flex; flex-direction: column; gap: 2px">
+<span class="ng">Visão geral</span>
+<a class="nl" href="AdminV2Inicio.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<span class="ng">Conteúdo</span>
+<a class="nl" href="AdminV2Cursos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg>Cursos</a>
+<span class="ng">Pessoas</span>
+<a class="nl" href="AdminV2Alunos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-6 7-6s7 2 7 6"></path><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-6"></path></svg>Alunos</a>
+<a class="nl" href="AdminV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="nb" aria-label="3 dúvidas sem resposta">3</span></a>
+<span class="ng">Vendas</span>
+<a class="nl" href="AdminV2Pedidos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>Pedidos</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px">
+<a class="nl" href="AdminV2Config.dc.html" aria-current="page"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>Configurações</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid #2D3F58">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #1E2E45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: none">AD</span>
+<span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.3"><span style="color: #FFFFFF; font-size: 14px; font-weight: 600">Administrador</span><span style="color: #9FB0C4; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">admin@cetremer.com.br</span></span>
+</div>
+</div>
+</aside>
+
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 32px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<nav aria-label="Trilha" style="flex: 1 1 160px; font-size: 14px; color: #5B6472">Configurações</nav>
+<label style="flex: 0 1 380px; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #E3E8EF; background: #F8FAFC; color: #5B6472; box-sizing: border-box">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar no painel</span>
+<input type="search" placeholder="Buscar aluno, curso ou pedido" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: #0F1B2D; outline: none">
+<span class="kbd">Ctrl K</span>
+</label>
+<a class="b bp" href="AdminV2Padroes.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Criar</a>
+</header>
+
+<main style="padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 20px; max-width: 1180px; width: 100%; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 26px">Configurações</h1>
+<p style="margin: 0; color: #5B6472">Cada seção salva separadamente.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px">
+<nav aria-label="Seções de configuração" style="flex: 0 0 220px; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{ sections }}" as="s" hint-placeholder-count="5">
+<button type="button" class="sub" aria-current="{{ s.current }}" onClick="{{ s.pick }}">{{ s.label }}<sc-if value="{{ s.alert }}" hint-placeholder-val="{{ false }}"><span aria-label="Precisa de atenção" style="margin-left: auto; width: 8px; height: 8px; border-radius: 999px; background: #E0A100"></span></sc-if></button>
+</sc-for>
+</nav>
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<sc-if value="{{ isEscola }}" hint-placeholder-val="{{ true }}">
+<form class="card">
+<div class="sec">
+<h2>Dados da escola</h2>
+<div class="grid2">
+<div class="f"><label class="lb" for="e-nome">Nome exibido</label><input id="e-nome" class="in" type="text" value="CETREMER"></div>
+<div class="f"><label class="lb" for="e-wpp">WhatsApp de suporte</label><input id="e-wpp" class="in" type="tel" value="(67) 99649-4740"><span class="hint">Usado no botão de ajuda da área do aluno.</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<span aria-hidden="true" style="width: 140px; height: 64px; border-radius: 10px; border: 1px dashed #C9D3DF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; color: #034C8C">CETREMER</span>
+<div style="display: flex; flex-direction: column; gap: 6px"><span class="lb">Logo</span><span class="hint">PNG ou SVG com fundo transparente. Aparece no site e no certificado.</span><label class="b bs" style="align-self: flex-start; cursor: pointer">Enviar logo<input type="file" accept="image/*" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"></label></div>
+</div>
+<div class="grid2">
+<div class="f"><label class="lb" for="e-termos">Termos de uso</label><input id="e-termos" class="in" type="url" placeholder="https://" aria-describedby="e-termos-h"><span id="e-termos-h" class="hint" style="color: #6B4500">Obrigatório para vender. Hoje o link do site leva a lugar nenhum.</span></div>
+<div class="f"><label class="lb" for="e-priv">Política de privacidade</label><input id="e-priv" class="in" type="url" placeholder="https://"></div>
+</div>
+</div>
+<div class="foot"><button type="button" class="b bg">Descartar</button><button type="button" class="b bp">Salvar dados da escola</button></div>
+</form>
+</sc-if>
+
+<sc-if value="{{ isPag }}" hint-placeholder-val="{{ false }}">
+<form class="card">
+<div class="sec">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px"><h2>Pagamentos</h2><span class="pill" style="color: #6B4500; background: #FFF6E5">Modo de teste</span></div>
+<div style="display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 12px; border: 1px solid #E3E8EF">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 10px; background: #EEF1F5; display: flex; align-items: center; justify-content: center; color: #3A4556"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg></span>
+<span style="flex: 1; display: flex; flex-direction: column"><span style="font-weight: 600">Gateway: [a definir]</span><span class="hint">Nenhuma conta conectada. As vendas usam a simulação.</span></span>
+<button type="button" class="b bs">Testar conexão</button>
+</div>
+<div class="f"><span class="lb" id="k-lb">Chave da API</span><div class="secret"><span style="color: #5B6472; font-size: 14px">Nenhuma chave salva</span><button type="button" class="b bs" style="min-height: 34px">Definir chave</button></div><span class="hint">Chaves salvas nunca aparecem completas. Para trocar, defina uma nova.</span></div>
+<label style="display: flex; align-items: flex-start; gap: 10px; font-size: 14px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #0B63C4; margin: 2px 0 0"><span><span style="font-weight: 600">Usar ambiente de testes</span><br><span class="hint">Nenhuma cobrança real enquanto estiver ligado.</span></span></label>
+</div>
+<div class="foot"><button type="button" class="b bp">Salvar pagamentos</button></div>
+</form>
+</sc-if>
+
+<sc-if value="{{ isEmail }}" hint-placeholder-val="{{ false }}">
+<form class="card">
+<div class="sec">
+<h2>Envio de e-mails</h2>
+<div class="grid2">
+<div class="f"><label class="lb" for="m-nome">Nome do remetente</label><input id="m-nome" class="in" type="text" value="CETREMER"></div>
+<div class="f"><label class="lb" for="m-de">E-mail de envio</label><input id="m-de" class="in" type="email" placeholder="contato@seudominio.com.br"></div>
+<div class="f"><label class="lb" for="m-host">Servidor SMTP</label><input id="m-host" class="in" type="text" placeholder="smtp.seudominio.com.br"></div>
+<div class="f"><label class="lb" for="m-porta">Porta</label><input id="m-porta" class="in" type="number" value="587"></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #FDECEC; color: #8A1C1C; font-size: 14px"><span style="flex: 1">Último teste falhou: autenticação recusada pelo servidor.</span><button type="button" class="b bs" style="min-height: 34px">Enviar teste para mim</button></div>
+</div>
+<div class="sec" style="border-top: 1px solid #EEF1F5">
+<h2>Mensagens automáticas</h2>
+<div>
+<div class="lrow"><span style="flex: 1"><span style="font-weight: 600">Primeiro acesso</span><br><span class="hint">Enviado na matrícula manual e na importação</span></span><button type="button" class="b bg">Editar texto</button></div>
+<div class="lrow"><span style="flex: 1"><span style="font-weight: 600">Compra aprovada</span><br><span class="hint">Enviado quando o pagamento é confirmado</span></span><button type="button" class="b bg">Editar texto</button></div>
+<div class="lrow"><span style="flex: 1"><span style="font-weight: 600">Certificado liberado</span><br><span class="hint">Enviado ao concluir o curso</span></span><button type="button" class="b bg">Editar texto</button></div>
+<div class="lrow"><span style="flex: 1"><span style="font-weight: 600">Dúvida respondida</span><br><span class="hint">Enviado quando a CETREMER responde na comunidade</span></span><button type="button" class="b bg">Editar texto</button></div>
+</div>
+</div>
+<div class="foot"><button type="button" class="b bp">Salvar e-mails</button></div>
+</form>
+</sc-if>
+
+<sc-if value="{{ isCert }}" hint-placeholder-val="{{ false }}">
+<form class="card">
+<div class="sec">
+<h2>Certificado</h2>
+<div class="grid2">
+<div class="f"><label class="lb" for="c-resp">Responsável técnico</label><input id="c-resp" class="in" type="text" aria-invalid="true" aria-describedby="c-resp-e" style="border: 2px solid #B42318"><span id="c-resp-e" style="font-size: 12px; color: #B42318">Obrigatório: sem isso o certificado sai sem assinatura.</span></div>
+<div class="f"><label class="lb" for="c-cargo">Cargo e registro</label><input id="c-cargo" class="in" type="text" placeholder="Ex.: Médico · CRM-MS 00000"></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<span aria-hidden="true" style="width: 180px; height: 64px; border-radius: 10px; border: 1px dashed #C9D3DF; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #5B6472">Assinatura</span>
+<label class="b bs" style="cursor: pointer">Enviar imagem da assinatura<input type="file" accept="image/*" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)"></label>
+</div>
+<a href="Certificado.dc.html" style="font-size: 14px; font-weight: 600">Ver certificado de exemplo com estes dados</a>
+</div>
+<div class="foot"><button type="button" class="b bp">Salvar certificado</button></div>
+</form>
+</sc-if>
+
+<sc-if value="{{ isEquipe }}" hint-placeholder-val="{{ false }}">
+<section class="card">
+<div class="sec">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px"><h2>Equipe com acesso ao painel</h2><button type="button" class="b bp">Convidar pessoa</button></div>
+<div>
+<div class="lrow"><span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #034C8C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700">AD</span><span style="flex: 1"><span style="font-weight: 600">Administrador</span><br><span class="hint">admin@cetremer.com.br</span></span><span class="pill" style="color: #034C8C; background: #E8F2FC">Dono</span></div>
+<div class="lrow"><span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #EEF1F5; color: #3A4556; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700">JC</span><span style="flex: 1"><span style="font-weight: 600">john_creator</span><br><span class="hint">john@creator.com</span></span><select class="in" aria-label="Papel de john_creator" style="width: auto"><option>Instrutor (conteúdo e comunidade)</option><option>Administrador</option></select><button type="button" class="b bg" style="color: #B42318">Remover</button></div>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5B6472">Instrutor edita cursos e responde dúvidas. Não vê pedidos nem configurações.</p>
+</div>
+</section>
+</sc-if>
+
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { sec: 'escola' }; }
+  renderVals() {
+    const s = this.state.sec;
+    const defs = [['escola', 'Escola', true], ['pag', 'Pagamentos', false], ['email', 'E-mails', true], ['cert', 'Certificado', true], ['equipe', 'Equipe', false]];
+    return {
+      sections: defs.map(([id, label, alert]) => ({ label, alert, current: String(s === id), pick: () => this.setState({ sec: id }) })),
+      isEscola: s === 'escola', isPag: s === 'pag', isEmail: s === 'email', isCert: s === 'cert', isEquipe: s === 'equipe'
+    };
+  }
+}
+</script>
+</body>
+</html>

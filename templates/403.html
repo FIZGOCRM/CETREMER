@@ -1,0 +1,13 @@
+{% extends layout %}
+{% comment %}403 no layout de quem pediu a página (core/error_views.py). Contexto: layout, home_url, in_painel.{% endcomment %}
+{% block title %}Sem acesso · {{ site.school_name|default:"CETREMER" }}{% endblock %}
+{% block crumbs %}{% if in_painel %}Sem acesso{% else %}<span>Sem acesso</span>{% endif %}{% endblock %}
+{% block page_title %}Sem acesso{% endblock %}
+{% block content %}
+<div class="empty-state">
+  <span class="empty-state__icon">{% include "partials/icon.html" with name="lock" size=24 %}</span>
+  <h1 class="page-title">Você não tem acesso a esta página</h1>
+  <p class="text-2">{% if in_painel %}Esta área é só para administradores. Se precisar dela, fale com quem administra a escola.{% else %}Esta área é só para a equipe da escola.{% endif %}</p>
+  <a class="btn btn--primary" href="{{ home_url }}">{% if in_painel %}Voltar ao início do painel{% else %}Voltar ao início{% endif %}</a>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base_core.html" %}
+{% comment %}
+v2 · Layout do painel. Blocos: admin_title, crumbs, topbar_actions, page_class, content.
+O <h1> agora fica DENTRO do conteúdo (h1.page-title ou h1.course-head__title), porque o topo só tem o caminho.
+Diálogos globais (Novo curso, Matricular aluno) ficam aqui para o menu "Criar" funcionar em qualquer tela.
+{% endcomment %}
+{% block title %}{% block admin_title %}Início{% endblock %} · Admin {{ site.school_name|default:"CETREMER" }}{% endblock %}
+{% block body %}
+<div class="app app--admin">
+  {% include "partials/sidebar_admin_v2.html" %}
+  <div class="app__content">
+    <header class="topbar topbar--v2">
+      <div class="topbar__heading">
+        <nav class="crumbs" aria-label="Você está em">{% block crumbs %}{% endblock %}</nav>
+      </div>
+      <div class="topbar__actions">
+        <button type="button" class="topbar-search" data-cmdk-open aria-label="Buscar aluno, curso ou pedido">
+          {% include "partials/icon.html" with name="search" size=18 %}
+          <span class="topbar-search__text">Buscar aluno, curso ou pedido</span><span class="kbd">Ctrl K</span>
+        </button>
+        {% block topbar_actions %}{% endblock %}
+        <div class="popover" data-popover>
+          <button type="button" class="btn btn--primary btn--sm" aria-haspopup="menu" aria-expanded="false" data-popover-toggle>{% include "partials/icon.html" with name="plus" size=16 stroke="2.4" %}Criar</button>
+          <div class="menu" data-popover-panel hidden role="menu">
+            <button type="button" role="menuitem" class="menu__item" data-dialog-open="dlg-new-course">{% include "partials/icon.html" with name="course" size=18 %}<span class="menu__item-text"><span class="fw-600">Novo curso</span><span class="menu__item-sub">Começa como rascunho</span></span></button>
+            <button type="button" role="menuitem" class="menu__item" data-dialog-open="dlg-enroll">{% include "partials/icon.html" with name="user" size=18 %}<span class="menu__item-text"><span class="fw-600">Matricular aluno</span><span class="menu__item-sub">Libera um curso por e-mail</span></span></button>
+            <a role="menuitem" class="menu__item" href="{% url 'painel:students_import' %}">{% include "partials/icon.html" with name="download" size=18 %}<span class="menu__item-text"><span class="fw-600">Importar alunos</span><span class="menu__item-sub">CSV da Eduzz ou Hotmart</span></span></a>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main id="conteudo" class="page page--admin {% block page_class %}{% endblock %}">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% include "painel/_dialog_new_course.html" %}
+{% include "painel/_dialog_enroll.html" %}
+{% url 'painel:search' as search_url %}{% include "partials/cmdk.html" with search_url=search_url search_placeholder="Buscar aluno, curso, pedido ou ação" search_scope="Alunos, cursos, aulas, pedidos e ações" %}
+{% include "partials/leave_dialog.html" %}
+{% endblock %}

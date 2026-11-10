@@ -1,0 +1,134 @@
+﻿{% extends 'base_admin.html' %}{% load cetremer ui %}
+{% comment %}
+Configurações (HANDOFF-v2 8.11, só administrador). Contexto: section, sections, site, gateway_key_last4, email_password_set e, em Equipe, members e roles.
+Cada seção é um formulário próprio (campo oculto `section`) com a sua barra de alterações.
+{% endcomment %}
+{% block admin_title %}Configurações{% endblock %}
+{% block crumbs %}Configurações{% endblock %}
+{% block content %}
+<div class="stack gap-4"><h1 class="page-title">Configurações</h1><p class="page-intro">Cada seção salva separadamente.</p></div>
+<div class="split">
+  <nav class="vtabs" aria-label="Seções de configurações">
+    {% for slug, label in sections %}<a class="vtab"{% if slug == section %} aria-current="page"{% endif %} href="?secao={{ slug }}">{{ label }}</a>{% endfor %}
+  </nav>
+  <div class="split__main stack gap-16">
+
+  {% if section == 'escola' %}
+  <form class="card card--pad stack gap-16" id="form-escola" method="post" enctype="multipart/form-data" action="{% url 'painel:settings' %}?secao=escola" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}<input type="hidden" name="section" value="escola">
+    <h2 class="card__title">Escola</h2>
+    <div class="form-grid">
+      <div class="field" data-dirty-label="nome exibido"><label class="field__label" for="st-name">Nome exibido</label><input class="input" id="st-name" name="school_name" value="{{ site.school_name }}" maxlength="80" required></div>
+      <div class="field" data-dirty-label="WhatsApp de suporte"><label class="field__label" for="st-wa">WhatsApp de suporte</label><input class="input" id="st-wa" name="whatsapp" inputmode="tel" value="{{ site.whatsapp }}"><span class="hint">Usado no botão de ajuda da área do aluno.</span></div>
+    </div>
+    <div class="field" data-dirty-label="logo"><span class="field__label">Logo</span>
+      <span class="upload-preview upload-preview--logo">{% if site.logo %}<img src="{{ site.logo.url }}" alt="Logo atual">{% else %}{{ site.school_name }}{% endif %}</span>
+      <label class="btn btn--secondary self-start" for="st-logo">Enviar logo</label><input class="sr-only" type="file" id="st-logo" name="logo" accept="image/*">
+      <span class="hint">PNG ou SVG com fundo transparente. Aparece no site e no certificado.</span></div>
+    <div class="form-grid">
+      <div class="field" data-dirty-label="termos de uso"><label class="field__label" for="st-terms">Termos de uso</label><input class="input" id="st-terms" name="terms_url" type="url" value="{{ site.terms_url }}">{% if not site.terms_url %}<span class="hint">Obrigatório para vender. Hoje o link do site leva a lugar nenhum.</span>{% endif %}</div>
+      <div class="field" data-dirty-label="política de privacidade"><label class="field__label" for="st-priv">Política de privacidade</label><input class="input" id="st-priv" name="privacy_url" type="url" value="{{ site.privacy_url }}"></div>
+    </div>
+  </form>
+  {% include 'painel/_settings_bar.html' with form_id='form-escola' save_label='Salvar dados da escola' %}
+
+  {% elif section == 'pagamentos' %}
+  <section class="card card--pad stack gap-12" aria-labelledby="pg-status">
+    <div class="row row--between"><h2 class="card__title" id="pg-status">Status do pagamento</h2>{% if site.gateway_sandbox %}<span class="badge badge--md badge--warning">Modo de teste</span>{% endif %}</div>
+    <p class="text-2">Gateway: {% if site.gateway_name %}{{ site.gateway_name }}{% else %}[a definir]{% endif %}</p>
+    <p class="text-2">Nenhuma conta conectada. As vendas usam a simulação.</p>
+    <form method="post" action="{% url 'painel:settings' %}?secao=pagamentos" data-async>{% csrf_token %}<input type="hidden" name="section" value="pagamentos"><input type="hidden" name="action" value="test_connection"><button type="submit" class="btn btn--secondary self-start">Testar conexão</button></form>
+  </section>
+  <form class="card card--pad stack gap-16" id="form-pagamentos" method="post" action="{% url 'painel:settings' %}?secao=pagamentos" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}<input type="hidden" name="section" value="pagamentos">
+    <div class="field" data-secret data-dirty-label="chave da API"><span class="field__label" id="lbl-chave">Chave da API</span>
+      <div class="secret-field" data-secret-display>{% if gateway_key_last4 %}<span class="secret-field__value">Salva · termina em ••••{{ gateway_key_last4 }}</span>{% else %}<span class="secret-field__empty">Nenhuma chave salva</span>{% endif %}<button class="btn btn--secondary btn--xs" type="button" data-secret-replace>{% if gateway_key_last4 %}Substituir{% else %}Definir chave{% endif %}</button></div>
+      <input class="input" type="password" name="gateway_key" autocomplete="off" aria-labelledby="lbl-chave" data-secret-input hidden>
+      <span class="hint">Chaves salvas nunca aparecem completas. Para trocar, defina uma nova.</span></div>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-sandbox">Usar ambiente de testes</span><span class="text-13 muted">Nenhuma cobrança real enquanto estiver ligado.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if site.gateway_sandbox %}true{% else %}false{% endif %}" aria-labelledby="lbl-sandbox" data-switch-input="gateway_sandbox" data-dirty-label="ambiente de testes"></button><input type="hidden" name="gateway_sandbox" id="gateway_sandbox" value="{% if site.gateway_sandbox %}1{% else %}0{% endif %}"></div>
+  </form>
+  {% include 'painel/_settings_bar.html' with form_id='form-pagamentos' save_label='Salvar pagamentos' %}
+
+  {% elif section == 'emails' %}
+  <form class="card card--pad stack gap-16" id="form-emails" method="post" action="{% url 'painel:settings' %}?secao=emails" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}<input type="hidden" name="section" value="emails">
+    <h2 class="card__title">E-mails da plataforma</h2>
+    <div class="form-grid form-grid--200">
+      <div class="field" data-dirty-label="nome do remetente"><label class="field__label" for="em-name">Nome do remetente</label><input class="input" id="em-name" name="email_from_name" value="{{ site.email_from_name }}" maxlength="80"></div>
+      <div class="field" data-dirty-label="e-mail do remetente"><label class="field__label" for="em-from">E-mail do remetente</label><input class="input" id="em-from" name="email_from" type="email" value="{{ site.email_from }}"></div>
+      <div class="field" data-dirty-label="servidor"><label class="field__label" for="em-host">Servidor SMTP</label><input class="input" id="em-host" name="email_host" value="{{ site.email_host }}"></div>
+      <div class="field" data-dirty-label="porta"><label class="field__label" for="em-port">Porta</label><input class="input" id="em-port" name="email_port" inputmode="numeric" value="{{ site.email_port }}"></div>
+      <div class="field" data-dirty-label="usuário"><label class="field__label" for="em-user">Usuário</label><input class="input" id="em-user" name="email_username" value="{{ site.email_username }}" autocomplete="off"></div>
+      <div class="field" data-dirty-label="senha"><label class="field__label" for="em-pass">Senha</label><input class="input" id="em-pass" name="email_password" type="password" autocomplete="new-password" placeholder="{% if email_password_set %}Senha salva. Deixe em branco para manter.{% endif %}"></div>
+    </div>
+    <div class="switch-row"><span class="stack gap-2"><span class="fw-600" id="lbl-tls">Usar TLS</span><span class="text-13 muted">Conexão segura com o servidor.</span></span><button type="button" class="switch" role="switch" aria-checked="{% if site.email_use_tls %}true{% else %}false{% endif %}" aria-labelledby="lbl-tls" data-switch-input="email_use_tls" data-dirty-label="TLS"></button><input type="hidden" name="email_use_tls" id="email_use_tls" value="{% if site.email_use_tls %}1{% else %}0{% endif %}"></div>
+    <button type="submit" class="btn btn--secondary self-start" name="action" value="test_email">Enviar e-mail de teste</button>
+  </form>
+  {% include 'painel/_settings_bar.html' with form_id='form-emails' save_label='Salvar e-mails' %}
+
+  {% elif section == 'certificado' %}
+  <form class="card card--pad stack gap-16" id="form-certificado" method="post" enctype="multipart/form-data" action="{% url 'painel:settings' %}?secao=certificado" data-dirty-form data-dirtybar="dirtybar" data-async>
+    {% csrf_token %}<input type="hidden" name="section" value="certificado">
+    <h2 class="card__title">Responsável técnico</h2>
+    <div class="form-grid form-grid--200">
+      <div class="field" data-dirty-label="nome do responsável"><label class="field__label" for="ce-name">Nome</label><input class="input" id="ce-name" name="signer_name" value="{{ site.signer_name }}" maxlength="120"></div>
+      <div class="field" data-dirty-label="cargo"><label class="field__label" for="ce-role">Cargo</label><input class="input" id="ce-role" name="signer_role" value="{{ site.signer_role }}" maxlength="120"></div>
+      <div class="field" data-dirty-label="registro"><label class="field__label" for="ce-reg">Registro</label><input class="input" id="ce-reg" name="signer_registration" value="{{ site.signer_registration }}" maxlength="60"><span class="hint">Por exemplo, o número no conselho profissional.</span></div>
+    </div>
+    <div class="field" data-dirty-label="assinatura"><span class="field__label">Imagem da assinatura</span>
+      <label class="btn btn--secondary self-start" for="ce-sign">Enviar assinatura</label><input class="sr-only" type="file" id="ce-sign" name="signature_image" accept="image/*">
+      <span class="hint">PNG com fundo transparente.</span></div>
+    <div class="stack gap-4" aria-label="Prévia do rodapé do certificado">
+      <span class="field__label">Prévia do rodapé</span>
+      <div class="card card--pad-sm stack gap-4">
+        {% if site.signature_image %}<img src="{{ site.signature_image.url }}" alt="Assinatura atual" class="signature-preview">{% endif %}
+        <span class="fw-600">{% if site.signer_name %}{{ site.signer_name }}{% else %}<span class="text-danger">Responsável técnico ainda não definido.</span>{% endif %}</span>
+        {% if site.signer_role or site.signer_registration %}<span class="text-13 muted">{{ site.signer_role }}{% if site.signer_role and site.signer_registration %} · {% endif %}{{ site.signer_registration }}</span>{% endif %}
+      </div>
+    </div>
+  </form>
+  {% include 'painel/_settings_bar.html' with form_id='form-certificado' save_label='Salvar certificado' %}
+
+  {% else %}
+  <section class="card card--pad stack gap-16" aria-labelledby="eq-title">
+    <div class="row row--between gap-12"><h2 class="card__title" id="eq-title">Equipe com acesso ao painel</h2><button type="button" class="btn btn--primary btn--sm" data-dialog-open="dlg-invite">Convidar pessoa</button></div>
+    <ul class="list-plain stack gap-12">
+      {% for member in members %}
+      <li class="row gap-12">
+        <span class="avatar avatar--32 avatar--gray" aria-hidden="true">{{ member.display_name|iniciais }}</span>
+        <span class="stack grow"><span class="fw-600">{{ member.display_name }}</span><span class="text-13 muted">{{ member.email }}</span></span>
+        {% if member.is_owner %}<span class="badge badge--blue">Dono</span>
+        {% else %}
+        <form method="post" action="{% url 'painel:team_role' member.id %}" data-async data-autosubmit>{% csrf_token %}
+          <label class="sr-only" for="role-{{ member.id }}">Papel de {{ member.display_name }}</label>
+          <select class="select" id="role-{{ member.id }}" name="role">{% for value, label in roles %}<option value="{{ value }}"{% if member.role == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></form>
+        {% if member.id != request.user.id %}<button type="button" class="btn btn--link-danger" data-dialog-open="dlg-remove-{{ member.id }}">Remover</button>{% endif %}
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="hint">Instrutor edita cursos e responde dúvidas. Não vê pedidos nem configurações.</p>
+  </section>
+
+  <dialog class="dialog dialog--520 dialog--modal" id="dlg-invite" aria-labelledby="dlg-invite-t">
+    <form method="post" action="{% url 'painel:team_invite' %}" class="dialog__body" data-async>{% csrf_token %}
+      <span class="dialog__eyebrow">Criar</span><h2 class="dialog__title" id="dlg-invite-t">Convidar pessoa</h2>
+      <div class="field"><label class="field__label" for="iv-email">E-mail</label><input class="input" id="iv-email" name="email" type="email" required autofocus></div>
+      <div class="field"><label class="field__label" for="iv-role">Papel</label><select class="select" id="iv-role" name="role">{% for value, label in roles %}<option value="{{ value }}"{% if value == 'CREATOR' %} selected{% endif %}>{{ label }}</option>{% endfor %}</select><span class="hint">A pessoa recebe um link para criar a senha.</span></div>
+      <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--primary">Convidar</button></div>
+    </form>
+  </dialog>
+  {% for member in members %}{% if not member.is_owner and member.id != request.user.id %}
+  <dialog class="dialog dialog--520 dialog--modal dialog--warn" id="dlg-remove-{{ member.id }}" aria-labelledby="dlg-remove-{{ member.id }}-t">
+    <form method="post" action="{% url 'painel:team_remove' member.id %}" class="dialog__body" data-async>{% csrf_token %}
+      <span class="dialog__eyebrow">Afeta pessoas</span><h2 class="dialog__title" id="dlg-remove-{{ member.id }}-t">Remover {{ member.display_name }} da equipe?</h2>
+      <p class="dialog__text">Perde o acesso ao painel na hora. O que essa pessoa criou continua no lugar.</p>
+      <div class="dialog__actions"><button type="button" class="btn btn--quiet" data-dialog-close>Cancelar</button><button type="submit" class="btn btn--danger">Remover da equipe</button></div>
+    </form>
+  </dialog>
+  {% endif %}{% endfor %}
+  {% endif %}
+
+  </div>
+</div>
+{% endblock %}

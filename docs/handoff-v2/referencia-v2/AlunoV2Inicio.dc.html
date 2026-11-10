@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Início · Aluno CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+svg{flex:none}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.bok{background:#E9F6EE;border-color:#B7E0C5;color:#145C33}.bok:hover{background:#DDF1E4;color:#145C33}
+.bd{background:#FFFFFF;border-color:#F3B8B2;color:#B42318}.bd:hover{background:#FDECEC;color:#8A1C1C}
+.sm{min-height:36px;padding:0 12px;font-size:13px}
+.bi{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:#3A4556;cursor:pointer;position:relative;flex:none}
+.bi:hover{background:#EEF1F5;color:#0F1B2D}
+.nl{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:#3A4556;font-weight:500;text-decoration:none}
+.nl:hover{background:#F4F6F9;color:#0F1B2D}.nl[aria-current]{background:#E8F2FC;color:#034C8C;font-weight:600}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.ok{color:#145C33;background:#E9F6EE}.warn{color:#6B4500;background:#FFF6E5}.bad{color:#8A1C1C;background:#FDECEC}.blue{color:#034C8C;background:#E8F2FC}.gray{color:#3A4556;background:#EEF1F5}.teal{color:#0E5A66;background:#E3F4F6}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.seg{min-height:36px;padding:0 14px;border:0;border-radius:8px;background:transparent;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.seg[aria-pressed="true"]{background:#FFFFFF;color:#0F1B2D;box-shadow:0 1px 2px rgba(15,27,45,.12)}
+.tab{min-height:44px;padding:0 4px;border:0;border-bottom:2px solid transparent;background:transparent;color:#5B6472;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:#0B63C4;border-bottom-color:#0B63C4}
+.chip{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #C9D3DF;background:#FFFFFF;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip[aria-pressed="true"]{background:#0F1B2D;border-color:#0F1B2D;color:#FFFFFF}
+.in{width:100%;min-height:44px;padding:0 12px;border:1px solid #C9D3DF;border-radius:10px;background:#FFFFFF;font:inherit;font-size:15px;color:#0F1B2D;box-sizing:border-box}
+.lbl{font-size:14px;font-weight:600;color:#0F1B2D}
+.hint{font-size:13px;color:#5B6472}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;color:#0F1B2D;text-decoration:none;font-size:14px;border:0;background:none;font:inherit;width:100%;text-align:left;cursor:pointer;box-sizing:border-box}
+.menu-item:hover{background:#F4F6F9;color:#0F1B2D}
+.row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-top:1px solid #EEF1F5;color:#0F1B2D;text-decoration:none}
+.row:hover{background:#F8FAFC;color:#0F1B2D}
+.h2{margin:0;font-family:'Montserrat',sans-serif;font-weight:700;font-size:20px}
+.thumb{display:flex;align-items:flex-end;padding:14px;box-sizing:border-box;color:#FFFFFF;font-family:'Montserrat',sans-serif;font-weight:800}
+.bar{height:6px;border-radius:999px;background:#E3E8EF;overflow:hidden}.bar>span{display:block;height:100%;background:#0099FF;border-radius:999px}
+.sw{width:44px;height:26px;border-radius:999px;border:0;background:#C9D3DF;position:relative;cursor:pointer;flex:none;padding:0}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:#FFFFFF;transition:left .15s}
+.sw[aria-checked="true"]{background:#0B63C4}.sw[aria-checked="true"]::after{left:21px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+<aside style="flex: 1 1 248px; background: #FFFFFF; border-right: 1px solid #E3E8EF; padding: 24px 18px; box-sizing: border-box; display: flex; flex-direction: column; gap: 28px">
+<a href="AlunoV2Inicio.dc.html" style="text-decoration: none; display: flex; flex-direction: column; gap: 2px; padding: 0 8px">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: 0.02em; color: #034C8C">CETREMER</span>
+<span style="font-size: 12px; color: #5B6472">Centro de Treinamento em Emergência</span>
+</a>
+<nav aria-label="Menu principal" style="display: flex; flex-direction: column; gap: 4px">
+<a class="nl" href="AlunoV2Inicio.dc.html" aria-current="page"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<a class="nl" href="AlunoV2AoVivo.dc.html"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="M16 10l6-3v10l-6-3"></path></svg>Aulas ao vivo<span class="pill warn" style="margin-left: auto; padding: 2px 8px">Qui</span></a>
+<a class="nl" href="AlunoV2Comunidade.dc.html"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="nb" aria-label="2 respostas novas">2</span></a>
+<a class="nl" href="AlunoV2Certificados.dc.html"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"></circle><path d="M8.5 14L7 22l5-3 5 3-1.5-8"></path></svg>Certificados<span class="nb" aria-label="1 certificado pronto para emitir">1</span></a>
+<a class="nl" href="AlunoV2Conta.dc.html"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Minha conta</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px">
+<div style="padding: 14px; border-radius: 12px; background: #F4F6F9; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Seu progresso</span>
+<span style="font-size: 14px; font-weight: 600">2 de 5 aulas concluídas</span>
+<div class="bar"><span style="width: 40%"></span></div>
+</div>
+<a href="https://wa.me/5567996494740" class="b bs" style="justify-content: flex-start"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 0 1 5 .3c0 1.7-2.5 2.2-2.5 3.7M12 17v.5"></path></svg>Ajuda pelo WhatsApp</a>
+</div>
+</aside>
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; position: relative">
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 40px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF; position: relative; z-index: 6">
+<div style="display: flex; flex-direction: column; min-width: 0">
+<nav aria-label="Você está em" style="font-size: 13px; color: #5B6472"><span>Área do aluno</span></nav>
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 20px">Início</span>
+</div>
+<div style="display: flex; align-items: center; gap: 8px">
+<button type="button" onClick="{{ openSearch }}" style="display: inline-flex; align-items: center; gap: 10px; min-width: 300px; min-height: 42px; padding: 0 10px 0 12px; border: 1px solid #E3E8EF; border-radius: 10px; background: #F8FAFC; color: #5B6472; font: inherit; font-size: 14px; cursor: pointer"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; text-align: left">Buscar aula, curso ou dúvida</span><span class="kbd">Ctrl K</span></button>
+<div style="position: relative">
+<button type="button" class="bi" aria-label="Avisos" aria-haspopup="true" aria-expanded="{{ notifOpen }}" onClick="{{ toggleNotif }}"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg><sc-if value="{{ hasUnread }}" hint-placeholder-val="{{ true }}"><span style="position: absolute; top: 4px; right: 3px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #B42318; color: #FFFFFF; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-sizing: border-box; border: 2px solid #FFFFFF">{{ unread }}</span></sc-if></button>
+<sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-label="Avisos" style="position: absolute; right: 0; top: 50px; width: 380px; background: #FFFFFF; border: 1px solid #E3E8EF; border-radius: 14px; box-shadow: 0 16px 40px rgba(15,27,45,.18); overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #EEF1F5"><span style="font-weight: 700">Avisos</span><button type="button" class="b bg sm" onClick="{{ markRead }}">Marcar todos como lidos</button></div>
+<sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+<a href="{{ n.href }}" style="display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #EEF1F5; text-decoration: none; color: #0F1B2D; background: {{ n.bg }}">
+<span style="width: 8px; height: 8px; margin-top: 7px; border-radius: 999px; background: {{ n.dot }}; flex: none"></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">{{ n.title }}</span><span style="font-size: 13px; color: #5B6472">{{ n.meta }}</span></span>
+</a>
+</sc-for>
+<a href="AlunoV2Conta.dc.html" style="display: block; padding: 12px 16px; font-size: 13px; font-weight: 600; text-decoration: none">Escolher quais avisos recebo por e-mail</a>
+</div>
+</sc-if>
+</div>
+<div style="position: relative">
+<button type="button" aria-label="Menu da conta" aria-haspopup="menu" aria-expanded="{{ userOpen }}" onClick="{{ toggleUser }}" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 8px 0 4px; border: 1px solid #E3E8EF; border-radius: 999px; background: #FFFFFF; font: inherit; cursor: pointer; color: #0F1B2D">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #034C8C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700">JS</span>
+<span style="font-size: 14px; font-weight: 600">Jane</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5B6472" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{ userOpen }}" hint-placeholder-val="{{ false }}">
+<div role="menu" style="position: absolute; right: 0; top: 52px; width: 260px; padding: 6px; background: #FFFFFF; border: 1px solid #E3E8EF; border-radius: 12px; box-shadow: 0 12px 32px rgba(15,27,45,.16)">
+<div style="padding: 10px 12px 12px; border-bottom: 1px solid #EEF1F5; margin-bottom: 4px; display: flex; flex-direction: column"><span style="font-weight: 600">Jane Student</span><span style="font-size: 13px; color: #5B6472">jane@student.com</span></div>
+<a role="menuitem" class="menu-item" href="AlunoV2Conta.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>Minha conta</a>
+<a role="menuitem" class="menu-item" href="AlunoV2Conta.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"></path><path d="M9 8h6M9 12h6"></path></svg>Pedidos e acessos</a>
+<a role="menuitem" class="menu-item" href="https://wa.me/5567996494740"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.5 9.5a2.5 2.5 0 0 1 5 .3c0 1.7-2.5 2.2-2.5 3.7M12 17v.5"></path></svg>Ajuda pelo WhatsApp</a>
+<div style="height: 1px; background: #EEF1F5; margin: 4px 0"></div>
+<a role="menuitem" class="menu-item" href="Login.dc.html" style="color: #B42318"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4"></path><path d="M10 17l-5-5 5-5M5 12h11"></path></svg>Sair</a>
+</div>
+</sc-if>
+</div>
+</div>
+</header>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+<div role="status" style="position: absolute; top: 92px; right: 32px; z-index: 30; display: flex; align-items: center; gap: 12px; min-width: 320px; max-width: 440px; padding: 12px 12px 12px 16px; border-radius: 12px; background: #0F1B2D; color: #FFFFFF; box-shadow: 0 16px 40px rgba(15,27,45,.28)">
+<svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5FD08A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>
+<span style="flex: 1; font-size: 14px; font-weight: 500">{{ toastMsg }}</span>
+<sc-if value="{{ hasUndo }}" hint-placeholder-val="{{ false }}"><button type="button" onClick="{{ undo }}" style="min-height: 34px; padding: 0 10px; border: 0; border-radius: 8px; background: rgba(255,255,255,.12); color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer">Desfazer</button></sc-if>
+<button type="button" aria-label="Fechar aviso" onClick="{{ closeToast }}" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #C9D3DF; cursor: pointer; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-if>
+<sc-if value="{{ searchOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 90px">
+<button type="button" aria-label="Fechar busca" onClick="{{ closeSearch }}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(15,27,45,.35); cursor: default"></button>
+<div role="dialog" aria-label="Buscar" style="position: relative; width: 640px; max-width: calc(100% - 32px); background: #FFFFFF; border-radius: 16px; box-shadow: 0 24px 60px rgba(15,27,45,.3); overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid #EEF1F5"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5B6472" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg><span style="flex: 1; font-size: 16px; color: #0F1B2D">compress<span style="border-left: 2px solid #0B63C4; margin-left: 1px"></span></span><span class="kbd">Esc</span></div>
+<div style="padding: 8px; display: flex; flex-direction: column">
+<span style="padding: 8px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Aulas</span>
+<a class="menu-item" href="AlunoV2Aula.dc.html" style="background: #E8F2FC"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polygon points="10 8.5 15.5 12 10 15.5 10 8.5"></polygon></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Compressões Torácicas em Adultos</span><span style="font-size: 13px; color: #5B6472">BLS · Módulo 1 · Aula 2 · você parou em 03:12</span></span><span class="kbd" style="margin-left: auto">Enter</span></a>
+<span style="padding: 12px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Dúvidas na comunidade</span>
+<a class="menu-item" href="AlunoV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">Profundidade da compressão em adulto obeso</span><span style="font-size: 13px; color: #5B6472">BLS · respondida pelo instrutor</span></span></a>
+<span style="padding: 12px 12px 4px; font-size: 12px; font-weight: 600; color: #5B6472; text-transform: uppercase; letter-spacing: .06em">Materiais</span>
+<a class="menu-item" href="AlunoV2Curso.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg><span style="display: flex; flex-direction: column"><span style="font-weight: 600">AHA BLS Algoritmo de PCR em Adultos (PDF)</span><span style="font-size: 13px; color: #5B6472">BLS · Aula 1</span></span></a>
+</div>
+<div style="padding: 10px 18px; border-top: 1px solid #EEF1F5; font-size: 12px; color: #5B6472; display: flex; gap: 16px"><span><span class="kbd">↑</span> <span class="kbd">↓</span> navegar</span><span><span class="kbd">Enter</span> abrir</span><span>Busca só nos cursos que você tem</span></div>
+</div>
+</div>
+</sc-if>
+<main style="padding: 32px 40px 56px; display: flex; flex-direction: column; gap: 32px; max-width: 1200px; width: 100%; box-sizing: border-box">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 30px; letter-spacing: -0.01em">Boa noite, Jane</h1>
+<p style="margin: 0; color: #5B6472">2 cursos na sua conta · 1 concluído · 1 aula ao vivo esta semana</p>
+</div>
+</div>
+
+<section aria-labelledby="cont" class="card" style="display: flex; flex-wrap: wrap; gap: 28px; padding: 24px">
+<div class="thumb" style="position: relative; flex: 1 1 320px; max-width: 420px; aspect-ratio: 16 / 9; border-radius: 12px; background: #034C8C; font-size: 28px">
+<span>BLS</span>
+<span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center"><span style="width: 64px; height: 64px; border-radius: 999px; background: #FFFFFF; color: #0B63C4; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="#0B63C4"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg></span></span>
+<span style="position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.25)"><span style="display: block; width: 45%; height: 100%; background: #0099FF"></span></span>
+<span style="position: absolute; right: 12px; top: 12px; font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: rgba(15,27,45,.7)">Parou em 03:12 de 07:00</span>
+</div>
+<div style="flex: 999 1 360px; display: flex; flex-direction: column; gap: 12px; justify-content: center">
+<span id="cont" style="font-size: 12px; font-weight: 700; letter-spacing: .08em; color: #0B63C4; text-transform: uppercase">Continue de onde parou</span>
+<h2 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 24px">Compressões Torácicas em Adultos</h2>
+<span style="color: #3A4556">BLS · Suporte Básico de Vida · Módulo 1 · Aula 2 de 4</span>
+<div style="display: flex; align-items: center; gap: 12px; max-width: 420px"><div class="bar" style="flex: 1"><span style="width: 25%"></span></div><span style="font-size: 13px; color: #5B6472; white-space: nowrap">25% do curso · 1 de 4 aulas</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px">
+<a class="b bp" href="AlunoV2Aula.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="8 5 19 12 8 19 8 5"></polygon></svg>Continuar aula</a>
+<a class="b bs" href="AlunoV2Curso.dc.html">Ver conteúdo do curso</a>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="passos" class="card" style="overflow: hidden">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px">
+<h2 id="passos" class="h2" style="font-size: 18px">Próximos passos</h2>
+<span class="hint">{{ stepsLabel }}</span>
+</div>
+<sc-for list="{{ steps }}" as="t" hint-placeholder-count="3">
+<div class="row" style="padding: 14px 20px">
+<span style="width: 40px; height: 40px; border-radius: 10px; background: {{ t.bg }}; color: {{ t.color }}; display: flex; align-items: center; justify-content: center; flex: none">{{ t.icon }}</span>
+<span style="flex: 1; display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600">{{ t.title }}</span><span class="hint">{{ t.meta }}</span></span>
+<span class="pill {{ t.pill }}">{{ t.pillText }}</span>
+<a class="b bs sm" href="{{ t.href }}">{{ t.cta }}</a>
+<button type="button" class="bi" aria-label="Dispensar este aviso" onClick="{{ t.dismiss }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+</sc-for>
+<sc-if value="{{ noSteps }}" hint-placeholder-val="{{ false }}">
+<div style="padding: 28px 20px; border-top: 1px solid #EEF1F5; display: flex; align-items: center; gap: 12px; color: #145C33"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#145C33" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg><span style="font-weight: 600">Tudo em dia. Bons estudos!</span></div>
+</sc-if>
+</section>
+
+<section aria-labelledby="meus" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<h2 id="meus" class="h2">Meus cursos</h2>
+<div role="group" aria-label="Filtrar cursos" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #E9EDF2">
+<sc-for list="{{ filters }}" as="f" hint-placeholder-count="4">
+<button type="button" class="seg" aria-pressed="{{ f.pressed }}" onClick="{{ f.pick }}">{{ f.label }}</button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+<sc-for list="{{ courses }}" as="c" hint-placeholder-count="2">
+<article class="card" style="flex: 0 1 340px; overflow: hidden; display: flex; flex-direction: column">
+<a href="{{ c.page }}" class="thumb" style="aspect-ratio: 16 / 9; background: {{ c.color }}; font-size: 22px; text-decoration: none; position: relative">{{ c.short }}
+<span class="pill {{ c.statusPill }}" style="position: absolute; top: 12px; right: 12px; font-family: 'Inter', sans-serif">{{ c.status }}</span></a>
+<div style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1">
+<span class="pill {{ c.catPill }}" style="align-self: flex-start">{{ c.cat }}</span>
+<a href="{{ c.page }}" style="font-weight: 700; font-size: 16px; color: #0F1B2D; text-decoration: none">{{ c.title }}</a>
+<div class="bar"><span style="width: {{ c.pct }}"></span></div>
+<span class="hint">{{ c.meta }}</span>
+<div style="display: flex; gap: 8px; margin-top: auto; padding-top: 6px">
+<a class="b bp sm" href="AlunoV2Aula.dc.html" style="flex: 1">{{ c.cta }}</a>
+<a class="b bs sm" href="{{ c.page }}">Conteúdo</a>
+</div>
+</div>
+</article>
+</sc-for>
+<sc-if value="{{ emptyCourses }}" hint-placeholder-val="{{ false }}">
+<div class="card" style="flex: 1 1 100%; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; border-style: dashed">
+<span style="width: 52px; height: 52px; border-radius: 999px; background: #E8F2FC; display: flex; align-items: center; justify-content: center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0B63C4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg></span>
+<span style="font-weight: 700; font-size: 16px">Nenhum curso por começar</span>
+<span class="hint" style="max-width: 420px">Você já começou todos os seus cursos. Quando comprar um novo, ele aparece aqui.</span>
+<a class="b bs sm" href="AlunoV2Aula.dc.html">Continuar o BLS</a>
+</div>
+</sc-if>
+</div>
+</section>
+
+<section aria-labelledby="outros" style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 id="outros" class="h2">Outros treinamentos CETREMER</h2>
+<span class="hint">Veja o conteúdo completo antes de comprar. Ao comprar, o curso aparece aqui na hora.</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+<sc-for list="{{ shop }}" as="p" hint-placeholder-count="3">
+<article class="card" style="flex: 0 1 340px; overflow: hidden; display: flex; flex-direction: column">
+<div class="thumb" style="aspect-ratio: 16 / 9; background: {{ p.color }}; font-size: 22px; position: relative">{{ p.short }}<span class="pill gray" style="position: absolute; top: 12px; right: 12px; font-family: 'Inter', sans-serif; background: #FFFFFF"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>Não adquirido</span></div>
+<div style="padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1">
+<span class="pill {{ p.catPill }}" style="align-self: flex-start">{{ p.cat }}</span>
+<span style="font-weight: 700; font-size: 16px">{{ p.title }}</span>
+<span class="hint">{{ p.meta }}</span>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px">
+<span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 20px">{{ p.price }}</span>
+<a class="b bs sm" href="CursoPreview.dc.html">Conhecer curso</a>
+</div>
+</div>
+</article>
+</sc-for>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1800}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = Object.assign({ notif: false, user: false, search: false, read: false, toast: null }, { filter: 'todos', dismissed: {} });
+  }
+  flash(msg, undo) {
+    this.setState({ toast: { msg, undo: undo || null } });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: null }), 6000);
+  }
+  renderVals() {
+    const s = this.state;
+    const notifs = [
+      { title: 'O instrutor respondeu sua dúvida', meta: 'BLS · Profundidade da compressão · há 2 h', href: 'AlunoV2Comunidade.dc.html' },
+      { title: 'Aula ao vivo na quinta, 12/11, às 20h', meta: 'Plantão Sem GPT · lembrete 1 h antes por e-mail', href: 'AlunoV2AoVivo.dc.html' },
+      { title: 'Seu certificado está pronto para emitir', meta: 'Plantão Sem GPT · confira nome e CPF', href: 'AlunoV2Certificados.dc.html' }
+    ].map(n => Object.assign(n, { bg: s.read ? '#FFFFFF' : '#F5F9FE', dot: s.read ? '#E3E8EF' : '#0B63C4' }));
+    const shell = {
+      notifOpen: s.notif, userOpen: s.user, searchOpen: s.search,
+      unread: s.read ? 0 : 3, hasUnread: !s.read, notifs,
+      toggleNotif: () => this.setState({ notif: !s.notif, user: false }),
+      toggleUser: () => this.setState({ user: !s.user, notif: false }),
+      openSearch: () => this.setState({ search: true, notif: false, user: false }),
+      closeSearch: () => this.setState({ search: false }),
+      markRead: () => { this.setState({ read: true, notif: false }); this.flash('Avisos marcados como lidos', () => this.setState({ read: false })); },
+      hasToast: !!s.toast, toastMsg: s.toast ? s.toast.msg : '', hasUndo: !!(s.toast && s.toast.undo),
+      undo: () => { const u = s.toast && s.toast.undo; this.setState({ toast: null }); if (u) u(); },
+      closeToast: () => this.setState({ toast: null })
+    };
+    return Object.assign(shell, this.board(s));
+  }
+  board(s) {
+    const icon = (k) => k;
+    const allSteps = [
+      { id: 'cpf', title: 'Informe nome completo e CPF', meta: 'Sem isso o certificado não pode ser emitido. Leva 1 minuto.', pill: 'warn', pillText: 'Pendente', href: 'AlunoV2Conta.dc.html', cta: 'Completar dados', bg: '#FFF6E5', color: '#6B4500', icon: '!' },
+      { id: 'live', title: 'Aula ao vivo · Plantão Sem GPT', meta: 'Quinta, 12/11, das 20h às 21h30 (Brasília). O botão de entrar libera 15 min antes.', pill: 'blue', pillText: 'Em 2 dias', href: 'AlunoV2AoVivo.dc.html', cta: 'Ver detalhes', bg: '#E8F2FC', color: '#0B63C4', icon: '▶' },
+      { id: 'resp', title: 'O instrutor respondeu sua dúvida', meta: 'BLS · Profundidade da compressão em adulto obeso', pill: 'ok', pillText: 'Nova resposta', href: 'AlunoV2Comunidade.dc.html', cta: 'Ler resposta', bg: '#E9F6EE', color: '#145C33', icon: '✓' }
+    ];
+    const d = s.dismissed;
+    const steps = allSteps.filter(t => !d[t.id]).map(t => Object.assign({}, t, {
+      dismiss: () => {
+        this.setState({ dismissed: Object.assign({}, d, { [t.id]: true }) });
+        this.flash('Aviso dispensado', () => this.setState({ dismissed: Object.assign({}, d, { [t.id]: false }) }));
+      }
+    }));
+    const courses = [
+      { key: 'and', title: 'BLS · Suporte Básico de Vida', short: 'BLS', cat: 'Essenciais AHA', catPill: 'blue', color: '#034C8C', pct: '25%', meta: '1 de 4 aulas · visto há 2 dias', cta: 'Continuar', status: 'Em andamento', statusPill: 'blue', page: 'AlunoV2Curso.dc.html' },
+      { key: 'conc', title: 'Plantão Sem GPT', short: 'Plantão Sem GPT', cat: 'Especialidades médicas', catPill: 'teal', color: '#0F1B2D', pct: '100%', meta: 'Concluído · 1 aula · encontros ao vivo às quintas', cta: 'Rever aulas', status: 'Concluído', statusPill: 'ok', page: 'AlunoV2Curso.dc.html' }
+    ];
+    const opts = [['todos', 'Todos', 2], ['and', 'Em andamento', 1], ['nao', 'Não iniciados', 0], ['conc', 'Concluídos', 1]];
+    const list = s.filter === 'todos' ? courses : courses.filter(c => c.key === s.filter);
+    return {
+      steps, noSteps: steps.length === 0,
+      stepsLabel: steps.length === 0 ? '' : (steps.length === 1 ? '1 item' : steps.length + ' itens'),
+      filters: opts.map(([id, label, n]) => ({ label: label + ' (' + n + ')', pressed: String(s.filter === id), pick: () => this.setState({ filter: id }) })),
+      courses: list, emptyCourses: list.length === 0,
+      shop: [
+        { title: 'ACLS · Suporte Avançado de Vida em Cardiologia', short: 'ACLS', cat: 'Essenciais AHA', catPill: 'blue', color: '#0B63C4', price: 'R$ 450,00', meta: '16h · certificado verificável' },
+        { title: 'PALS · Suporte Avançado de Vida em Pediatria', short: 'PALS', cat: 'Especialidades médicas', catPill: 'teal', color: '#0E5A66', price: 'R$ 500,00', meta: '16h · certificado verificável' },
+        { title: 'DEA e Primeiros Socorros para Leigos', short: 'DEA', cat: 'Para leigos', catPill: 'gray', color: '#3B4A5E', price: 'R$ 90,00', meta: '4h · para empresas e escolas' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

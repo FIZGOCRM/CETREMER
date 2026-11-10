@@ -1,0 +1,29 @@
+{% comment %}
+Lista de módulos e aulas do player (lateral e aba "Aulas" no celular).
+Contexto: modules, lesson (aula aberta), completed_ids, course. `suffix` deixa os ids únicos quando a lista aparece duas vezes na página.
+Só a primeira cópia (sem suffix) recebe os ids que o player.js atualiza (#status-dot-<id>).
+{% endcomment %}{% load cetremer ui %}
+{% for m in modules %}
+<div class="module">
+  <button type="button" class="module__toggle" aria-expanded="true" aria-controls="module-{{ m.id }}{{ suffix }}">
+    <span class="module__text">
+      <span class="module__title">Módulo {{ forloop.counter }} · {{ m.title }}</span>
+      <span class="module__count{% if m.done_count == m.total_count %} text-success{% endif %}" data-module-count="{{ m.id }}">{% if m.done_count == m.total_count %}Concluído{% else %}{{ m.done_count }} de {{ m.total_count|plural_pt:"aula,aulas" }}{% endif %}</span>
+    </span>
+    {% include 'partials/icon.html' with name='chevron-up' size=18 class='module__chevron' %}
+  </button>
+  <ul class="module__list" id="module-{{ m.id }}{{ suffix }}">
+    {% for l in m.lessons_list %}
+    <li>
+      <a class="lesson-item" href="{% url 'lesson_detail' course.slug l.id %}"{% if l.id == lesson.id %} aria-current="page"{% endif %}>
+        <span class="status-dot{% if l.id in completed_ids %} is-done{% endif %}{% if l.id == lesson.id %} is-current{% endif %}"{% if not suffix %} id="status-dot-{{ l.id }}"{% endif %} aria-hidden="true">{% include 'partials/icon.html' with name='check' size=13 stroke='3' class='icon--check' %}{% include 'partials/icon.html' with name='play' size=11 class='icon--play' %}</span>
+        <span class="lesson-item__text">
+          <span class="lesson-item__title">{{ l.position }}. {{ l.title }}</span>
+          <span class="lesson-item__meta"{% if not suffix %} data-lesson-meta="{{ l.id }}" data-duration="{{ l.duration_seconds|duracao }}"{% endif %}>{% if l.id == lesson.id %}Assistindo agora · {% elif l.id in completed_ids %}Concluída · {% endif %}{{ l.duration_seconds|duracao }}</span>
+        </span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>
+{% endfor %}

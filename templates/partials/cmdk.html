@@ -1,0 +1,10 @@
+{# Incluir UMA vez em base_aluno.html (search_url = url 'search') e base_admin.html (url 'painel:search'). #}
+<dialog class="cmdk" id="cmdk" data-search-url="{{ search_url }}" aria-label="Buscar">
+  <div class="cmdk__field">
+    {% include "partials/icon.html" with name="search" size=20 %}
+    <input class="cmdk__input" type="search" placeholder="{{ search_placeholder|default:'Buscar aula, curso ou dúvida' }}" aria-label="Buscar" autocomplete="off">
+    <span class="kbd">Esc</span>
+  </div>
+  <div class="cmdk__results" data-cmdk-results role="listbox" aria-label="Resultados"></div>
+  <div class="cmdk__foot"><span><span class="kbd">↑</span> <span class="kbd">↓</span> navegar</span><span><span class="kbd">Enter</span> abrir</span><span>{{ search_scope|default:"Busca só nos cursos que você tem" }}</span></div>
+</dialog>

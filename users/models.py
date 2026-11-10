@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
+from django.utils import timezone
 from django.dispatch import receiver
+from .validators import only_digits, validate_cpf
 
 # We will implement AbstractUser to override the default authentication model
 class User(AbstractUser):
@@ -16,6 +19,7 @@ class User(AbstractUser):
         default=Role.STUDENT
     )
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    pending_email = models.EmailField(blank=True)  # troca de e-mail aguardando confirmação no endereço novo
     bio = models.TextField(blank=True)
 
     def __str__(self):
@@ -27,11 +31,28 @@ class StudentProfile(models.Model):
     level = models.PositiveIntegerField(default=1)
     title = models.CharField(max_length=50, default='Novice')
     full_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Nome Completo")
-    cpf = models.CharField(max_length=14, blank=True, null=True, verbose_name="CPF")
+    cpf = models.CharField(max_length=11, blank=True, null=True, verbose_name="CPF")
     address = models.TextField(blank=True, null=True, verbose_name="Endereço")
+    display_name = models.CharField(max_length=40, blank=True)
+    whatsapp = models.CharField(max_length=20, blank=True)
+    notify_answers = models.BooleanField(default=True)
+    notify_live = models.BooleanField(default=True)
+    notify_certificate = models.BooleanField(default=True)
+    notify_marketing = models.BooleanField(default=False)
+    dismissed_steps = models.JSONField(default=list, blank=True)
+    staff_notes = models.TextField(blank=True)  # anotações internas da equipe (ficha do aluno, HANDOFF-v2 8.7)
+    first_access_at = models.DateTimeField(null=True, blank=True)
+    access_email_sent_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Student: {self.user.username} - Level {self.level}"
+
+    def save(self, *args, **kwargs):
+        if self.cpf:
+            self.cpf = validate_cpf(self.cpf)
+        else:
+            self.cpf = only_digits(self.cpf)
+        super().save(*args, **kwargs)
 
 class CreatorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='creator_profile')
@@ -56,13 +77,80 @@ class CreatorProfile(models.Model):
     ai_tutor_enabled = models.BooleanField(default=False, verbose_name="Ativar Tutor de IA?")
     certificate_signature_name = models.CharField(max_length=150, blank=True, null=True, verbose_name="Nome para Assinatura do Certificado")
     certificate_signature_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cargo da Assinatura")
+    notify_new_questions = models.BooleanField(default=False, verbose_name="Me avisar por e-mail a cada nova dúvida")
 
     def __str__(self):
         return f"Creator: {self.company_name or self.user.username}"
 
+
+class SiteSettings(models.Model):
+    school_name = models.CharField(max_length=80, default='CETREMER')
+    logo = models.ImageField(upload_to='site/', blank=True)
+    whatsapp = models.CharField(max_length=20, blank=True)
+    terms_url = models.URLField(blank=True)
+    privacy_url = models.URLField(blank=True)
+    access_period_text = models.CharField(max_length=120, blank=True)
+    gateway_name = models.CharField(max_length=30, blank=True)
+    gateway_key_encrypted = models.TextField(blank=True)
+    gateway_sandbox = models.BooleanField(default=True)
+    email_from_name = models.CharField(max_length=80, default='CETREMER')
+    email_from = models.EmailField(blank=True)
+    email_host = models.CharField(max_length=120, blank=True)
+    email_port = models.PositiveIntegerField(default=587)
+    email_username = models.CharField(max_length=120, blank=True)
+    email_password_encrypted = models.TextField(blank=True)
+    email_use_tls = models.BooleanField(default=True)
+    signer_name = models.CharField(max_length=120, blank=True)
+    signer_role = models.CharField(max_length=120, blank=True)
+    signer_registration = models.CharField(max_length=60, blank=True)  # registro profissional do responsável técnico (HANDOFF-v2 8.11)
+    signature_image = models.ImageField(upload_to='site/', blank=True)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @property
+    def whatsapp_url(self):
+        return f'https://wa.me/{self.whatsapp}' if self.whatsapp else ''
+
+    def __str__(self):
+        return self.school_name
+
+
+class Notification(models.Model):
+    KIND = [('answer', 'Resposta'), ('live', 'Aula ao vivo'), ('certificate', 'Certificado'),
+            ('module', 'Módulo liberado'), ('access', 'Acesso')]
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    kind = models.CharField(max_length=20, choices=KIND)
+    title = models.CharField(max_length=120)
+    meta = models.CharField(max_length=160, blank=True)
+    url = models.CharField(max_length=300)
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['user', 'read_at'])]
+
+    def __str__(self):
+        return f'{self.user_id}: {self.title}'
+
+
+class FirstAccessCode(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='first_access_code')
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+
+    def __str__(self):
+        return f'Primeiro acesso: {self.user_id}'
+
 # Signals to automatically create student or creator profiles upon user registration
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
+    if kwargs.get('raw'):
+        return
     if created:
         if instance.role == User.Role.STUDENT:
             StudentProfile.objects.create(user=instance)
@@ -71,3 +159,12 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.is_superuser:
             # Create a default creator profile for admin to manage items
             CreatorProfile.objects.create(user=instance, company_name="Admin Academy")
+
+
+@receiver(user_logged_in)
+def remember_first_access(sender, user, **kwargs):
+    """Guarda o primeiro login do aluno (ficha do aluno: "Primeiro acesso")."""
+    profile = getattr(user, 'student_profile', None)
+    if profile is not None and profile.first_access_at is None:
+        profile.first_access_at = timezone.now()
+        profile.save(update_fields=['first_access_at'])

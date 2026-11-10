@@ -1,0 +1,27 @@
+{% comment %}
+Menu lateral v2 do aluno. Substitui partials/sidebar_aluno.html.
+Contexto: student_shell (live_badge, community_unread, certificates_ready, lessons_done, lessons_total, lessons_pct).
+Ativo por request.resolver_match.url_name (mesma regra do v1).
+{% endcomment %}
+{% with u=request.resolver_match.url_name %}
+<aside class="sidebar" aria-label="Menu">
+  <a class="brand" href="{% url 'dashboard' %}"><span class="brand__name">{{ site.school_name }}</span><span class="brand__tag">Centro de Treinamento em Emergência</span></a>
+  <nav class="sidenav" aria-label="Menu principal">
+    <a class="sidenav__link" href="{% url 'dashboard' %}"{% if u == 'dashboard' or u == 'course_home' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="home" %}Início</a>
+    <a class="sidenav__link" href="{% url 'live_classes' %}"{% if u == 'live_classes' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="video" %}Aulas ao vivo{% if live_badge %}<span class="badge {% if live_badge.is_live %}badge--live{% else %}badge--warning{% endif %} sidenav__pill">{{ live_badge.label }}</span>{% endif %}</a>
+    <a class="sidenav__link" href="{% url 'community' %}"{% if u == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" %}Comunidade{% if community_unread %}<span class="sidenav__badge" aria-label="{{ community_unread }} respostas novas">{{ community_unread }}</span>{% endif %}</a>
+    <a class="sidenav__link" href="{% url 'certificates' %}"{% if u == 'certificates' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="award" %}Certificados{% if certificates_ready %}<span class="sidenav__badge" aria-label="{{ certificates_ready }} prontos para emitir">{{ certificates_ready }}</span>{% endif %}</a>
+    <a class="sidenav__link" href="{% url 'settings' %}"{% if u == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="user" %}Minha conta</a>
+  </nav>
+  <div class="sidebar__footer">
+    {% if lessons_total %}
+    <div class="help-card">
+      <span class="eyebrow muted">Seu progresso</span>
+      <span class="help-card__title">{{ lessons_done }} de {{ lessons_total }} aulas concluídas</span>
+      {% include "partials/progress.html" with value=lessons_pct label="Progresso geral" %}
+    </div>
+    {% endif %}
+    {% if site.whatsapp_url %}<a class="btn btn--secondary" href="{{ site.whatsapp_url }}" target="_blank" rel="noopener">{% include "partials/icon.html" with name="help" size=18 class="text-primary" %}Ajuda pelo WhatsApp</a>{% endif %}
+  </div>
+</aside>
+{% endwith %}

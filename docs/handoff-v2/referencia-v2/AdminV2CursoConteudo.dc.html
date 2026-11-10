@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>BLS · Conteúdo · Admin CETREMER</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Montserrat:wght@700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#0B63C4}a:hover{color:#034C8C}
+.b{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;white-space:nowrap;box-sizing:border-box}
+.bp{background:#0B63C4;color:#FFFFFF}.bp:hover{background:#034C8C;color:#FFFFFF}
+.bs{background:#FFFFFF;border-color:#C9D3DF;color:#0F1B2D}.bs:hover{background:#F8FAFC;color:#0F1B2D}
+.bg{background:transparent;color:#3A4556}.bg:hover{background:#EEF1F5;color:#0F1B2D}
+.bdt{background:transparent;color:#B42318}.bdt:hover{background:#FDECEC;color:#B42318}
+.bi{width:36px;min-height:36px;padding:0;border-radius:8px;border:1px solid transparent;background:transparent;color:#5B6472;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.bi:hover{background:#EEF1F5;color:#0F1B2D}
+.nl{display:flex;align-items:center;gap:12px;min-height:40px;padding:0 12px;border-radius:10px;color:#C9D3DF;font-size:14px;font-weight:500;text-decoration:none}
+.nl:hover{background:#1E2E45;color:#FFFFFF}.nl[aria-current]{background:#1E2E45;color:#FFFFFF;font-weight:600}
+.ng{padding:16px 12px 6px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9FB0C4}
+.nb{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#0B63C4;color:#FFFFFF;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box}
+.card{background:#FFFFFF;border:1px solid #E3E8EF;border-radius:14px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.kbd{font-size:12px;font-weight:600;color:#5B6472;border:1px solid #E3E8EF;border-radius:6px;padding:1px 6px;background:#F8FAFC}
+.tab{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 4px;border-bottom:2px solid transparent;color:#5B6472;font-size:14px;font-weight:600;text-decoration:none}
+.tab:hover{color:#0F1B2D}.tab[aria-current]{color:#0F1B2D;border-bottom-color:#0B63C4}
+.cnt{font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px;background:#EEF1F5;color:#3A4556}
+.lb{font-size:13px;font-weight:600;color:#0F1B2D}
+.in{width:100%;font:inherit;font-size:14px;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box}
+.ta{width:100%;font:inherit;font-size:14px;padding:10px 12px;border-radius:10px;border:1px solid #C9D3DF;background:#FFFFFF;color:#0F1B2D;box-sizing:border-box;resize:vertical}
+.row{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 8px;border-top:1px solid #EEF1F5;background:#FFFFFF}
+.row:hover{background:#F8FAFC}
+.row.sel{background:#E8F2FC;box-shadow:inset 3px 0 0 #0B63C4}
+.drag{width:28px;height:36px;border:0;background:none;color:#8A97A8;cursor:grab;display:flex;align-items:center;justify-content:center;flex:none}
+.seg{min-height:34px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:#3A4556;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.seg[aria-pressed="true"]{background:#FFFFFF;color:#0F1B2D;box-shadow:0 1px 2px rgba(15,27,45,.12)}
+.chk{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-top:1px solid #EEF1F5;font-size:14px;text-decoration:none;color:#0F1B2D}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; background: #F4F6F9; color: #0F1B2D; font-family: 'Inter', system-ui, sans-serif; font-size: 15px; line-height: 1.5; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<aside style="flex: 1 1 240px; max-width: 100%; background: #0F1B2D; padding: 20px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px">
+<a href="AdminV2Inicio.dc.html" style="display: flex; align-items: center; gap: 10px; padding: 4px 8px 12px; text-decoration: none">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 9px; background: #0B63C4; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 15px">C</span>
+<span style="display: flex; flex-direction: column; line-height: 1.2"><span style="font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; letter-spacing: .02em; color: #FFFFFF">CETREMER</span><span style="font-size: 12px; color: #9FB0C4">Painel administrativo</span></span>
+</a>
+<nav aria-label="Menu administrativo" style="display: flex; flex-direction: column; gap: 2px">
+<span class="ng">Visão geral</span>
+<a class="nl" href="AdminV2Inicio.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"></path><path d="M5 10v10h14V10"></path></svg>Início</a>
+<span class="ng">Conteúdo</span>
+<a class="nl" href="AdminV2Cursos.dc.html" aria-current="page"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg>Cursos</a>
+<span class="ng">Pessoas</span>
+<a class="nl" href="AdminV2Alunos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-6 7-6s7 2 7 6"></path><path d="M16 4a4 4 0 0 1 0 8M22 21c0-3-2-5-4-6"></path></svg>Alunos</a>
+<a class="nl" href="AdminV2Comunidade.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"></path></svg>Comunidade<span class="nb" aria-label="3 dúvidas sem resposta">3</span></a>
+<span class="ng">Vendas</span>
+<a class="nl" href="AdminV2Pedidos.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path></svg>Pedidos</a>
+</nav>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding-top: 16px">
+<a class="nl" href="AdminV2Config.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"></path></svg>Configurações</a>
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; border: 1px solid #2D3F58">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 999px; background: #1E2E45; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex: none">AD</span>
+<span style="display: flex; flex-direction: column; min-width: 0; line-height: 1.3"><span style="color: #FFFFFF; font-size: 14px; font-weight: 600">Administrador</span><span style="color: #9FB0C4; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">admin@cetremer.com.br</span></span>
+</div>
+</div>
+</aside>
+
+<div style="flex: 999 1 640px; min-width: 0; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 32px; background: #FFFFFF; border-bottom: 1px solid #E3E8EF">
+<nav aria-label="Trilha" style="flex: 1 1 200px; display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: #5B6472"><a href="AdminV2Cursos.dc.html" style="color: #5B6472">Cursos</a><span aria-hidden="true">/</span><span style="color: #0F1B2D; font-weight: 600">BLS · Suporte Básico de Vida</span></nav>
+<label style="flex: 0 1 320px; display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #E3E8EF; background: #F8FAFC; color: #5B6472; box-sizing: border-box">
+<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Buscar no painel</span>
+<input type="search" placeholder="Buscar aluno, curso ou pedido" style="flex: 1; min-width: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: #0F1B2D; outline: none">
+<span class="kbd">Ctrl K</span>
+</label>
+<a class="b bp" href="AdminV2Padroes.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Criar</a>
+</header>
+
+<section style="background: #FFFFFF; border-bottom: 1px solid #E3E8EF; padding: 20px 32px 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+<div style="display: flex; align-items: center; gap: 16px; min-width: 0">
+<span aria-hidden="true" style="width: 72px; height: 48px; border-radius: 10px; background: #034C8C; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 16px; flex: none">BLS</span>
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<h1 style="margin: 0; font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; line-height: 1.25">BLS · Suporte Básico de Vida</h1>
+<span class="pill" style="color: #145C33; background: #E9F6EE"><span aria-hidden="true" style="width: 6px; height: 6px; border-radius: 999px; background: #1F8A4C"></span>Publicado</span>
+</div>
+<span style="font-size: 13px; color: #5B6472">2 módulos · 4 aulas · 28 min de vídeo · 3 alunos · R$ 150,00</span>
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a class="b bs" href="Aula.dc.html"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg>Ver como aluno</a>
+<a class="b bs" href="CursoPreview.dc.html">Página de venda ao vivo</a>
+</div>
+</div>
+<nav aria-label="Seções do curso" style="display: flex; gap: 28px; margin-top: 16px; overflow-x: auto">
+<a class="tab" href="AdminV2CursoConteudo.dc.html" aria-current="page">Conteúdo</a>
+<a class="tab" href="AdminV2CursoVenda.dc.html">Página de venda</a>
+<a class="tab" href="AdminV2CursoConfig.dc.html">Configurações</a>
+<a class="tab" href="AdminV2Alunos.dc.html">Alunos<span class="cnt">3</span></a>
+</nav>
+</section>
+
+<main style="padding: 24px 32px 48px; display: flex; flex-wrap: wrap; align-items: flex-start; gap: 24px; max-width: 1280px; width: 100%; box-sizing: border-box">
+
+<div style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<p style="margin: 0; font-size: 14px; color: #5B6472">Arraste pela alça para reordenar. A ordem salva sozinha.</p>
+<div style="display: flex; gap: 8px">
+<button type="button" class="b bg" onClick="{{ collapseAll }}">{{ collapseLabel }}</button>
+<button type="button" class="b bs"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Módulo</button>
+</div>
+</div>
+
+<sc-for list="{{ modules }}" as="m" hint-placeholder-count="2">
+<section class="card" style="overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 8px; background: #F8FAFC">
+<button type="button" class="drag" aria-label="Mover módulo {{ m.title }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></button>
+<button type="button" class="bi" aria-expanded="{{ m.open }}" aria-label="Abrir ou fechar módulo" onClick="{{ m.toggle }}" style="transform: {{ m.rotate }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></button>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">{{ m.label }}</h2>
+<span style="font-size: 12px; color: #5B6472">{{ m.summary }}</span>
+</div>
+<button type="button" class="bi" aria-label="Renomear módulo"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button>
+<button type="button" class="bi" aria-label="Mais ações do módulo"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="19" cy="12" r="1.8"></circle></svg></button>
+</div>
+<sc-if value="{{ m.open }}" hint-placeholder-val="{{ true }}">
+<ul style="list-style: none; margin: 0; padding: 0">
+<sc-for list="{{ m.lessons }}" as="l" hint-placeholder-count="2">
+<li class="{{ l.rowClass }}">
+<button type="button" class="drag" aria-label="Mover aula {{ l.title }}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.6"></circle><circle cx="15" cy="6" r="1.6"></circle><circle cx="9" cy="12" r="1.6"></circle><circle cx="15" cy="12" r="1.6"></circle><circle cx="9" cy="18" r="1.6"></circle><circle cx="15" cy="18" r="1.6"></circle></svg></button>
+<span aria-hidden="true" style="width: 32px; height: 32px; border-radius: 8px; background: {{ l.iconBg }}; color: {{ l.iconColor }}; display: flex; align-items: center; justify-content: center; flex: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><polygon points="10 9 15 12 10 15 10 9"></polygon></svg></span>
+<button type="button" onClick="{{ l.open }}" style="flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; border: 0; background: none; padding: 0; font: inherit; text-align: left; color: #0F1B2D; cursor: pointer">
+<span style="font-weight: 600; font-size: 14px">{{ l.n }}. {{ l.title }}</span>
+<span style="font-size: 12px; color: {{ l.metaColor }}">{{ l.meta }}</span>
+</button>
+<span class="pill" style="color: {{ l.statusColor }}; background: {{ l.statusBg }}">{{ l.status }}</span>
+<button type="button" class="b bs" style="min-height: 34px; padding: 0 12px; font-size: 13px" onClick="{{ l.open }}">Editar</button>
+</li>
+</sc-for>
+<li style="display: flex; align-items: center; gap: 10px; padding: 8px 14px 10px 44px; border-top: 1px solid #EEF1F5">
+<label style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)" for="nova-{{ m.id }}">Nova aula em {{ m.title }}</label>
+<input id="nova-{{ m.id }}" type="text" placeholder="+ Nova aula: digite o título e tecle Enter" style="flex: 1; min-width: 0; min-height: 38px; padding: 0 12px; border-radius: 8px; border: 1px dashed #9DBBDD; background: #FFFFFF; font: inherit; font-size: 14px; color: #0F1B2D; box-sizing: border-box">
+</li>
+</ul>
+</sc-if>
+</section>
+</sc-for>
+</div>
+
+<aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section aria-labelledby="pronto" class="card" style="padding: 18px 20px">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px">
+<h2 id="pronto" style="margin: 0; font-size: 15px; font-weight: 600">Pronto para vender?</h2>
+<span style="font-size: 13px; font-weight: 600; color: #6B4500">3 de 6</span>
+</div>
+<div role="progressbar" aria-label="Itens concluídos" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100" style="height: 6px; border-radius: 999px; background: #E3E8EF; overflow: hidden; margin-bottom: 8px"><div style="width: 50%; height: 100%; background: #0099FF"></div></div>
+<a class="chk" href="AdminV2CursoVenda.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A4C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M5 12l5 5 9-10"></path></svg><span>Capa e descrição</span></a>
+<a class="chk" href="AdminV2CursoConfig.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A4C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M5 12l5 5 9-10"></path></svg><span>Preço e carga horária</span></a>
+<a class="chk" href="AdminV2CursoConteudo.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F8A4C" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M5 12l5 5 9-10"></path></svg><span>Pelo menos uma aula publicada</span></a>
+<a class="chk" href="AdminV2CursoConteudo.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#B42318" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg><span style="display: flex; flex-direction: column"><span>Vídeos no Vimeo</span><span style="font-size: 12px; color: #5B6472">4 aulas ainda usam YouTube</span></span></a>
+<a class="chk" href="AdminV2CursoVenda.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A97A8" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="8"></circle></svg><span style="display: flex; flex-direction: column"><span>O que o aluno vai aprender</span><span style="font-size: 12px; color: #5B6472">Aparece na página de venda</span></span></a>
+<a class="chk" href="AdminV2Config.dc.html"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A97A8" stroke-width="2" stroke-linecap="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="8"></circle></svg><span style="display: flex; flex-direction: column"><span>Assinatura do certificado</span><span style="font-size: 12px; color: #5B6472">Configuração geral da escola</span></span></a>
+</section>
+<section aria-labelledby="lib" class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+<h2 id="lib" style="margin: 0; font-size: 15px; font-weight: 600">Liberação do conteúdo</h2>
+<p style="margin: 0; font-size: 14px; color: #3A4556">Todas as aulas ficam disponíveis assim que o aluno é matriculado.</p>
+<a href="AdminV2CursoConfig.dc.html" style="font-size: 14px; font-weight: 600">Programar liberação</a>
+</section>
+</aside>
+
+</main>
+</div>
+
+<sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ true }}">
+<div style="position: absolute; inset: 0; z-index: 10; display: flex; justify-content: flex-end">
+<button type="button" aria-label="Fechar painel da aula" onClick="{{ closeDrawer }}" style="position: absolute; inset: 0; border: 0; padding: 0; background: rgba(15,27,45,.35); cursor: default"></button>
+<section role="dialog" aria-modal="true" aria-labelledby="drawer-title" style="position: relative; width: 560px; max-width: 100%; height: 100%; max-height: 1700px; background: #FFFFFF; box-shadow: -12px 0 40px rgba(15,27,45,.18); display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 8px; padding: 14px 16px 14px 24px; border-bottom: 1px solid #E3E8EF">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<span style="font-size: 12px; color: #5B6472">{{ cur.moduleLabel }} · Aula {{ cur.n }} de 4</span>
+<h2 id="drawer-title" style="margin: 0; font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ cur.title }}</h2>
+</div>
+<button type="button" class="bi" aria-label="Aula anterior" onClick="{{ prev }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg></button>
+<button type="button" class="bi" aria-label="Próxima aula" onClick="{{ next }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg></button>
+<button type="button" class="bi" aria-label="Fechar" onClick="{{ closeDrawer }}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+</div>
+
+<div style="flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 18px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+<div role="group" aria-label="Visibilidade da aula" style="display: inline-flex; gap: 2px; padding: 3px; border-radius: 10px; background: #E9EDF2">
+<button type="button" class="seg" aria-pressed="{{ cur.isPub }}" onClick="{{ setPub }}">Publicada</button>
+<button type="button" class="seg" aria-pressed="{{ cur.isDraft }}" onClick="{{ setDraft }}">Rascunho</button>
+</div>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #0B63C4; margin: 0">Aula grátis na página de venda</label>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="d-titulo">Título</label>
+<input id="d-titulo" class="in" type="text" value="{{ cur.title }}">
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<label class="lb" for="d-video">Vídeo</label>
+<input id="d-video" class="in" type="url" placeholder="Cole o link do Vimeo, ex.: https://vimeo.com/123456789" value="{{ cur.url }}" aria-describedby="d-video-hint">
+<sc-if value="{{ cur.isYoutube }}" hint-placeholder-val="{{ true }}">
+<div id="d-video-hint" style="display: flex; gap: 10px; padding: 10px 12px; border-radius: 10px; background: #FFF6E5; color: #6B4500; font-size: 13px"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5M12 16.5v.5"></path></svg><span>Este link é do YouTube. A plataforma usa o Vimeo, com restrição de domínio. Troque antes de abrir as vendas.</span></div>
+</sc-if>
+<sc-if value="{{ cur.isVimeo }}" hint-placeholder-val="{{ false }}">
+<div id="d-video-ok" style="display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 10px; border: 1px solid #BFE3CC; background: #F3FBF6">
+<span aria-hidden="true" style="width: 96px; height: 54px; border-radius: 6px; background: #0B1220; display: flex; align-items: center; justify-content: center; color: #FFFFFF; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="7 4 20 12 7 20 7 4"></polygon></svg></span>
+<span style="display: flex; flex-direction: column; font-size: 13px"><span style="font-weight: 600; color: #145C33">Vídeo encontrado no Vimeo</span><span style="color: #3A4556">Duração lida automaticamente: 7:00</span></span>
+</div>
+</sc-if>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="d-desc">Descrição</label>
+<textarea id="d-desc" class="ta" rows="4">Treinamento prático de posicionamento, frequência (100 a 120 por minuto) e profundidade (5 a 6 cm) recomendadas pela AHA.</textarea>
+<span style="font-size: 12px; color: #5B6472">Aparece abaixo do vídeo, para o aluno.</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span class="lb">Materiais de apoio</span>
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; border: 1px solid #E3E8EF">
+<span aria-hidden="true" style="width: 34px; height: 34px; border-radius: 8px; background: #E8F2FC; color: #0B63C4; display: flex; align-items: center; justify-content: center; flex: none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5"></path></svg></span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 600">Algoritmo de RCP em adultos.pdf</span><span style="font-size: 12px; color: #5B6472">PDF · 412 KB</span></span>
+<button type="button" class="bi" aria-label="Renomear material"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"></path></svg></button>
+<button type="button" class="bi" aria-label="Remover material"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"></path></svg></button>
+</div>
+<label style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px; border-radius: 10px; border: 1px dashed #9DBBDD; background: #F8FAFC; text-align: center; font-size: 14px; cursor: pointer">
+<span style="font-weight: 600; color: #0B63C4">Adicionar PDF</span>
+<span style="font-size: 12px; color: #5B6472">Arraste para cá · até 20 MB por arquivo</span>
+<input type="file" accept="application/pdf" multiple style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">
+</label>
+</div>
+
+<details style="border-top: 1px solid #EEF1F5; padding-top: 14px">
+<summary style="font-size: 14px; font-weight: 600; cursor: pointer">Mais opções</summary>
+<div style="display: flex; flex-direction: column; gap: 12px; padding-top: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label class="lb" for="d-mod">Módulo</label>
+<select id="d-mod" class="in"><option>Módulo 1 · Introdução ao Suporte Básico</option><option>Módulo 2 · Desfibrilação e Técnicas Especiais</option></select>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5B6472">{{ cur.completions }}</p>
+</div>
+</details>
+
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 24px; border-top: 1px solid #E3E8EF; background: #FFFFFF">
+<a class="b bdt" href="AdminV2Padroes.dc.html">Excluir aula</a>
+<span style="margin-left: auto; font-size: 13px; color: #6B4500; display: inline-flex; align-items: center; gap: 6px"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: #E0A100"></span>Alterações não salvas</span>
+<button type="button" class="b bg" onClick="{{ closeDrawer }}">Cancelar</button>
+<button type="button" class="b bp" onClick="{{ closeDrawer }}">Salvar aula</button>
+</div>
+</section>
+</div>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1700}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { selected: 2, collapsed: {}, status: { 1: 'pub', 2: 'pub', 3: 'pub', 4: 'draft' } };
+  }
+  renderVals() {
+    const data = [
+      { id: 1, title: 'Introdução ao Suporte Básico', lessons: [
+        { n: 1, title: 'Reconhecimento da PCR e Corrente de Sobrevivência', dur: '5 min', mats: 1, video: 'youtube', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', done: '2 alunos concluíram' },
+        { n: 2, title: 'Compressões Torácicas em Adultos', dur: '7 min', mats: 0, video: 'youtube', url: 'https://www.youtube.com/embed/dQw4w9WgXcQ', done: '1 aluno concluiu' } ] },
+      { id: 2, title: 'Desfibrilação e Técnicas Especiais', lessons: [
+        { n: 3, title: 'Operação e Segurança do DEA', dur: '8 min', mats: 0, video: 'vimeo', url: 'https://vimeo.com/123456789', done: 'Nenhum aluno concluiu ainda' },
+        { n: 4, title: 'Manejo de Engasgo (Obstrução de Vias Aéreas)', dur: '', mats: 0, video: 'none', url: '', done: 'Nenhum aluno concluiu ainda' } ] }
+    ];
+    const all = [];
+    data.forEach((m, i) => m.lessons.forEach(l => all.push({ ...l, moduleLabel: 'Módulo ' + (i + 1) })));
+    const st = this.state.status;
+    const sel = this.state.selected;
+    const modules = data.map((m, i) => {
+      const open = !this.state.collapsed[m.id];
+      const pubCount = m.lessons.filter(l => st[l.n] === 'pub').length;
+      return {
+        id: m.id, title: m.title, label: 'Módulo ' + (i + 1) + ' · ' + m.title,
+        summary: m.lessons.length + ' aulas · ' + pubCount + ' publicadas',
+        open, rotate: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+        toggle: () => this.setState({ collapsed: { ...this.state.collapsed, [m.id]: open } }),
+        lessons: m.lessons.map(l => {
+          const warn = l.video !== 'vimeo';
+          const meta = l.video === 'none' ? 'Sem vídeo' : (l.video === 'youtube' ? 'YouTube · troque pelo Vimeo' : 'Vimeo · ' + l.dur) + (l.mats ? ' · ' + l.mats + (l.mats === 1 ? ' material' : ' materiais') : '');
+          const pub = st[l.n] === 'pub';
+          return {
+            ...l, meta,
+            metaColor: warn ? '#B42318' : '#5B6472',
+            iconBg: warn ? '#FDECEC' : '#E8F2FC', iconColor: warn ? '#B42318' : '#0B63C4',
+            status: pub ? 'Publicada' : 'Rascunho',
+            statusColor: pub ? '#145C33' : '#6B4500', statusBg: pub ? '#E9F6EE' : '#FFF6E5',
+            rowClass: 'row' + (sel === l.n ? ' sel' : ''),
+            open: () => this.setState({ selected: l.n })
+          };
+        })
+      };
+    });
+    const anyOpen = data.some(m => !this.state.collapsed[m.id]);
+    const cur = all.find(l => l.n === sel) || all[0];
+    const curPub = st[cur.n] === 'pub';
+    return {
+      modules,
+      collapseLabel: anyOpen ? 'Recolher tudo' : 'Expandir tudo',
+      collapseAll: () => { const c = {}; data.forEach(m => { c[m.id] = anyOpen; }); this.setState({ collapsed: c }); },
+      drawerOpen: !!sel,
+      closeDrawer: () => this.setState({ selected: null }),
+      prev: () => this.setState({ selected: Math.max(1, cur.n - 1) }),
+      next: () => this.setState({ selected: Math.min(all.length, cur.n + 1) }),
+      setPub: () => this.setState({ status: { ...st, [cur.n]: 'pub' } }),
+      setDraft: () => this.setState({ status: { ...st, [cur.n]: 'draft' } }),
+      cur: { ...cur, isPub: String(curPub), isDraft: String(!curPub), isYoutube: cur.video === 'youtube', isVimeo: cur.video === 'vimeo', completions: cur.done + '. Excluir a aula apaga esse progresso.' }
+    };
+  }
+}
+</script>
+</body>
+</html>

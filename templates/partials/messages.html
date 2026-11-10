@@ -1,0 +1,11 @@
+{% comment %}
+Erros e avisos de formulário das páginas públicas e de login (variáveis "error" e "success" do contexto).
+Mensagens do Django (core.toasts.toast) viram toast em partials/toasts.html, incluído por base_core.html:
+não são repetidas aqui.
+{% endcomment %}
+{% if error or success %}
+<div class="messages">
+  {% if error %}<div class="alert alert--error" role="alert">{% include "partials/icon.html" with name="alert" size=18 %}<span>{{ error }}</span></div>{% endif %}
+  {% if success %}<div class="alert alert--success" role="status">{% include "partials/icon.html" with name="check" size=18 stroke="2.4" %}<span>{{ success }}</span></div>{% endif %}
+</div>
+{% endif %}
