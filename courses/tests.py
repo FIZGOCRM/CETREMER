@@ -196,6 +196,8 @@ class PlatformTestCase(TestCase):
         response = self.client.get(hub_url)
         self.assertEqual(response.status_code, 200)
 
+        # Publicação requer ao menos um plano ativo na V1.
+        Enrollment.objects.create(student=self.student_profile, course=self.course)
         # Create hub post
         create_url = reverse('create_hub_post')
         response = self.client.post(create_url, {

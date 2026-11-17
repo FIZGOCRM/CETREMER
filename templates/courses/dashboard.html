@@ -15,7 +15,7 @@
 <p class="muted" id="search-empty" hidden>Nenhum curso encontrado.</p>
 </div>
 {% if my_courses %}<section class="member-learning" aria-labelledby="learning-title"><div class="member-learning__heading"><h2 class="section-title" id="learning-title">Seu progresso</h2><a class="linkbtn" href="{% url 'member_section' 'progresso' %}">Ver progresso completo</a></div>{% include 'partials/gomut/study_summary.html' %}{% include 'partials/gomut/course_progress.html' %}</section>{% endif %}
-<div id="modal-root">
+<section class="page"><h2 class="section-title">Na comunidade</h2><div class="community-list">{% for post in community_posts %}{% include "community/post_card.html" %}{% empty %}<p class="muted">As conversas dos seus cursos aparecem aqui.</p>{% endfor %}</div><a class="linkbtn" href="{% url 'community_hub' %}">Ver comunidade</a></section><div id="modal-root">
 </div>
 <template id="dialog-close-icon">{% include "partials/gomut/icon.html" with name="close" %}</template>{% endblock %}{% block extra_js %}<script src="{% static 'js/gomut/course-carousel.js' %}" defer></script><script src="{% static 'js/gomut/course-dialog.js' %}" defer>
 </script>{% endblock %}

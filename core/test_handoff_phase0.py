@@ -12,7 +12,7 @@ class HandoffPhaseZeroTests(TestCase):
             username='phase0-student', password='StrongPassword123!', role=User.Role.STUDENT,
         )
         self.staff = User.objects.create_user(
-            username='phase0-staff', password='StrongPassword123!', is_staff=True,
+            username='phase0-staff', password='StrongPassword123!', is_staff=True, role=User.Role.ADMIN,
         )
 
     def test_public_placeholders_and_site_context(self):

@@ -76,6 +76,9 @@ urlpatterns = [
     path('courses/lesson/<int:lesson_id>/toggle-progress/', student_views.toggle_progress, name='toggle_progress'),
     path('courses/<slug:course_slug>/certificate/', certificate_views.issue_certificate, name='issue_certificate'),
     
+    path('community/new/', community_views.new_topic, name='community_new'),
+    path('community/posts/<int:post_id>/', community_views.topic, name='community_topic'),
+    path('community/posts/<int:post_id>/action/', community_views.topic_action, name='community_action'),
     # Discussion Forums
     path('community/', community_views.community_hub, name='community_hub'),
     path('community/post/new/', community_views.create_hub_post, name='create_hub_post'),

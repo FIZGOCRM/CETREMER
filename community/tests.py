@@ -18,23 +18,24 @@ class CommunityEnrollmentTests(TestCase):
 
     def test_hub_rejects_unenrolled_course_but_allows_general(self):
         response = self.client.post(reverse('create_hub_post'), {
-            'title': 'Topic', 'content': 'Post', 'course_id': str(self.course.id),
+            'title': 'Dúvida suficiente', 'content': 'Texto suficientemente longo para a dúvida.', 'course_id': str(self.course.id),
         })
         self.assertEqual(response.status_code, 403)
         self.assertFalse(CommunityPost.objects.exists())
+        Enrollment.objects.create(student=self.student.student_profile, course=self.course)
         response = self.client.post(reverse('create_hub_post'), {
-            'title': 'Topic', 'content': 'Post', 'course_id': 'general',
+            'title': 'Dúvida suficiente', 'content': 'Texto suficientemente longo para a dúvida.', 'course_id': 'general',
         })
         self.assertEqual(response.status_code, 302)
         self.assertIsNone(CommunityPost.objects.get().course)
 
     def test_course_post_requires_enrollment(self):
         url = reverse('create_post', kwargs={'course_slug': self.course.slug})
-        response = self.client.post(url, {'title': 'Topic', 'content': 'Post'})
+        response = self.client.post(url, {'title': 'Dúvida suficiente', 'content': 'Texto suficientemente longo para a dúvida.'})
         self.assertEqual(response.status_code, 403)
         self.assertFalse(CommunityPost.objects.exists())
         Enrollment.objects.create(student=self.student.student_profile, course=self.course)
-        self.assertEqual(self.client.post(url, {'title': 'Topic', 'content': 'Post'}).status_code, 302)
+        self.assertEqual(self.client.post(url, {'title': 'Dúvida suficiente', 'content': 'Texto suficientemente longo para a dúvida.'}).status_code, 302)
         self.assertEqual(CommunityPost.objects.get().course, self.course)
 
     def test_comment_on_course_post_requires_enrollment(self):

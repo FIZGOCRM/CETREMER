@@ -40,7 +40,7 @@
 {% if has_quiz %}<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>{% include 'partials/gomut/quiz_tab.html' %}</section>{% endif %}
 <section class="tabpanel" id="notes" role="tabpanel" aria-labelledby="tab-notes" hidden>{% include 'partials/gomut/lesson_notes.html' %}</section>
 </div>
-<section class="panel panel__body"><h2>Dúvidas da turma</h2><a class="btn btn--outline btn--sm" href="{% url 'community_hub' %}?curso={{ course.id }}&amp;aula={{ lesson.id }}">Tirar dúvida com a turma</a></section>
+<section class="panel panel__body"><h2>Dúvidas da turma</h2><a class="btn btn--outline btn--sm" href="{% url 'community_new' %}?course={{ course.id }}&amp;lesson={{ lesson.id }}">Tirar dúvida com a turma</a></section>
 </div>
 <aside class="outline" aria-label="Aulas e módulos">
 <div class="outline__head outline__head--all">

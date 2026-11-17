@@ -180,3 +180,5 @@
 @media(max-width:1099px) { .ebook-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:599px) { .ebook-grid { grid-template-columns:minmax(0,1fr); }.ebook-filters label { width:100%; } }
 .ebook-filters select { background:#202020;color:#fff;border:1px solid #555;border-radius:4px;padding:13px;min-height:48px;max-width:100%;font:inherit; }
+.community-list { display:grid;gap:16px; }.topic-card a { color:inherit; }.topic-layout { display:grid;grid-template-columns:minmax(0,3fr) minmax(200px,1fr);gap:32px;margin-top:24px; }.topic-layout .panel { margin-bottom:16px; }.topic-solution { border-color:#42ad7c;background:#15251c; }.member-fields input,.member-fields textarea,.member-fields select { display:block;width:100%;background:#202020;color:#fff;border:1px solid #555;border-radius:4px;padding:12px;font:inherit; }.member-fields label { display:block;margin-bottom:6px; }.member-fields p { margin:16px 0; }.member-fields .errorlist { color:#ff9696; }
+@media(max-width:899px) { .topic-layout { grid-template-columns:minmax(0,1fr); } }

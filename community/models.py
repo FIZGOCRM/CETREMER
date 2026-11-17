@@ -3,6 +3,13 @@ from django.conf import settings
 from courses.models import Course
 
 class CommunityPost(models.Model):
+    is_pinned = models.BooleanField(default=False)
+    solution = models.ForeignKey('Comment', null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    solution_marked_by = models.CharField(max_length=10, blank=True, choices=[('author','Autor'),('team','Equipe')])
+    solved_at = models.DateTimeField(null=True, blank=True)
+    team_status = models.CharField(max_length=10, default='new', choices=[('new','Novo'),('forwarded','Encaminhado'),('answered','Respondido')])
+    team_note = models.TextField(blank=True)
+    forwarded_at = models.DateTimeField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='community_posts', null=True, blank=True)
     lesson = models.ForeignKey('courses.Lesson', null=True, blank=True, on_delete=models.SET_NULL)
     is_hidden = models.BooleanField(default=False)
@@ -25,6 +32,8 @@ class CommunityPost(models.Model):
         ).exists()
 
 class Comment(models.Model):
+    display_as = models.CharField(max_length=8, default='self', choices=[('self','Eu'),('mentor','Mentor'),('team','Equipe')])
+    is_hidden = models.BooleanField(default=False)
     post = models.ForeignKey(CommunityPost, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()
@@ -36,3 +45,16 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author.username} on {self.post.title}"
+
+
+class Helpful(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    post = models.ForeignKey(CommunityPost, null=True, blank=True, on_delete=models.CASCADE, related_name='helpful')
+    comment = models.ForeignKey(Comment, null=True, blank=True, on_delete=models.CASCADE, related_name='helpful')
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=(models.Q(post__isnull=False, comment__isnull=True) | models.Q(post__isnull=True, comment__isnull=False)),name='helpful_one_target'),
+            models.UniqueConstraint(fields=['user','post'],name='helpful_user_post'),
+            models.UniqueConstraint(fields=['user','comment'],name='helpful_user_comment'),
+        ]

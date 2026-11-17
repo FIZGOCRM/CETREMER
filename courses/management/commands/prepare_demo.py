@@ -91,4 +91,12 @@ class Command(BaseCommand):
             from courses.models import CourseMaterial, LessonMaterial
             CourseMaterial.objects.get_or_create(course=course, title='Material ilustrativo do curso', defaults={'file':ContentFile(demo_pdf_bytes(),name='demonstracao-curso.pdf'),'order':1})
             LessonMaterial.objects.get_or_create(lesson=first_lesson, title='Material ilustrativo da aula', defaults={'file':ContentFile(demo_pdf_bytes(),name='demonstracao-aula.pdf'),'order':1})
+        from users.models import SiteSettings
+        site=SiteSettings.load()
+        for field,value in {'mentor_display_name':'Mentor da Emergensimples','mentor_label':'Mentor','team_display_name':'Equipe Emergensimples'}.items():
+            if not getattr(site,field):setattr(site,field,value)
+        site.save()
+        from community.models import CommunityPost
+        for course in Course.objects.filter(slug__in=['gomut-demo-plantao','gomut-demo-cardiologia']):
+            CommunityPost.objects.get_or_create(course=course,author=student,title='Como organizar a revisão deste curso?',defaults={'content':'Tópico fictício para conhecer a comunidade. Como vocês organizam a revisão das aulas?'})
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

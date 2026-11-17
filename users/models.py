@@ -72,6 +72,9 @@ class CreatorProfile(models.Model):
 
 
 class SiteSettings(models.Model):
+    mentor_display_name = models.CharField(max_length=120, blank=True)
+    mentor_label = models.CharField(max_length=60, blank=True)
+    team_display_name = models.CharField(max_length=120, blank=True)
     support_email = models.EmailField(blank=True)
     school_name = models.CharField(max_length=80, default='CETREMER')
     logo = models.ImageField(upload_to='site/', blank=True)

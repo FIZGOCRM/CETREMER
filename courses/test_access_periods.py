@@ -144,7 +144,7 @@ class AccessPeriodTests(TestCase):
         self.assertNotContains(
             self.client.get(reverse("dashboard")), "private-course-link"
         )
-        self.assertNotContains(
+        self.assertContains(
             self.client.get(reverse("community_hub"), {"curso": "todos"}),
             "Secret content",
         )

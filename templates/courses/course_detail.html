@@ -16,4 +16,4 @@
 </div>
 {% if item.next_release and not item.next_lesson %}<p>Próximo módulo libera em {{ item.next_release|date:'d/m' }}</p>{% endif %}<section class="member-modules">
 <h2 class="section-title">Aulas e módulos</h2>{% include 'partials/gomut/module_list.html' %}</section>
-</div>{% endblock %}
+<section class="member-modules"><h2 class="section-title">Dúvidas da turma</h2><a class="btn btn--outline" href="{% url 'community_new' %}?course={{ course.pk }}">Tirar dúvida com a turma</a><div class="community-list">{% for post in community_posts %}{% include "community/post_card.html" %}{% empty %}<p class="muted">Nenhuma conversa neste curso.</p>{% endfor %}</div></section></div>{% endblock %}

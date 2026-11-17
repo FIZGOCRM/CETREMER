@@ -1,146 +1,76 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Q
-from django.http import HttpResponseForbidden
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-
-from courses.access import accessible_courses, has_course_access
 from courses.models import Course, Lesson
-
+from .access import can_write, is_team, require_topic_access
+from .forms import TopicForm
 from .models import Comment, CommunityPost
-
+from .selectors import list_posts, owned_courses, reply_label, visible_posts
+from .services import add_reply, create_topic, mark_solution, toggle_helpful
 
 @login_required
 def community_hub(request):
-    if request.user.role == "STUDENT":
-        my_courses = accessible_courses(request.user.student_profile)
-    else:
-        my_courses = Course.objects.all()
-    posts = (
-        CommunityPost.objects.filter(is_hidden=False)
-        .filter(Q(course__isnull=True) | Q(course__in=my_courses))
-        .select_related("author__student_profile", "course__category", "lesson")
-        .annotate(comments_count=Count("comments"))
-    )
-    current_filter = request.GET.get("curso", "geral")
-    if current_filter == "geral":
-        posts = posts.filter(course__isnull=True)
-    elif current_filter != "todos":
-        posts = posts.filter(course__slug=current_filter)
-    for post in posts:
-        try:
-            post.author_display = (
-                post.author.student_profile.full_name or post.author.email.split("@")[0]
-            )
-        except Exception:
-            post.author_display = (
-                post.author.email.split("@")[0] or post.author.username
-            )
-        if post.lesson_id:
-            lesson_ids = list(
-                Lesson.objects.filter(module__course=post.course)
-                .order_by("module__order", "order", "id")
-                .values_list("id", flat=True)
-            )
-            post.lesson_position = (
-                lesson_ids.index(post.lesson_id) + 1
-                if post.lesson_id in lesson_ids
-                else None
-            )
-    return render(
-        request,
-        "community/hub.html",
-        {"posts": posts, "my_courses": my_courses, "current_filter": current_filter},
-    )
+    return render(request,'community/hub.html',{'posts':list_posts(request.user,request.GET),'my_courses':owned_courses(request.user),'can_write':can_write(request.user)})
 
+@login_required
+def new_topic(request):
+    form=TopicForm(request.POST or None,user=request.user,initial={'course':request.GET.get('course'),'lesson':request.GET.get('lesson')})
+    if request.method=='POST' and form.is_valid():
+        try:
+            post=create_topic(request.user,**form.cleaned_data)
+            return redirect('community_topic',post_id=post.pk)
+        except ValidationError as exc:form.add_error(None,exc)
+    return render(request,'community/new_topic.html',{'form':form,'can_write':can_write(request.user)})
+
+@login_required
+def topic(request,post_id):
+    post=get_object_or_404(CommunityPost.objects.select_related('author','course','lesson','solution'),pk=post_id)
+    require_topic_access(request.user,post)
+    replies=list(post.comments.filter(is_hidden=False).select_related('author').prefetch_related('helpful'))
+    for reply in replies:reply.display_name=reply_label(reply)
+    replies.sort(key=lambda reply:(reply.pk!=post.solution_id,reply.created_at))
+    return render(request,'community/topic.html',{'post':post,'replies':replies,'can_write':can_write(request.user),'related':visible_posts(request.user).filter(course_id=post.course_id).exclude(pk=post.pk)[:4]})
+
+@login_required
+@require_POST
+def topic_action(request,post_id):
+    post=get_object_or_404(CommunityPost,pk=post_id)
+    comment=get_object_or_404(Comment,pk=request.POST['comment_id'],post=post) if request.POST.get('comment_id') else None
+    try:
+        if request.POST.get('action')=='solution':mark_solution(request.user,post,comment)
+        elif request.POST.get('action')=='helpful':toggle_helpful(request.user,post,comment)
+    except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+    return redirect('community_topic',post_id=post.pk)
 
 @login_required
 @require_POST
 def create_hub_post(request):
-    """Processes creation of a new thread from the centralized community board."""
-    title = request.POST.get("title")
-    content = request.POST.get("content")
-    course_id = request.POST.get("course_id")
-
-    course = None
-    if course_id and course_id != "general":
-        course = get_object_or_404(Course, id=course_id)
-        if request.user.role == "STUDENT" and not has_course_access(
-            request.user.student_profile, course
-        ):
-            return HttpResponseForbidden(
-                "Matrícula necessária para publicar neste curso."
-            )
-
-    if title and content:
-        CommunityPost.objects.create(
-            course=course, author=request.user, title=title, content=content
-        )
-
-    return redirect("community_hub")
-
+    course_id=request.POST.get('course_id')
+    course=get_object_or_404(Course,pk=course_id) if course_id and course_id!='general' else None
+    try:
+        post=create_topic(request.user,title=request.POST.get('title',''),content=request.POST.get('content',''),course=course)
+        return redirect('community_topic',post_id=post.pk)
+    except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+    return redirect('community_hub')
 
 @login_required
 @require_POST
-def create_post(request, course_slug):
-    """Creates a new top-level community post inside a course context."""
-    course = get_object_or_404(Course, slug=course_slug)
-    if request.user.role == "STUDENT" and not has_course_access(
-        request.user.student_profile, course
-    ):
-        return HttpResponseForbidden("Matrícula necessária para publicar neste curso.")
-    title = request.POST.get("title")
-    content = request.POST.get("content")
-    lesson_id = request.POST.get("lesson_id")
-    lesson = (
-        get_object_or_404(Lesson, id=lesson_id, module__course=course)
-        if lesson_id
-        else None
-    )
-    if lesson and not title and content:
-        title = content[:100]
-
-    if title and content:
-        CommunityPost.objects.create(
-            course=course,
-            lesson=lesson,
-            author=request.user,
-            title=title,
-            content=content,
-        )
-
-    referer = request.META.get("HTTP_REFERER")
-    if referer:
-        return redirect(referer)
-    first_lesson = (
-        Lesson.objects.filter(module__course=course)
-        .order_by("module__order", "order", "id")
-        .first()
-    )
-    if first_lesson:
-        return redirect(
-            "lesson_detail", course_slug=course.slug, lesson_id=first_lesson.id
-        )
-    return redirect("course_preview", course_slug=course.slug)
-
+def create_post(request,course_slug):
+    course=get_object_or_404(Course,slug=course_slug)
+    lesson=get_object_or_404(Lesson,pk=request.POST['lesson_id'],module__course=course) if request.POST.get('lesson_id') else None
+    title=request.POST.get('title') or request.POST.get('content','')[:100]
+    try:
+        post=create_topic(request.user,title=title,content=request.POST.get('content',''),course=course,lesson=lesson)
+        return redirect('community_topic',post_id=post.pk)
+    except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+    return redirect('community_hub')
 
 @login_required
 @require_POST
-def create_comment(request, post_id):
-    """Appends a reply comment to an existing community discussion post."""
-    post = get_object_or_404(CommunityPost, id=post_id)
-    if (
-        post.course_id
-        and request.user.role == "STUDENT"
-        and not has_course_access(request.user.student_profile, post.course)
-    ):
-        return HttpResponseForbidden("Matrícula necessária para comentar neste curso.")
-    content = request.POST.get("content")
-
-    if content:
-        Comment.objects.create(post=post, author=request.user, content=content)
-
-    referer = request.META.get("HTTP_REFERER")
-    if referer:
-        return redirect(referer)
-    return redirect("community_hub")
+def create_comment(request,post_id):
+    post=get_object_or_404(CommunityPost,pk=post_id)
+    try:add_reply(request.user,post,request.POST.get('content',''))
+    except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+    return redirect('community_topic',post_id=post.pk)

@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from community.models import CommunityPost
+from community.selectors import visible_posts
 from core.http import json_error
 
 from .access import access_decision, accessible_courses, lesson_availability
@@ -76,6 +77,7 @@ def dashboard(request):
             "my_courses": items,
             'summary': summary,
             "hero_courses": hero_courses,
+            "community_posts": visible_posts(request.user).filter(course__in=[e.course_id for e in enrollments]).order_by("-created_at")[:4],
             "completed_lesson_count": sum(item["completed"] for item in items),
             "live_item": live_item,
             "other_courses": other_courses,
@@ -99,7 +101,8 @@ def member_course(request, course_slug):
     modules = course_modules(enrollment)
     done = set(Progress.objects.filter(student=request.user.student_profile, lesson__module__course=course, is_completed=True).values_list("lesson_id", flat=True))
     return render(request, "courses/course_detail.html", {
-        "course": course, "modules": modules, "item": info, "completed_ids": done,
+        "course": course, "modules": modules, "item": info,
+        "community_posts": visible_posts(request.user).filter(course=course)[:8], "completed_ids": done,
         "total_seconds": sum(lesson.duration_seconds for lesson in lessons),
         "access": decision,
     })
