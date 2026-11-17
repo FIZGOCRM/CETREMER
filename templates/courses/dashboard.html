@@ -1,4 +1,4 @@
-{% extends 'base_membros.html' %}{% load static %}{% block title %}Início · Emergensimples{% endblock %}{% block content %}
+{% extends 'base_membros.html' %}{% load static %}{% block title %}Início · {{ site.school_name }}{% endblock %}{% block content %}
 {% if hero_courses %}{% include 'partials/gomut/course_hero.html' %}{% endif %}
 {% for item in my_courses %}{% if item.show_plan_notice %}<aside class="panel plan-notice" data-plan-notice><p>Seu acesso a {{ item.course.title }} termina em {{ item.plan.last_day|date:'d/m/Y' }}. Conclua as aulas e a avaliação final para emitir seu certificado.</p><p>{{ item.plan.label }}</p><form method="post" action="{% url 'dismiss_plan_notice' item.enrollment.pk %}">{% csrf_token %}<button class="btn btn--outline">Fechar aviso</button></form></aside>{% endif %}{% endfor %}
 <div class="page member-catalog" id="meus-cursos">

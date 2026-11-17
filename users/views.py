@@ -28,7 +28,7 @@ def login_view(request):
             login(request, user)
             return redirect(destination(user))
         error = 'E-mail ou senha incorretos. Confira e tente de novo.'
-    return render(request, 'login.html', {'error': error, 'next': next_url})
+    return render(request, 'login_admin.html' if request.GET.get('acesso') == 'admin' else 'login.html', {'error': error, 'next': next_url})
 
 
 def logout_view(request):
@@ -79,6 +79,11 @@ class PasswordResetView(auth_views.PasswordResetView):
     email_template_name = 'registration/password_reset_email.txt'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
+
+    def form_valid(self, form):
+        from .models import SiteSettings
+        self.extra_email_context={'school_name':SiteSettings.load().school_name}
+        return super().form_valid(form)
 
 
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
@@ -132,92 +137,36 @@ from sales.models import Order
 
 @login_required
 def settings_view(request):
-    """Allows student users to configure profile data, modify passwords, and view invoice order histories."""
-    error = None
-    success = None
-    
-    # Fetch billing history
-    orders = []
-    if request.user.role == 'STUDENT':
-        student_profile = request.user.student_profile
-        orders = Order.objects.filter(student=student_profile).order_by('-created_at')
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        
-        if action == 'profile_account':
-            new_username = request.POST.get('username') or request.user.username
-            new_email = request.POST.get('email')
-            avatar_file = request.FILES.get('avatar')
-            
-            if not new_username or not new_email:
-                error = "Nome de usuário e e-mail são obrigatórios."
-            elif User.objects.filter(username=new_username).exclude(id=request.user.id).exists():
-                error = "Este nome de usuário já está em uso."
-            elif User.objects.filter(email=new_email).exclude(id=request.user.id).exists():
-                error = "Este e-mail já está registrado em outra conta."
-            else:
-                request.user.username = new_username
-                request.user.email = new_email
-                if avatar_file:
-                    request.user.avatar = avatar_file
-                request.user.save()
-                success = "Dados salvos com sucesso."
-                
-        elif action == 'profile_personal':
-            if request.user.role == 'STUDENT':
-                student_profile = request.user.student_profile
-                student_profile.full_name = request.POST.get('full_name')
-                student_profile.cpf = request.POST.get('cpf')
-                try:
-                    student_profile.save()
-                except ValidationError as exc:
-                    error = ' '.join(exc.messages)
-                else:
-                    success = "Dados salvos com sucesso."
-                    from courses.services import refresh_certificate_qualification
-                    for enrollment in student_profile.enrollments.all():
-                        refresh_certificate_qualification(enrollment)
-            else:
-                error = "Apenas alunos possuem dados pessoais cadastrados."
-                
-        elif action == 'profile_address':
-            if request.user.role == 'STUDENT':
-                student_profile = request.user.student_profile
-                student_profile.address = request.POST.get('address')
-                student_profile.save()
-                success = "Endereço atualizado com sucesso!"
-            else:
-                error = "Apenas alunos possuem endereço residencial cadastrado."
-                
-        elif action == 'password':
-            old_pass = request.POST.get('password_old')
-            new_pass = request.POST.get('password_new')
-            confirm_pass = request.POST.get('password_confirm')
-            
-            if not old_pass or not new_pass or not confirm_pass:
-                error = "Todos os campos de senha são obrigatórios."
-            elif not request.user.check_password(old_pass):
-                error = "Senha atual incorreta."
-            elif new_pass != confirm_pass:
-                error = "A nova senha e a confirmação não coincidem."
-            else:
-                try:
-                    validate_password(new_pass, user=request.user)
-                except ValidationError as exc:
-                    error = ' '.join(exc.messages)
-                else:
-                    request.user.set_password(new_pass)
-                    request.user.save()
-                    update_session_auth_hash(request, request.user)
-                    success = "Dados salvos com sucesso."
-                
-    return render(request, 'users/settings.html', {
-        'plans': _student_plans(request.user),
-        'orders': orders,
-        'error': error,
-        'success': success
-    })
+    from django.core.exceptions import PermissionDenied
+    from .forms import AccountForm
+    from .services import update_member_account,update_member_personal,update_member_preferences
+    if request.user.role != 'STUDENT':return redirect('painel:settings')
+    error=success=None
+    if request.method=='POST':
+        action=request.POST.get('action')
+        try:
+            if action=='profile_account':
+                form=AccountForm(request.POST,request.FILES)
+                if not form.is_valid():raise ValidationError([str(e) for errors in form.errors.values() for e in errors])
+                update_member_account(request.user,**form.cleaned_data)
+            elif action=='profile_personal':
+                update_member_personal(request.user,full_name=request.POST.get('full_name',''),cpf=request.POST.get('cpf',''))
+            elif action=='profile_address':
+                profile=request.user.student_profile;profile.address=request.POST.get('address','').strip();profile.save(update_fields=['address'])
+            elif action=='preferences':
+                update_member_preferences(request.user,new_lessons=bool(request.POST.get('email_new_lessons')),live_events=bool(request.POST.get('email_live_events')))
+            elif action=='password':
+                old=request.POST.get('password_old','');new=request.POST.get('password_new','')
+                if not request.user.check_password(old):raise ValidationError('Senha atual incorreta.')
+                if not new or new!=request.POST.get('password_confirm'):raise ValidationError('As senhas não coincidem.')
+                validate_password(new,user=request.user)
+                request.user.set_password(new);request.user.save(update_fields=['password']);update_session_auth_hash(request,request.user)
+            else:raise ValidationError('Ação inválida.')
+            success='Dados salvos com sucesso.'
+        except ValidationError as exc:
+            error=' '.join(exc.messages)
+            request.user.refresh_from_db()
+    return render(request,'users/settings.html',{'plans':_student_plans(request.user),'error':error,'success':success})
 
 
 def _student_plans(user):

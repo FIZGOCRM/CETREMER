@@ -293,3 +293,13 @@ def library_items(student, *, kind='', course=None, q=''):
     if kind == 'opened':
         items = [item for item in items if item['opened']]
     return sorted(items,key=lambda item:(item['course'].title,item['material'].order,item['material'].pk))
+
+
+def search_lessons(student,term):
+    from django.db.models import Q
+    from .models import Enrollment,Lesson,Progress
+    from .access import lesson_availability
+    enrollments={e.course_id:e for e in Enrollment.objects.filter(student=student).prefetch_related('access_periods')}
+    completed=set(Progress.objects.filter(student=student,is_completed=True).values_list('lesson_id',flat=True))
+    lessons=Lesson.objects.filter(module__course_id__in=enrollments,status='published',module__status='published').filter(Q(title__icontains=term)|Q(module__title__icontains=term)).select_related('module__course').order_by('module__course__title','module__order','order','pk')[:100]
+    return [{'lesson':lesson,'availability':lesson_availability(enrollments[lesson.module.course_id],lesson,completed_ids=completed)} for lesson in lessons]

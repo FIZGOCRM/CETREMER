@@ -18,7 +18,7 @@ class HandoffPhaseZeroTests(TestCase):
     def test_public_placeholders_and_site_context(self):
         response = self.client.get(reverse('password_reset'))
         self.assertContains(response, 'Esqueci minha senha')
-        self.assertContains(response, 'css/cetremer.css')
+        self.assertNotContains(response, 'css/cetremer.css')
         response = self.client.get(reverse('verify_certificate'))
         self.assertContains(response, 'Verificar certificado')
 

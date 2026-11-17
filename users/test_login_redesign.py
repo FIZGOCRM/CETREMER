@@ -13,9 +13,9 @@ class LoginRedesignTests(TestCase):
             username="demo-admin", password="ExamplePassword123!", role=User.Role.ADMIN
         )
 
-    def test_login_uses_gomut_design_without_public_signup(self):
+    def test_student_login_uses_member_design_without_public_signup(self):
         response = self.client.get(reverse("login"))
-        self.assertContains(response, "gm-login__cartao")
+        self.assertContains(response, "member-login__box")
         self.assertContains(response, "Archivo:wdth,wght")
         self.assertNotContains(response, 'href="/register/"')
 

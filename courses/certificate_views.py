@@ -56,7 +56,7 @@ def issue_certificate(request, course_slug):
     student = request.user.student_profile
     enrollment = Enrollment.objects.filter(student=student, course=course).first()
     if not enrollment:
-        return redirect("course_preview", course_slug=course_slug)
+        return render(request,"courses/access_pending.html",{"course":course,"access":access_decision(None)},status=403)
     certificate = Certificate.objects.filter(enrollment=enrollment).first()
     if certificate is None and request.method == 'POST' and request.POST.get('action') == 'save_and_issue':
         form = CertificateDataForm(request.POST, profile=student, prefix=f'enrollment-{enrollment.pk}')

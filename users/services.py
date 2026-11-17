@@ -82,3 +82,30 @@ def import_students(rows, course_ids):
         created += int(not was_existing)
         user_ids.append(user.pk)
     return ImportResult(created=created, existing=existing, user_ids=tuple(user_ids))
+
+@transaction.atomic
+def update_member_account(user, *, email, username=None, avatar=None):
+    email=email.strip().lower();validate_email(email)
+    if User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():raise ValidationError('Este e-mail já está em uso.')
+    user.email=email
+    if username:user.username=username.strip()
+    if avatar:user.avatar=avatar
+    user.full_clean();user.save()
+    return user
+
+@transaction.atomic
+def update_member_personal(user, *, full_name, cpf):
+    from courses.services import refresh_certificate_qualification
+    profile=user.student_profile
+    profile.full_name=full_name.strip()
+    if cpf.strip():
+        from .validators import validate_cpf
+        profile.cpf=validate_cpf(cpf)
+    profile.full_clean();profile.save()
+    for enrollment in profile.enrollments.all():refresh_certificate_qualification(enrollment)
+
+
+def update_member_preferences(user, *, new_lessons, live_events):
+    profile=user.student_profile
+    profile.email_new_lessons=new_lessons;profile.email_live_events=live_events
+    profile.save(update_fields=['email_new_lessons','email_live_events'])

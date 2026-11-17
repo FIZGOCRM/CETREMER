@@ -64,8 +64,8 @@ class PlatformTestCase(TestCase):
         self.client.force_login(self.student_user)
         lesson_url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': self.lesson.id})
         preview_url = reverse('course_preview', kwargs={'course_slug': self.course.slug})
-        self.assertRedirects(self.client.get(lesson_url), preview_url)
-        self.assertRedirects(self.client.get(reverse('issue_certificate', kwargs={'course_slug': self.course.slug})), preview_url)
+        self.assertEqual(self.client.get(lesson_url).status_code,403)
+        self.assertEqual(self.client.get(reverse('issue_certificate', kwargs={'course_slug': self.course.slug})).status_code,403)
         self.assertFalse(Enrollment.objects.filter(student=self.student_profile, course=self.course).exists())
 
     def test_unenrolled_student_cannot_toggle_progress(self):
@@ -233,20 +233,9 @@ class PlatformTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Lesson.objects.filter(module=module, title='Aula Prática').exists())
-    def test_landing_page_with_hero(self):
-        """Verifies that the landing page renders successfully and passes the active HeroBanner."""
-        from courses.models import HeroBanner
-        HeroBanner.objects.create(
-            title="Custom Banner Title",
-            subtitle="Custom description text",
-            is_active=True
-        )
-        
-        landing_url = reverse('landing')
-        response = self.client.get(landing_url)
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Custom Banner Title")
-        self.assertContains(response, "Custom description text")
+    def test_legacy_public_landing_redirects_to_member_login(self):
+        # Public sales/catalog are outside the private V1.
+        self.assertRedirects(self.client.get(reverse('landing')),reverse('login'))
 
     def test_settings_page_saves_extended_profile(self):
         """Verifies that the settings profile form saves Name, CPF, and Address for students."""

@@ -13,7 +13,6 @@ from .access import access_decision, accessible_courses, lesson_availability
 from .models import Course, Enrollment, Lesson, Module, Progress
 from .selectors import ordered_lessons, progress_info, course_modules, member_summary, lesson_quiz_state
 from .services import set_lesson_progress, plan_status
-from .ui_capabilities import PENDING_SECTIONS
 
 
 @login_required
@@ -112,15 +111,16 @@ def member_course(request, course_slug):
 def member_section(request, section):
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
-    if section != 'progresso' and section not in PENDING_SECTIONS:
-        raise Http404
+    redirects={'notificacoes':'notifications','ajuda':'support'}
+    if section in redirects:return redirect(redirects[section])
+    if section != 'progresso':raise Http404
     if section == "progresso":
         summary = member_summary(request.user.student_profile)
         items = summary['items']
         return render(request, "courses/member_progress.html", {
             'summary': summary, "progress_items": items, "completed_count": summary['completed'],
         })
-    return render(request, "courses/feature_pending.html", {"section_title": PENDING_SECTIONS[section]})
+    raise Http404
 
 
 @login_required
@@ -132,7 +132,7 @@ def lesson_detail(request, course_slug, lesson_id):
     student = request.user.student_profile
     enrollment = Enrollment.objects.filter(student=student, course=course).first()
     if not enrollment:
-        return redirect("course_preview", course_slug=course.slug)
+        return render(request,"courses/access_pending.html",{"course":course,"access":access_decision(None)},status=403)
     decision = access_decision(enrollment)
     if not decision.allowed:
         return render(
@@ -252,3 +252,17 @@ def live_classes(request):
             ],
         },
     )
+
+
+@login_required
+def my_courses(request):
+    if request.user.role!='STUDENT':return redirect('painel:courses')
+    from .selectors import member_course_items
+    return render(request,'courses/my_courses.html',{'my_courses':member_course_items(request.user.student_profile)})
+
+@login_required
+def search(request):
+    if request.user.role!='STUDENT':return redirect('painel:courses')
+    from .selectors import search_lessons
+    term=request.GET.get('q','').strip()[:100]
+    return render(request,'courses/search.html',{'results':search_lessons(request.user.student_profile,term) if term else [],'term':term})

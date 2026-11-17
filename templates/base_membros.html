@@ -1,18 +1,1 @@
-{% extends 'base_gomut.html' %}{% block body %}<a class="sr-only skip-link" href="#view">Ir para o conteúdo</a>{% include 'partials/gomut/member_header.html' %}<main id="view" tabindex="-1">{% block content %}{% endblock %}</main>
-<footer class="footer" id="footer">
-<div class="member-footer">
-<span>Emergensimples · {% now 'Y' %}</span>
-<a href="{% url 'support' %}">Central de ajuda</a>{% if site.terms_url %}<a href="{{ site.terms_url }}">Termos de Uso</a>{% endif %}{% if site.privacy_url %}<a href="{{ site.privacy_url }}">Política de Privacidade</a>{% endif %}</div>
-</footer>
-<nav class="tabbar" id="tabbar" aria-label="Navegação inferior">
-<a href="{% url 'dashboard' %}">{% include 'partials/gomut/icon.html' with name='home' %}<span>Início</span>
-</a>
-<a href="{% url 'dashboard' %}#meus-cursos">{% include 'partials/gomut/icon.html' with name='play' %}<span>Cursos</span>
-</a>
-<a href="{% url 'live_classes' %}">{% include 'partials/gomut/icon.html' with name='live' %}<span>Ao vivo</span>
-</a>
-<a href="{% url 'member_section' 'progresso' %}">{% include 'partials/gomut/icon.html' with name='painel-grafico' %}<span>Progresso</span>
-</a>
-<a href="{% url 'settings' %}">{% include 'partials/gomut/icon.html' with name='user' %}<span>Conta</span>
-</a>
-</nav>{% endblock %}
+{% extends 'base_gomut.html' %}{% block body %}<a class="sr-only skip-link" href="#view">Ir para o conteúdo</a>{% include 'partials/gomut/member_header.html' %}<main id="view" tabindex="-1">{% if messages %}<div class="member-messages" role="status">{% for message in messages %}<p class="panel panel__body">{{ message }}</p>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main><footer class="footer" id="footer"><div class="member-footer"><span>{{ site.school_name }} · {% now 'Y' %}</span><a href="{% url 'support' %}">Central de ajuda</a>{% if site.terms_url %}<a href="{{ site.terms_url }}">Termos de Uso</a>{% endif %}{% if site.privacy_url %}<a href="{{ site.privacy_url }}">Política de Privacidade</a>{% endif %}</div></footer><nav class="tabbar" id="tabbar" aria-label="Navegação inferior"><a href="{% url 'dashboard' %}">{% include 'partials/gomut/icon.html' with name='home' %}<span>Início</span></a><a href="{% url 'my_courses' %}">{% include 'partials/gomut/icon.html' with name='grid' %}<span>Cursos</span></a><a href="{% url 'community_hub' %}">{% include 'partials/gomut/icon.html' with name='users' %}<span>Comunidade</span></a><a href="{% url 'member_section' 'progresso' %}">{% include 'partials/gomut/icon.html' with name='painel-grafico' %}<span>Progresso</span></a><a href="{% url 'support' %}">{% include 'partials/gomut/icon.html' with name='help' %}<span>Suporte</span></a></nav>{% endblock %}

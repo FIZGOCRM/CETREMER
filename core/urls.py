@@ -20,6 +20,8 @@ from courses import quiz_views
 from courses import material_views
 
 urlpatterns = [
+    path('dashboard/meus-cursos/',student_views.my_courses,name='my_courses'),
+    path('buscar/',student_views.search,name='member_search'),
     path('notificacoes/',notification_views.notifications,name='notifications'),
     path('notificacoes/lidas/',notification_views.read_all,name='notifications_read_all'),
     path('ao-vivo/<int:event_id>/lembrete/',live_views.remind,name='live_remind'),

@@ -100,3 +100,13 @@ def pct(done, total):
     if total <= 0:
         return 0
     return round(done * 100 / total)
+
+@register.filter
+def brand_lead(name):
+    name=str(name or '')
+    return name[:-7] if name.lower().endswith('simples') else name
+
+@register.filter
+def brand_tail(name):
+    name=str(name or '')
+    return name[-7:] if name.lower().endswith('simples') else ''
