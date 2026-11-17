@@ -179,6 +179,10 @@ def member_summary(student, *, on=None):
         elif item['next_release']:
             next_steps.append({'priority': 6, 'title': 'Próximo módulo libera em '+item['next_release'].strftime('%d/%m'), 'detail': item['course'].title,
                 'url': reverse('member_course', args=[item['course'].slug]), 'icon': 'lock'})
+    from .live_selectors import student_events
+    next_event=student_events(student).filter(starts_at__gte=timezone.now()).first()
+    if next_event:
+        next_steps.append({'priority':7,'title':next_event.title,'detail':timezone.localtime(next_event.starts_at).strftime('%d/%m às %H:%M'),'url':reverse('live_classes'),'icon':'live'})
     next_steps.sort(key=lambda step: step['priority'])
     total = sum(item['total'] for item in items); completed = sum(item['completed'] for item in items)
     return {'items': items, 'total': total, 'completed': completed, 'remaining': total-completed,

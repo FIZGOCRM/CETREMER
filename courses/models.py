@@ -526,3 +526,20 @@ class HeroBanner(models.Model):
 
     def __str__(self):
         return f"Hero Banner: {self.title[:35]}"
+
+class LiveEvent(models.Model):
+    course=models.ForeignKey(Course,null=True,blank=True,on_delete=models.PROTECT,related_name='live_events')
+    title=models.CharField(max_length=200)
+    kind=models.CharField(max_length=15,default='mentoria',choices=[('mentoria','Mentoria'),('aberto','Aberto'),('aula_ao_vivo','Aula ao vivo')])
+    starts_at=models.DateTimeField()
+    duration_minutes=models.PositiveIntegerField(default=60,validators=[MinValueValidator(1)])
+    description=models.TextField(blank=True)
+    room_url=models.URLField(blank=True)
+    recording_url=models.URLField(blank=True)
+    is_active=models.BooleanField(default=True)
+    class Meta:ordering=['starts_at','pk']
+
+class LiveReminder(models.Model):
+    student=models.ForeignKey('users.StudentProfile',on_delete=models.CASCADE)
+    event=models.ForeignKey(LiveEvent,on_delete=models.PROTECT,related_name='reminders')
+    class Meta:constraints=[models.UniqueConstraint(fields=['student','event'],name='unique_student_live_reminder')]

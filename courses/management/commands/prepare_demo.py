@@ -103,4 +103,7 @@ class Command(BaseCommand):
         from support.demo import DEMO_FAQ,DEMO_SUBJECTS
         for index,name in enumerate(DEMO_SUBJECTS):SupportSubject.objects.get_or_create(name=name,defaults={'order':index})
         for index,(category,question,answer) in enumerate(DEMO_FAQ):FaqItem.objects.get_or_create(question=question,defaults={'category':category,'answer':answer,'order':index})
+        from courses.models import LiveEvent
+        LiveEvent.objects.get_or_create(title='Encontro ilustrativo da plataforma',defaults={'course':None,'starts_at':timezone.now()+timedelta(days=2),'duration_minutes':60,'description':'Demonstração da agenda. Não é um encontro clínico real; a equipe deve cadastrar a sala.'})
+        LiveEvent.objects.get_or_create(title='Gravação ilustrativa da plataforma',defaults={'course':None,'starts_at':timezone.now()-timedelta(days=2),'duration_minutes':60,'recording_url':'https://vimeo.com/76979871','description':'Vídeo público do Vimeo para demonstrar o acesso à gravação.'})
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

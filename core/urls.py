@@ -1,3 +1,4 @@
+from courses import live_views
 from support import views as support_views
 from django.contrib import admin
 from django.urls import include, path, re_path
@@ -18,6 +19,8 @@ from courses import quiz_views
 from courses import material_views
 
 urlpatterns = [
+    path('ao-vivo/<int:event_id>/lembrete/',live_views.remind,name='live_remind'),
+    path('ao-vivo/<int:event_id>/<slug:kind>/',live_views.open_link,name='live_link'),
     path('suporte/',support_views.hub,name='support'),
     path('suporte/novo/',support_views.new_ticket,name='support_new'),
     path('suporte/chamados/<int:ticket_id>/',support_views.ticket_detail,name='support_ticket'),
@@ -39,7 +42,7 @@ urlpatterns = [
     path('webhooks/asaas/', asaas_webhook, name='asaas_webhook'),
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),
-    path('ao-vivo/', student_views.live_classes, name='live_classes'),
+    path('ao-vivo/', live_views.agenda, name='live_classes'),
     path('certificados/', certificate_views.certificates, name='certificates'),
     path('certificado/verificar/', certificate_views.verify_certificate, name='verify_certificate'),
     path('senha/esqueci/', user_views.PasswordResetView.as_view(), name='password_reset'),

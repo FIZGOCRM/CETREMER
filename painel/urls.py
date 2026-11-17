@@ -3,10 +3,12 @@ from . import views
 from .views import plans
 from .views import quizzes
 from .views import materials
+from .views import live
 from .views import support
 
 app_name = 'painel'
 urlpatterns = [
+    path('ao-vivo/',live.live,name='live'),
     path('chamados/',support.tickets,name='tickets'),
     path('ajuda/<slug:kind>/',support.support_settings,name='support_settings'),
     path('cursos/<int:course_id>/materiais/', materials.course_materials, name='course_materials'),

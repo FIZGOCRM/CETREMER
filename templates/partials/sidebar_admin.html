@@ -12,6 +12,7 @@
     <a class="sidenav__link" href="{% url 'painel:community' %}"{% if current == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" %}Comunidade</a>
     <a class="sidenav__link" href="{% url 'painel:settings' %}"{% if current == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="gear" %}Configurações</a>
   <a class="sidenav__link" href="{% url 'painel:tickets' %}">Chamados</a>
+  <a class="sidenav__link" href="{% url 'painel:live' %}">Ao vivo</a>
   <a class="nav-item" href="{% url 'painel:expirations' %}">Vencimentos</a></nav>
   <div class="sidebar__footer">
     <a class="sidebar__footer-link" href="{% url 'dashboard' %}">Ver como aluno</a>
