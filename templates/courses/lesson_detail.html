@@ -1,7 +1,7 @@
 {% extends 'base_membros.html' %}{% load cetremer static l10n %}
 {% block title %}{{ lesson.title }} · {{ course.title }}{% endblock %}
 {% block content %}<div class="lesson">
-<div class="lesson__main">
+<div class="lesson__main" id="lesson-guide" data-completed="{{ is_completed|yesno:'true,false' }}" data-has-quiz="{{ has_quiz|yesno:'true,false' }}" data-quiz-pending="{{ quiz_pending|yesno:'true,false' }}" data-next-url="{% if next_lesson_nav %}{% url 'lesson_detail' course.slug next_lesson_nav.id %}{% endif %}">
 <nav class="crumbs">
 <a href="{% url 'member_course' course.slug %}">{% include 'partials/gomut/icon.html' with name='left' %}{{ course.title }}</a>
 <span>·</span>
@@ -22,11 +22,12 @@
 </button>{% if prev_lesson %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/gomut/icon.html' with name='left' %}Anterior</a>{% endif %}{% if next_lesson_nav %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}">Próxima{% include 'partials/gomut/icon.html' with name='right' %}</a>{% endif %}</div>
 </header>{% if next_release and not next_lesson_nav %}<p>Próximo módulo libera em {{ next_release|date:'d/m' }}</p>{% endif %}
 <p class="tag tag--line" role="alert" data-progress-error hidden>Não foi possível salvar. Tente de novo.</p>
+{% include 'partials/gomut/lesson_steps.html' %}
 <div data-tabs>
 <div class="tabs" role="tablist" aria-label="Conteúdo da aula">
-<button class="tab is-on" type="button" role="tab" id="tab-overview" data-tab aria-controls="overview" aria-selected="true">Visão geral</button>
-<button class="tab" type="button" role="tab" id="tab-materials" data-tab aria-controls="materials" aria-selected="false" tabindex="-1">E-book</button>
-<button class="tab" type="button" role="tab" id="tab-quiz" data-tab aria-controls="quiz" aria-selected="false" tabindex="-1">Quiz</button>
+<button class="tab is-on" type="button" role="tab" id="tab-overview" data-tab aria-controls="overview" aria-selected="true">Sobre a aula</button>
+<button class="tab" type="button" role="tab" id="tab-materials" data-tab aria-controls="materials" aria-selected="false" tabindex="-1">Material</button>
+{% if has_quiz %}<button class="tab" type="button" role="tab" id="tab-quiz" data-tab aria-controls="quiz" aria-selected="false" tabindex="-1">Quiz</button>{% endif %}<button class="tab" type="button" role="tab" id="tab-notes" data-tab aria-controls="notes" aria-selected="false" tabindex="-1">Anotações</button>
 </div>
 <section class="tabpanel" id="overview" role="tabpanel" aria-labelledby="tab-overview">
 <h2 class="section-title">Sobre esta aula</h2>
@@ -36,19 +37,10 @@
 <h2 class="section-title">E-book da aula</h2>{% for material in materials %}<a class="file" href="{% if material.file %}{{ material.file.url }}{% else %}{{ material.url }}{% endif %}" target="_blank" rel="noopener">{% include 'partials/gomut/icon.html' with name='download' %}<span>{{ material.title }}</span>
 <strong>Baixar</strong>
 </a>{% empty %}<p class="muted">Nenhum material de apoio cadastrado para esta aula.</p>{% endfor %}</section>
-<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>
-<h2 class="section-title">Quiz</h2>{% include 'partials/gomut/backend_pending.html' %}<p>O quiz ainda não está disponível nesta versão.</p>
-</section>
+{% if has_quiz %}<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden><h2 class="section-title">Quiz</h2><p>{% if is_completed %}Quiz liberado!{% else %}Conclua a aula para liberar o quiz.{% endif %}</p></section>{% endif %}
+<section class="tabpanel" id="notes" role="tabpanel" aria-labelledby="tab-notes" hidden>{% include 'partials/gomut/lesson_notes.html' %}</section>
 </div>
-<section class="panel">
-<div class="panel__head">
-<h2>Recursos da aula</h2>
-</div>
-<div class="panel__body">
-<span>Curtir · Minha lista</span>
-<br>{% include 'partials/gomut/backend_pending.html' %}<a class="btn btn--outline btn--sm" href="{% url 'community_hub' %}?curso={{ course.id }}">Comunidade do curso</a>
-</div>
-</section>
+<section class="panel panel__body"><h2>Dúvidas da turma</h2><a class="btn btn--outline btn--sm" href="{% url 'community_hub' %}?curso={{ course.id }}&amp;aula={{ lesson.id }}">Tirar dúvida com a turma</a></section>
 </div>
 <aside class="outline" aria-label="Aulas e módulos">
 <div class="outline__head outline__head--all">
@@ -59,5 +51,4 @@
 </div>{% endblock %}
 {% block extra_js %}<script src="https://player.vimeo.com/api/player.js" async data-vimeo-sdk>
 </script>
-<script src="{% static 'js/aluno.js' %}" defer>
-</script>{% endblock %}
+<script src="{% static 'js/aluno.js' %}" defer></script><script src="{% static 'js/gomut/lesson-guide.js' %}" defer></script>{% endblock %}

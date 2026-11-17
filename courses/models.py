@@ -263,6 +263,17 @@ class Progress(models.Model):
         return f"{self.student.user.username} - {self.lesson.title} ({status})"
 
 
+class LessonNote(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='lesson_notes')
+    lesson = models.ForeignKey(Lesson, on_delete=models.PROTECT, related_name='notes')
+    position_seconds = models.PositiveIntegerField(default=0)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['position_seconds', 'created_at', 'id']
+
+
 class StudyDay(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT, related_name='study_days')
     date = models.DateField()

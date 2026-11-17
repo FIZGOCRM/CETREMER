@@ -51,10 +51,11 @@ class MemberRedesignTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Progress.objects.exists())
 
-    def test_lesson_keeps_real_vimeo_and_explicit_pending_features(self):
+    def test_lesson_keeps_real_vimeo_and_private_notes_without_pending_features(self):
         response = self.client.get(reverse("lesson_detail", args=[self.course.slug, self.lesson.id]))
         self.assertContains(response, "https://player.vimeo.com/video/76979871")
-        self.assertContains(response, "Necessita de backend")
+        self.assertNotContains(response, "Necessita de backend")
+        self.assertContains(response, 'Anotações')
         self.assertContains(response, "data-complete-url")
 
     def test_course_detail_requires_session(self):

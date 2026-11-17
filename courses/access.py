@@ -99,3 +99,12 @@ def lesson_availability(enrollment, lesson, *, on=None, completed_ids=None):
         if not completed:
             return LessonAvailability('scheduled', release)
     return LessonAvailability('available', release)
+
+
+def require_lesson_access(student, lesson):
+    from django.core.exceptions import PermissionDenied
+    enrollment = Enrollment.objects.filter(student=student, course=lesson.module.course).prefetch_related('access_periods').first()
+    availability = lesson_availability(enrollment, lesson)
+    if availability.state != 'available':
+        raise PermissionDenied('Acesso encerrado.' if availability.state == 'plan_ended' else 'Esta aula ainda não está liberada.')
+    return enrollment

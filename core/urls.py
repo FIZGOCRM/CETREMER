@@ -12,8 +12,11 @@ from community import views as community_views
 from courses import student_views
 from courses import certificate_views
 from courses import player_views
+from courses import note_views
 
 urlpatterns = [
+    path('courses/lesson/<int:lesson_id>/notes/', note_views.notes, name='lesson_notes'),
+    path('courses/lesson/<int:lesson_id>/notes/<int:note_id>/delete/', note_views.delete_note, name='delete_lesson_note'),
     path('courses/lesson/<int:lesson_id>/heartbeat/', player_views.heartbeat, name='lesson_heartbeat'),
     path('courses/lesson/<int:lesson_id>/ended/', player_views.ended, name='lesson_ended'),
     path('dashboard/planos/<int:enrollment_id>/dispensar/', student_views.dismiss_plan_notice, name='dismiss_plan_notice'),

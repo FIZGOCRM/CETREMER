@@ -1,6 +1,11 @@
 from django import forms
 
 
+class LessonNoteForm(forms.Form):
+    position_seconds = forms.IntegerField(min_value=0)
+    text = forms.CharField(strip=True)
+
+
 class HeartbeatForm(forms.Form):
     position = forms.FloatField(min_value=0)
     playing = forms.BooleanField(required=False)

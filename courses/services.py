@@ -351,11 +351,11 @@ def save_module(module, *, actor, confirm_impact=False):
 
 @transaction.atomic
 def delete_content(content, *, actor):
-    from .models import Module, Progress, ActivityEvent
+    from .models import Module, Progress, ActivityEvent, LessonNote
     _plan_actor(actor)
     filters = {'lesson__module': content} if isinstance(content, Module) else {'lesson': content}
-    if Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists():
-        raise ValidationError('Este conteúdo tem progresso de alunos. Use despublicar para preservar o histórico.')
+    if Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists():
+        raise ValidationError('Este conteúdo tem histórico de alunos. Use despublicar para preservar o histórico.')
     content.delete()
 
 @transaction.atomic
@@ -425,3 +425,22 @@ def finish_video(student, lesson):
     if not progress or progress.watched_seconds < duration*.5:
         raise ValidationError('Assista ao menos metade da aula antes da conclusão automática, ou use Marcar como concluída.')
     return set_lesson_progress(student, lesson, completed=True)
+
+
+def create_lesson_note(student, lesson, *, position_seconds, text):
+    from .access import require_lesson_access
+    from .models import LessonNote
+    require_lesson_access(student, lesson)
+    if position_seconds < 0 or (lesson.duration_seconds and position_seconds > lesson.duration_seconds):
+        raise ValidationError('O minuto deve pertencer à aula.')
+    note = LessonNote(student=student, lesson=lesson, position_seconds=position_seconds, text=text.strip())
+    note.full_clean(); note.save()
+    return note
+
+
+def delete_lesson_note(student, note):
+    from .access import require_lesson_access
+    if note.student_id != student.pk:
+        raise PermissionDenied('Esta anotação é privada.')
+    require_lesson_access(student, note.lesson)
+    note.delete()

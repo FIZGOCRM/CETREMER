@@ -169,13 +169,21 @@ def lesson_detail(request, course_slug, lesson_id):
         .select_related("author", "course")
         .prefetch_related("comments")
     )
+    quiz = getattr(lesson, 'quiz', None)
+    has_quiz = bool(quiz and quiz.is_active and quiz.questions.filter(is_active=True).exists())
+    progress = Progress.objects.filter(student=student, lesson=lesson).first()
     return render(
         request,
         "courses/lesson_detail.html",
         {
             "course": course,
             "lesson": lesson,
-            'progress': Progress.objects.filter(student=student, lesson=lesson).first(),
+            'progress': progress,
+            'has_quiz': has_quiz,
+            'quiz_question_count': quiz.questions.filter(is_active=True).count() if has_quiz else 0,
+            'quiz_pending': has_quiz,
+            'watched_pct': min(100, round(100*progress.watched_seconds/lesson.duration_seconds)) if progress and lesson.duration_seconds else 0,
+            'notes': lesson.notes.filter(student=student),
             "modules": modules,
             "completed_ids": completed_ids,
             "completed_count": info["completed"],

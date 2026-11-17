@@ -81,6 +81,7 @@
     });
 
     updateModuleCounters();
+    document.dispatchEvent(new CustomEvent('lesson-progress-changed', {detail: data}));
   }
 
   function showError(show) {
@@ -157,7 +158,8 @@
       if (position > 0) return player.setCurrentTime(position);
     }).catch(videoError);
     player.on('error', videoError);
-    player.on('timeupdate', function (data) { position = data.seconds; });
+    player.on('timeupdate', function (data) { position = data.seconds; document.dispatchEvent(new CustomEvent('lesson-position', {detail: {seconds: position}})); });
+    document.addEventListener('lesson-seek', function (event) { var seconds = Number(event.detail.seconds); if (Number.isFinite(seconds) && seconds >= 0) player.setCurrentTime(seconds).catch(videoError); });
     player.on('play', function () { playing = true; pulse(true); });
     player.on('pause', function () { playing = false; pulse(false); });
     setInterval(function () {

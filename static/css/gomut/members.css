@@ -125,3 +125,12 @@
 .progress-page { padding-bottom:32px; }
 @media(max-width:899px) { .study-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); }.study-grid { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:599px) { .course-progress-grid { grid-template-columns:minmax(0,1fr); }.study-kpi { padding:14px; }.study-kpi > strong { font-size:26px; }.activity-list article { flex-wrap:wrap; } }
+
+.lesson-steps { display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:20px 0; }
+.lesson-steps > * { min-width:0;background:var(--c-surface-1);border:1px solid var(--c-line);border-radius:8px;padding:16px;text-align:left; }
+.lesson-steps strong,.lesson-steps small { display:block; }.lesson-steps small { color:var(--c-text-3);font-size:12px;margin-top:5px; }
+.lesson-steps .is-current { border-color:var(--c-red); }.lesson-steps .is-done { border-color:var(--c-green); }
+.lesson-completed { margin:18px 0;border-color:var(--c-green); }.lesson-completed h2 { margin-bottom:12px; }
+.lesson-note-form { display:flex;flex-direction:column;gap:12px;margin:18px 0; }.lesson-note-form textarea { width:100%;min-height:100px;border:1px solid var(--c-line-strong);background:var(--c-surface-1);color:var(--c-text);border-radius:8px;padding:12px;resize:vertical; }.lesson-note-form > button { align-self:flex-end; }
+.lesson-note { display:flex;align-items:flex-start;gap:12px;padding:16px 0;border-top:1px solid var(--c-line); }.lesson-note > p { flex:1;overflow-wrap:anywhere;white-space:pre-wrap; }.lesson-note form { flex:none; }
+@media(max-width:599px) { .lesson-note { flex-wrap:wrap; }.lesson-note p { flex-basis:60%; } }
