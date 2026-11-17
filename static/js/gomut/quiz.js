@@ -18,20 +18,45 @@
     return data;
   }
   function error(message) { errorBox.textContent = message; errorBox.hidden = false; }
-  function showModal() { if (!modal.open) modal.showModal(); errorBox.hidden = true; }
-  root.querySelector('[data-quiz-close]').addEventListener('click', () => modal.close());
+  function showModal() { if (typeof modal.showModal === 'function') { if (!modal.open) modal.showModal(); } else { modal.hidden = false; } errorBox.hidden = true; }
+  function closeModal() { if (typeof modal.close === 'function') modal.close(); else modal.hidden = true; }
+  function ready() { const guide = document.getElementById('lesson-guide'); return guide ? guide.dataset.completed === 'true' : root.dataset.ready === 'true'; }
+  const closeButton = root.querySelector('[data-quiz-close]'); if (closeButton) closeButton.addEventListener('click', closeModal);
   document.addEventListener('lesson-progress-changed', event => {
     start.disabled = !event.detail.is_completed;
     root.querySelector('[data-quiz-blocked]').hidden = !!event.detail.is_completed;
   });
   async function begin() {
     start.disabled = true; errorBox.hidden = true;
-    try { attempt = await api(root.dataset.startUrl); current = 0; renderQuestion(); showModal(); }
+    try { attempt = await api(root.dataset.startUrl); current = 0; if (attempt.kind === 'final') renderFinalQuestions(); else renderQuestion(); showModal(); }
     catch (problem) { error(problem.message); }
-    finally { start.disabled = document.getElementById('lesson-guide').dataset.completed !== 'true'; }
+    finally { start.disabled = !ready(); }
   }
   start.addEventListener('click', begin);
   document.addEventListener('lesson-tracked', event => { const bar = root.querySelector('[data-quiz-unlock-progress]'); if (bar) bar.value = event.detail.watched_pct || 0; });
+  function renderFinalQuestions() {
+    body.replaceChildren(node('h2', 'Responda todas as perguntas'));
+    const answers = {};
+    const count = node('p', `0 de ${attempt.questions.length} respondidas`, 'muted');
+    const submit = node('button', 'Enviar respostas', 'btn btn--red'); submit.type = 'button'; submit.disabled = true;
+    attempt.questions.forEach((question, index) => {
+      const section = node('fieldset', undefined, 'quiz-review');
+      section.append(node('legend', `${index + 1}. ${question.text}`));
+      question.choices.forEach(choice => {
+        const label = node('label', undefined, 'quiz-option');
+        const input = node('input'); input.type = 'radio'; input.name = 'final-question-' + question.id; input.value = choice.id;
+        input.addEventListener('change', () => { answers[String(question.id)] = choice.id; const answered = Object.keys(answers).length; count.textContent = `${answered} de ${attempt.questions.length} respondidas`; submit.disabled = answered !== attempt.questions.length; });
+        label.append(input, node('span', choice.text)); section.append(label);
+      });
+      body.append(section);
+    });
+    submit.addEventListener('click', async () => {
+      submit.disabled = true;
+      try { const result = await api(root.dataset.attemptPrefix + attempt.id + '/submit-final/', {answers}); renderResult(result); }
+      catch (problem) { error(problem.message); submit.disabled = false; }
+    });
+    body.append(count, submit);
+  }
   function renderQuestion() {
     const question = attempt.questions[current];
     body.replaceChildren();
@@ -68,19 +93,24 @@
     body.append(options, submit, feedback);
   }
   function renderResult(result) {
-    body.replaceChildren(node('h3', 'Quiz concluído'), node('p', `${result.correct}/${result.total} respostas corretas · ${result.score_pct}%`), node('p', `Melhor nota: ${result.best_score}%`));
+    body.replaceChildren(node('h3', root.dataset.kind === 'final' ? 'Avaliação concluída' : 'Quiz concluído'), node('p', `${result.correct}/${result.total} respostas corretas · ${result.score_pct}%`), node('p', `Melhor nota: ${result.best_score}%`));
     const summary = root.querySelector('[data-quiz-summary]'); summary.replaceChildren(node('p', `Última tentativa: ${result.score_pct}% · Melhor nota: ${result.best_score}%`));
-    start.textContent = 'Refazer';
-    const guide = document.getElementById('lesson-guide'); guide.dataset.quizPending = 'false';
-    const quizStep = document.querySelector('[data-quiz-step]'); if (quizStep) { quizStep.classList.remove('is-current'); quizStep.classList.add('is-done'); }
-    const nextStep = document.querySelector('[data-next-step]'); if (nextStep) nextStep.classList.add('is-current');
+    start.textContent = root.dataset.kind === 'final' ? 'Refazer avaliação' : 'Refazer';
+    if (root.dataset.kind === 'final') body.append(node('strong', result.best_score >= 70 ? 'Aprovado · certificado disponível com os demais requisitos' : 'Mínimo de 70% para aprovação'));
+    const guide = document.getElementById('lesson-guide');
+    if (guide) {
+      guide.dataset.quizPending = 'false';
+      const quizStep = document.querySelector('[data-quiz-step]'); if (quizStep) { quizStep.classList.remove('is-current'); quizStep.classList.add('is-done'); }
+      const nextStep = document.querySelector('[data-next-step]'); if (nextStep) nextStep.classList.add('is-current');
+    }
     result.questions.forEach(question => {
       const section = node('section', undefined, 'quiz-review'); section.append(node('h4', question.text));
       question.choices.forEach(choice => { const line = node('p', choice.text); if (choice.id === question.correct_choice_id) line.className = 'is-right'; else if (choice.id === question.chosen_choice_id) line.className = 'is-wrong'; section.append(line); });
       section.append(node('p', question.explanation, 'muted')); body.append(section);
     });
-    const close = node('button', 'Voltar à aula', 'btn btn--outline'); close.type = 'button'; close.addEventListener('click', () => modal.close()); body.append(close);
-    if (guide.dataset.nextUrl) { const next = node('a', 'Próxima aula', 'btn btn--red'); next.href = guide.dataset.nextUrl; body.append(next); }
+    const close = node('button', root.dataset.kind === 'final' ? 'Fechar resultado' : 'Voltar à aula', 'btn btn--outline'); close.type = 'button'; close.addEventListener('click', closeModal); body.append(close);
+    if (root.dataset.kind === 'final' && result.best_score >= 70) { const certificate = node('a', 'Ver requisitos do certificado', 'btn btn--red'); certificate.href = '/certificados/'; body.append(certificate); }
+    if (guide && guide.dataset.nextUrl) { const next = node('a', 'Próxima aula', 'btn btn--red'); next.href = guide.dataset.nextUrl; body.append(next); }
   }
   const review = root.querySelector('[data-quiz-review]');
   if (review) review.addEventListener('click', async () => { try { const result = await api(review.dataset.quizReview, null, 'GET'); renderResult(result); showModal(); } catch (problem) { error(problem.message); } });

@@ -95,6 +95,7 @@ def member_course(request, course_slug):
         return render(request, "courses/access_pending.html", {"course": course, "access": decision, "plan": plan_status(enrollment) if enrollment else None}, status=403)
     lessons = ordered_lessons(course)
     info = progress_info(request.user.student_profile, course, lessons)
+    info['certificate'] = getattr(enrollment, 'certificate', None)
     modules = course_modules(enrollment)
     done = set(Progress.objects.filter(student=request.user.student_profile, lesson__module__course=course, is_completed=True).values_list("lesson_id", flat=True))
     return render(request, "courses/course_detail.html", {

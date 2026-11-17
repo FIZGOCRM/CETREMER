@@ -76,4 +76,9 @@ class Command(BaseCommand):
             if new_quiz:
                 for index, (text, choices, correct, explanation) in enumerate(DEMO_LESSON_QUESTIONS[slug], 1):
                     save_quiz_question(quiz, order=index, text=text, explanation=explanation, choices=choices, correct_index=correct, actor=admin)
+            from courses.demo_quizzes import DEMO_FINAL_QUESTIONS
+            final, new_final = Quiz.objects.get_or_create(course=course, kind='final', defaults={'is_demo':True})
+            if new_final:
+                for index, (text, choices, correct) in enumerate(DEMO_FINAL_QUESTIONS[slug], 1):
+                    save_quiz_question(final, order=index, text=text, explanation='', choices=choices, correct_index=correct, actor=admin)
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

@@ -5,6 +5,7 @@ from .views import quizzes
 
 app_name = 'painel'
 urlpatterns = [
+    path('cursos/<int:course_id>/avaliacao/', quizzes.final_quiz, name='final_quiz'),
     path('aulas/<int:lesson_id>/quiz/', quizzes.lesson_quiz, name='lesson_quiz'),
     path('planos/<int:enrollment_id>/', plans.plan_manage, name='plan_manage'),
     path('vencimentos/', plans.expirations, name='expirations'),

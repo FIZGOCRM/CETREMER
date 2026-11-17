@@ -175,6 +175,9 @@ def settings_view(request):
                     error = ' '.join(exc.messages)
                 else:
                     success = "Dados salvos com sucesso."
+                    from courses.services import refresh_certificate_qualification
+                    for enrollment in student_profile.enrollments.all():
+                        refresh_certificate_qualification(enrollment)
             else:
                 error = "Apenas alunos possuem dados pessoais cadastrados."
                 

@@ -63,6 +63,7 @@ def set_lesson_progress(student, lesson, *, completed=None):
             else "Novice"
         )
         student.save(update_fields=["level", "title"])
+        refresh_certificate_qualification(enrollment)
     info = progress_info(student, lesson.module.course)
     return {
         "status": "success",
@@ -78,16 +79,15 @@ def issue_enrollment_certificate(enrollment):
     existing = Certificate.objects.filter(enrollment=enrollment).first()
     if existing:
         return existing
-    if not access_decision(enrollment).allowed:
-        raise ValidationError(
-            "Acesso ao curso precisa estar regular para emitir um novo certificado."
-        )
+    from .models import Enrollment
+    enrollment = Enrollment.objects.select_related('student', 'course').get(pk=enrollment.pk)
+    refresh_certificate_qualification(enrollment)
+    from .selectors import certificate_requirements
+    requirements = certificate_requirements(enrollment)
     student = enrollment.student
     course = enrollment.course
-    if progress_info(student, course)["status"] != "done" or not profile_data_ok(
-        student
-    ):
-        raise ValidationError("Conclua as aulas e informe nome completo e CPF válidos.")
+    if not requirements['can_issue']:
+        raise ValidationError('Conclua as aulas, obtenha 70% na avaliação final (se houver) e informe nome completo e CPF válidos durante o acesso.')
     code = secrets.token_hex(6).upper()
     while Certificate.objects.filter(code=code).exists():
         code = secrets.token_hex(6).upper()
@@ -99,7 +99,7 @@ def issue_enrollment_certificate(enrollment):
             "student_cpf": validate_cpf(student.cpf),
             "course_title": course.title,
             "workload_hours": course.workload_hours,
-            "completed_at": timezone.now(),
+            "completed_at": requirements['qualified_at'] or timezone.now(),
         },
     )
     return certificate
@@ -455,7 +455,17 @@ def delete_lesson_note(student, note):
 
 
 def require_quiz_access(student, quiz):
-    if not quiz.is_active or quiz.kind != 'lesson' or not quiz.lesson_id or quiz.lesson.module.course_id != quiz.course_id:
+    if not quiz.is_active:
+        raise PermissionDenied('Este quiz não está disponível.')
+    if quiz.kind == 'final':
+        from .models import Enrollment, Lesson
+        enrollment = Enrollment.objects.filter(student=student, course=quiz.course).prefetch_related('access_periods').first()
+        lesson_ids = list(Lesson.objects.filter(module__course=quiz.course, module__status='published', status='published').values_list('id', flat=True))
+        completed = Progress.objects.filter(student=student, lesson_id__in=lesson_ids, is_completed=True).count()
+        if not access_decision(enrollment).allowed or not lesson_ids or completed != len(lesson_ids):
+            raise PermissionDenied('Conclua todas as aulas publicadas com o plano ativo para liberar a avaliação final.')
+        return
+    if quiz.kind != 'lesson' or not quiz.lesson_id or quiz.lesson.module.course_id != quiz.course_id:
         raise PermissionDenied('Este quiz não está disponível.')
     from .access import require_lesson_access
     require_lesson_access(student, quiz.lesson)
@@ -537,12 +547,14 @@ def answer_quiz(student, attempt, *, question_id, choice_id):
         raise ValidationError('Pergunta ou alternativa inválida para esta tentativa.')
     attempt.answers[str(question_id)] = choice_id
     attempt.save(update_fields=['answers'])
+    if attempt.quiz.kind == 'final':
+        return {'saved': True, 'answered': len(attempt.answers), 'total': attempt.total}
     return {'correct': choice_id == question['correct_choice_id'], 'correct_choice_id': question['correct_choice_id'], 'explanation': question['explanation']}
 
 
 @transaction.atomic
 def finish_quiz(student, attempt):
-    from decimal import Decimal
+    from decimal import Decimal, ROUND_DOWN
     from .models import ActivityEvent
     attempt = _locked_attempt(student, attempt)
     if not attempt.finished_at:
@@ -550,11 +562,15 @@ def finish_quiz(student, attempt):
             raise ValidationError('Responda todas as perguntas antes de finalizar.')
         attempt.correct = sum(attempt.answers.get(str(q['id'])) == q['correct_choice_id'] for q in attempt.question_snapshot)
         attempt.total = len(attempt.question_snapshot)
-        attempt.score_pct = (Decimal(attempt.correct)*100/attempt.total).quantize(Decimal('.01'))
+        attempt.score_pct = (Decimal(attempt.correct)*100/attempt.total).quantize(Decimal('.01'), rounding=ROUND_DOWN)
         attempt.finished_at = timezone.now()
         attempt.save(update_fields=['correct', 'total', 'score_pct', 'finished_at'])
-        ActivityEvent.objects.create(student=student, kind='quiz_finished', lesson=attempt.quiz.lesson, course=attempt.quiz.course,
-            payload={'quiz_id': attempt.quiz_id, 'score_pct': float(attempt.score_pct)})
+        if attempt.quiz.kind == 'lesson' or attempt.score_pct >= 70:
+            ActivityEvent.objects.create(student=student, kind='quiz_finished' if attempt.quiz.kind == 'lesson' else 'final_passed', lesson=attempt.quiz.lesson, course=attempt.quiz.course,
+                payload={'quiz_id': attempt.quiz_id, 'score_pct': float(attempt.score_pct)})
+        if attempt.quiz.kind == 'final':
+            from .models import Enrollment
+            refresh_certificate_qualification(Enrollment.objects.get(student=student, course=attempt.quiz.course))
     from .selectors import quiz_attempt_result
     return quiz_attempt_result(attempt)
 
@@ -574,3 +590,42 @@ def set_quiz_active(content, is_active, *, actor):
     content.is_active = bool(is_active)
     content.full_clean(); content.save(update_fields=['is_active'])
     return content
+
+
+def create_final_quiz(course, *, actor):
+    from .models import Quiz
+    _plan_actor(actor)
+    quiz, _ = Quiz.objects.get_or_create(course=course, kind='final')
+    quiz.full_clean()
+    return quiz
+
+
+def refresh_certificate_qualification(enrollment):
+    from .models import Enrollment
+    from .selectors import certificate_requirements
+    current = Enrollment.objects.select_related('student', 'course').get(pk=enrollment.pk)
+    requirements = certificate_requirements(current)
+    if requirements['requirements_met'] and requirements['access'].allowed and not current.certificate_qualified_at:
+        Enrollment.objects.filter(pk=current.pk).update(certificate_qualified_at=timezone.now())
+    elif not requirements['requirements_met'] and current.certificate_qualified_at and not Certificate.objects.filter(enrollment=current).exists():
+        Enrollment.objects.filter(pk=current.pk).update(certificate_qualified_at=None)
+
+
+@transaction.atomic
+def submit_final_quiz(student, attempt, answers):
+    attempt = _locked_attempt(student, attempt)
+    if attempt.quiz.kind != 'final':
+        raise ValidationError('Esta tentativa não é uma avaliação final.')
+    if attempt.finished_at:
+        return finish_quiz(student, attempt)
+    expected = {str(q['id']): q for q in attempt.question_snapshot}
+    if not isinstance(answers, dict) or set(answers) != set(expected):
+        raise ValidationError('Responda todas as perguntas antes de enviar.')
+    for question_id, choice_id in answers.items():
+        if isinstance(choice_id, bool) or choice_id not in [choice['id'] for choice in expected[question_id]['choices']]:
+            raise ValidationError('Uma alternativa enviada não pertence à pergunta.')
+        if question_id in attempt.answers and attempt.answers[question_id] != choice_id:
+            raise ValidationError('Esta pergunta já foi respondida nesta tentativa.')
+    attempt.answers = answers
+    attempt.save(update_fields=['answers'])
+    return finish_quiz(student, attempt)

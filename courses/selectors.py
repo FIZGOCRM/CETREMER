@@ -33,7 +33,7 @@ def ordered_lessons(course):
     )
 
 
-def progress_info(student, course, lessons=None, *, enrollment=None, completed_ids=None):
+def progress_info(student, course, lessons=None, *, enrollment=None, completed_ids=None, started=None, final_data=None):
     lessons = lessons if lessons is not None else ordered_lessons(course)
     done_ids = set(completed_ids) if completed_ids is not None else set(
         Progress.objects.filter(
@@ -44,7 +44,7 @@ def progress_info(student, course, lessons=None, *, enrollment=None, completed_i
     )
     total = len(lessons)
     completed = len(done_ids)
-    from .access import lesson_availability
+    from .access import lesson_availability, access_decision
     from .models import Enrollment
     if enrollment is None:
         enrollment = Enrollment.objects.filter(student=student, course=course).prefetch_related('access_periods').first()
@@ -52,11 +52,21 @@ def progress_info(student, course, lessons=None, *, enrollment=None, completed_i
     available = [lesson for lesson in lessons if availability[lesson.pk].state == 'available']
     next_lesson = next((lesson for lesson in available if lesson.id not in done_ids), available[-1] if available and completed == total else None)
     scheduled = [a.release_date for a in availability.values() if a.state == 'scheduled' and a.release_date]
-    status = "not_started"
-    if total and completed == total:
-        status = "done"
-    elif completed:
-        status = "in_progress"
+    if started is None:
+        from django.db.models import Q
+        started = bool(completed) or Progress.objects.filter(student=student, lesson__in=lessons).filter(Q(watched_seconds__gt=0)|Q(last_position_seconds__gt=0)).exists()
+    final_data = student_final_data(student, course) if final_data is None else final_data
+    best = final_data.get('best_score')
+    all_lessons = bool(total) and completed == total
+    status = 'new'
+    if not access_decision(enrollment).allowed:
+        status = 'ended'
+    elif all_lessons:
+        status = 'exam' if final_data.get('quiz') and (best is None or best < 70) else 'done'
+    elif not any(lesson.pk not in done_ids for lesson in available) and scheduled:
+        status = 'waiting_release'
+    elif started:
+        status = 'progress'
     return {
         "course": course,
         "pct": round(100 * completed / total) if total else 0,
@@ -65,6 +75,8 @@ def progress_info(student, course, lessons=None, *, enrollment=None, completed_i
         "next_lesson": next_lesson,
         "status": status,
         'next_release': min(scheduled) if scheduled else None,
+        'has_final': bool(final_data.get('quiz')), 'final_quiz': final_data.get('quiz'), 'final_best_score': best,
+        'all_lessons': all_lessons,
     }
 
 
@@ -83,6 +95,9 @@ def member_course_items(student):
     for record in Progress.objects.filter(student=student, lesson__module__course_id__in=course_ids, lesson__status='published', lesson__module__status='published').select_related('lesson__module'):
         records_by_course[record.lesson.module.course_id].append(record)
     certificates = {cert.enrollment_id: cert for cert in Certificate.objects.filter(enrollment__student=student)}
+    finals = {q.course_id: q for q in Quiz.objects.filter(course_id__in=course_ids, kind='final', is_active=True).annotate(question_count=Count('questions', filter=Q(questions__is_active=True))).filter(question_count__gt=0)}
+    from django.db.models import Min
+    final_results = {row['quiz_id']:row for row in QuizAttempt.objects.filter(student=student, quiz_id__in=[q.pk for q in finals.values()], finished_at__isnull=False).values('quiz_id').annotate(best=Max('score_pct'), passed_at=Min('finished_at', filter=Q(score_pct__gte=70)))}
     quizzes = list(Quiz.objects.filter(course_id__in=course_ids, kind='lesson', is_active=True, lesson__status='published', lesson__module__status='published').select_related('lesson').annotate(question_count=Count('questions', filter=Q(questions__is_active=True))).filter(question_count__gt=0).order_by('lesson__module__order', 'lesson__order', 'id'))
     quiz_results = {row['quiz_id']: row for row in QuizAttempt.objects.filter(student=student, quiz_id__in=[q.pk for q in quizzes], finished_at__isnull=False).values('quiz_id').annotate(best=Max('score_pct'))}
     data_ok = profile_data_ok(student)
@@ -90,11 +105,20 @@ def member_course_items(student):
     for enrollment in enrollments:
         records = records_by_course[enrollment.course_id]
         done = {r.lesson_id for r in records if r.is_completed}
-        item = progress_info(student, enrollment.course, lessons_by_course[enrollment.course_id], enrollment=enrollment, completed_ids=done)
+        started = any(r.is_completed or r.watched_seconds or r.last_position_seconds for r in records)
+        final = finals.get(enrollment.course_id)
+        final_result = final_results.get(final.pk, {}) if final else {}
+        item = progress_info(student, enrollment.course, lessons_by_course[enrollment.course_id], enrollment=enrollment, completed_ids=done, started=started, final_data={'quiz':final, 'best_score':float(final_result['best']) if final_result.get('best') is not None else None})
         item.update(enrollment=enrollment, access=access_decision(enrollment), plan=plan_status(enrollment),
             certificate=certificates.get(enrollment.pk), watched_seconds=sum(r.watched_seconds for r in records),
             started=any(r.is_completed or r.watched_seconds or r.last_position_seconds for r in records))
-        item['certificate_ready'] = bool(item['status'] == 'done' and item['access'].allowed and data_ok and not item['certificate'])
+        from .access import access_decision as historical_access
+        from django.utils import timezone
+        qualification = enrollment.certificate_qualified_at
+        times = [r.completed_at for r in records if r.is_completed and r.completed_at]+[t for t in (qualification, final_result.get('passed_at')) if t]
+        historical_ok = bool(qualification and times and historical_access(enrollment, on=timezone.localdate(max(times))).allowed)
+        academic_ok = item['all_lessons'] and (not item['has_final'] or item['final_best_score'] is not None and item['final_best_score'] >= 70)
+        item['certificate_ready'] = bool(academic_ok and (item['access'].allowed or historical_ok) and data_ok and not item['certificate'])
         item['ring_offset'] = round(194.78*(1-item['pct']/100), 2)
         course_quizzes = [q for q in quizzes if q.course_id == enrollment.course_id]
         item['quizzes_total'] = len(course_quizzes)
@@ -137,13 +161,17 @@ def member_summary(student, *, on=None):
     next_steps = []
     for item in items:
         if not item['access'].allowed:
+            if item['certificate_ready']:
+                next_steps.append({'priority':5, 'title':'Emitir certificado', 'detail':item['course'].title, 'url':reverse('certificates'), 'icon':'award'})
             continue
         quiz = item.get('pending_quiz')
         if quiz:
             next_steps.append({'priority': 1, 'title': 'Fazer o quiz: '+quiz.lesson.title, 'detail': item['course'].title+f' · {quiz.question_count} perguntas',
                 'url': reverse('lesson_detail', args=[item['course'].slug, quiz.lesson_id])+'#quiz', 'icon': 'quiz'})
         lesson = item['next_lesson']
-        if lesson and item['status'] != 'done':
+        if item['status'] == 'exam':
+            next_steps.append({'priority':4, 'title':'Fazer a avaliação final', 'detail':item['course'].title+' · mínimo 70%', 'url':reverse('final_assessment', args=[item['course'].slug]), 'icon':'quiz'})
+        elif lesson and item['status'] not in ('done', 'ended', 'waiting_release'):
             next_steps.append({'priority': 2 if item['started'] else 3, 'title': ('Continuar: '+lesson.title) if item['started'] else ('Começar '+item['course'].title),
                 'detail': item['course'].title, 'url': reverse('lesson_detail', args=[item['course'].slug, lesson.pk]), 'icon': 'play'})
         elif item['status'] == 'done' and not item['certificate']:
@@ -160,7 +188,7 @@ def member_summary(student, *, on=None):
 
 
 def public_quiz_attempt(attempt):
-    return {'id': attempt.pk, 'quiz_id': attempt.quiz_id, 'is_demo': attempt.quiz.is_demo,
+    return {'id': attempt.pk, 'quiz_id': attempt.quiz_id, 'is_demo': attempt.quiz.is_demo, 'kind': attempt.quiz.kind,
         'questions': [{'id': question['id'], 'text': question['text'], 'choices': question['choices']} for question in attempt.question_snapshot]}
 
 
@@ -191,3 +219,44 @@ def lesson_quiz_state(student, lesson):
 def has_active_lesson_quiz(lesson):
     quiz = getattr(lesson, 'quiz', None)
     return bool(quiz and quiz.is_active and quiz.questions.filter(is_active=True).exists())
+
+
+def active_final_quiz(course):
+    from django.db.models import Count, Q
+    from .models import Quiz
+    return Quiz.objects.filter(course=course, kind='final', is_active=True).annotate(question_count=Count('questions', filter=Q(questions__is_active=True))).filter(question_count__gt=0).first()
+
+
+def certificate_requirements(enrollment):
+    from django.db.models import Max, Min
+    from .access import access_decision
+    from .models import Enrollment
+    from .services import profile_data_ok
+    from django.utils import timezone
+    enrollment = Enrollment.objects.select_related('student', 'course').prefetch_related('access_periods').get(pk=enrollment.pk)
+    lessons = ordered_lessons(enrollment.course)
+    completed = list(Progress.objects.filter(student=enrollment.student, lesson__in=lessons, is_completed=True))
+    all_lessons = bool(lessons) and len(completed) == len(lessons)
+    final = active_final_quiz(enrollment.course)
+    best, passed_at = None, None
+    if final:
+        best = final.attempts.filter(student=enrollment.student, finished_at__isnull=False).aggregate(score=Max('score_pct'))['score']
+        passed_at = final.attempts.filter(student=enrollment.student, finished_at__isnull=False, score_pct__gte=70).aggregate(at=Min('finished_at'))['at']
+    data_ok = profile_data_ok(enrollment.student)
+    requirements_met = all_lessons and data_ok and (not final or best is not None and best >= 70)
+    access = access_decision(enrollment)
+    qualified_at = enrollment.certificate_qualified_at
+    times = [record.completed_at for record in completed if record.completed_at] + [t for t in (qualified_at, passed_at) if t]
+    historical_ok = bool(qualified_at and times and access_decision(enrollment, on=timezone.localdate(max(times))).allowed)
+    return {'total': len(lessons), 'completed': len(completed), 'all_lessons': all_lessons,
+        'has_final': bool(final), 'final_quiz': final, 'best_score': float(best) if best is not None else None,
+        'final_passed': not final or best is not None and best >= 70, 'data_ok': data_ok,
+        'requirements_met': requirements_met, 'access': access, 'qualified_at': qualified_at,
+        'can_issue': bool(requirements_met and (access.allowed or historical_ok))}
+
+
+def student_final_data(student, course):
+    from django.db.models import Max
+    final = active_final_quiz(course)
+    best = final.attempts.filter(student=student, finished_at__isnull=False).aggregate(value=Max('score_pct'))['value'] if final else None
+    return {'quiz':final, 'best_score':float(best) if best is not None else None}

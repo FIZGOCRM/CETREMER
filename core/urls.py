@@ -16,6 +16,8 @@ from courses import note_views
 from courses import quiz_views
 
 urlpatterns = [
+    path('dashboard/cursos/<slug:course_slug>/avaliacao/', quiz_views.final_assessment, name='final_assessment'),
+    path('quizzes/tentativas/<int:attempt_id>/submit-final/', quiz_views.submit_final, name='submit_final_quiz'),
     path('quizzes/<int:quiz_id>/start/', quiz_views.start, name='quiz_start'),
     path('quizzes/tentativas/<int:attempt_id>/answer/', quiz_views.answer, name='quiz_answer'),
     path('quizzes/tentativas/<int:attempt_id>/finish/', quiz_views.finish, name='quiz_finish'),

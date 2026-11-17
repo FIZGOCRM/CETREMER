@@ -6,7 +6,7 @@ from django.views.decorators.http import require_GET, require_http_methods
 
 from .access import access_decision
 from .models import Certificate, Course, Enrollment
-from .selectors import progress_info
+from .selectors import progress_info, certificate_requirements
 from .services import issue_enrollment_certificate, profile_data_ok
 
 
@@ -45,8 +45,9 @@ def issue_certificate(request, course_slug):
         return redirect("course_preview", course_slug=course_slug)
     certificate = Certificate.objects.filter(enrollment=enrollment).first()
     if certificate is None:
-        decision = access_decision(enrollment)
-        if not decision.allowed:
+        requirements = certificate_requirements(enrollment)
+        decision = requirements['access']
+        if not decision.allowed and not requirements['can_issue']:
             return render(
                 request,
                 "courses/access_pending.html",
@@ -61,7 +62,8 @@ def issue_certificate(request, course_slug):
             "remaining": info["total"] - info["completed"],
             "pct": info["pct"],
             "next_lesson": info["next_lesson"],
-            "progress_ok": info["status"] == "done",
+            "progress_ok": requirements['all_lessons'] and requirements['final_passed'],
+            'requirements': requirements,
             "data_ok": profile_data_ok(student),
         }
         if not context["progress_ok"] or not context["data_ok"]:

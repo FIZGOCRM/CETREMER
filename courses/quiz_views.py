@@ -7,9 +7,12 @@ from django.views.decorators.http import require_POST, require_GET
 from core.http import json_error
 from .access import require_lesson_access
 from .forms import QuizAnswerForm
-from .models import Quiz, QuizAttempt
+from .models import Quiz, QuizAttempt, Course, Enrollment
 from .selectors import public_quiz_attempt, quiz_attempt_result
-from .services import start_quiz, answer_quiz, finish_quiz
+from .services import start_quiz, answer_quiz, finish_quiz, submit_final_quiz
+from .access import access_decision
+from django.shortcuts import render
+from .selectors import active_final_quiz, progress_info
 
 
 def _student(request):
@@ -85,8 +88,56 @@ def result(request, attempt_id):
     try:
         if not attempt.quiz.is_active:
             raise PermissionDenied('Este quiz foi desativado.')
-        require_lesson_access(student, attempt.quiz.lesson)
+        if attempt.quiz.kind == 'final':
+            enrollment = Enrollment.objects.filter(student=student, course=attempt.quiz.course).first()
+            if not access_decision(enrollment).allowed:
+                raise PermissionDenied('Plano encerrado.')
+        else:
+            require_lesson_access(student, attempt.quiz.lesson)
         result = quiz_attempt_result(attempt)
     except (PermissionDenied, ValidationError) as exc:
         return _error(exc)
     return JsonResponse(result)
+
+
+@login_required
+@require_POST
+def submit_final(request, attempt_id):
+    try:
+        student = _student(request)
+    except PermissionDenied as exc:
+        return _error(exc)
+    attempt = get_object_or_404(QuizAttempt, pk=attempt_id, student=student)
+    try:
+        data = json.loads(request.body)
+        if not isinstance(data, dict):
+            raise ValueError
+        result = submit_final_quiz(student, attempt, data.get('answers'))
+    except (ValueError, UnicodeDecodeError):
+        return json_error('Envie todas as respostas em JSON válido.', status=400, code='invalid_input')
+    except (PermissionDenied, ValidationError) as exc:
+        return _error(exc)
+    return JsonResponse(result)
+
+
+@login_required
+@require_GET
+def final_assessment(request, course_slug):
+    try:
+        student = _student(request)
+    except PermissionDenied as exc:
+        return _error(exc)
+    course = get_object_or_404(Course, slug=course_slug)
+    enrollment = get_object_or_404(Enrollment.objects.prefetch_related('access_periods'), student=student, course=course)
+    decision = access_decision(enrollment)
+    if not decision.allowed:
+        from .services import plan_status
+        return render(request, 'courses/access_pending.html', {'course':course, 'access':decision, 'plan':plan_status(enrollment)}, status=403)
+    quiz = active_final_quiz(course)
+    if quiz is None:
+        from django.http import Http404
+        raise Http404
+    info = progress_info(student, course)
+    latest = quiz.attempts.filter(student=student, finished_at__isnull=False).order_by('-finished_at','-id').first()
+    return render(request, 'courses/final_assessment.html', {'course':course, 'quiz':quiz, 'item':info,
+        'ready': bool(info['total'] and info['completed'] == info['total']), 'quiz_result':quiz_attempt_result(latest) if latest else None})

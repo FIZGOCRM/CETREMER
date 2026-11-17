@@ -3,8 +3,8 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Max
 from django.shortcuts import get_object_or_404, redirect
 from core.decorators import painel_required
-from courses.models import Lesson, QuizQuestion
-from courses.services import create_lesson_quiz, save_quiz_question, delete_quiz_content, set_quiz_active
+from courses.models import Course, Lesson, Quiz, QuizQuestion
+from courses.services import create_lesson_quiz, create_final_quiz, save_quiz_question, delete_quiz_content, set_quiz_active
 from painel.forms import QuizQuestionForm
 from .common import page
 
@@ -14,7 +14,19 @@ def lesson_quiz(request, lesson_id):
     if request.user.role not in ('ADMIN', 'CREATOR'):
         raise PermissionDenied
     lesson = get_object_or_404(Lesson.objects.select_related('module__course'), pk=lesson_id)
-    quiz = getattr(lesson, 'quiz', None)
+    return _edit_quiz(request, lesson=lesson, course=lesson.module.course)
+
+
+@painel_required
+def final_quiz(request, course_id):
+    if request.user.role not in ('ADMIN', 'CREATOR'):
+        raise PermissionDenied
+    return _edit_quiz(request, course=get_object_or_404(Course, pk=course_id))
+
+
+def _edit_quiz(request, *, course, lesson=None):
+    quiz = getattr(lesson, 'quiz', None) if lesson else Quiz.objects.filter(course=course, kind='final').first()
+    context = {'lesson':lesson, 'course':course, 'is_final':lesson is None}
     question = None
     raw_id = request.POST.get('question_id') if request.method == 'POST' else request.GET.get('pergunta')
     if raw_id:
@@ -33,7 +45,7 @@ def lesson_quiz(request, lesson_id):
         action = request.POST.get('action')
         try:
             if action == 'create':
-                quiz = create_lesson_quiz(lesson, actor=request.user)
+                quiz = create_lesson_quiz(lesson, actor=request.user) if lesson else create_final_quiz(course, actor=request.user)
             elif not quiz:
                 raise ValidationError('Crie o quiz antes de cadastrar perguntas.')
             elif action == 'toggle':
@@ -44,12 +56,12 @@ def lesson_quiz(request, lesson_id):
                 data = form.cleaned_data
                 save_quiz_question(quiz, question=question, actor=request.user, **{key: data[key] for key in ('order','text','explanation','choices','correct_index')})
             elif action == 'save':
-                return page(request, 'lesson_quiz', lesson=lesson, quiz=quiz, question=question, form=form, questions=quiz.questions.all())
+                return page(request, 'lesson_quiz', **context, quiz=quiz, question=question, form=form, questions=quiz.questions.all())
             else:
                 raise ValidationError('Ação inválida.')
         except ValidationError as exc:
             messages.error(request, ' '.join(exc.messages))
         else:
             messages.success(request, 'Quiz atualizado. Tentativas anteriores preservadas.')
-        return redirect('painel:lesson_quiz', lesson_id=lesson.pk)
-    return page(request, 'lesson_quiz', lesson=lesson, quiz=quiz, question=question, form=form, questions=quiz.questions.all() if quiz else [])
+        return redirect('painel:lesson_quiz', lesson_id=lesson.pk) if lesson else redirect('painel:final_quiz', course_id=course.pk)
+    return page(request, 'lesson_quiz', **context, quiz=quiz, question=question, form=form, questions=quiz.questions.all() if quiz else [])

@@ -357,6 +357,7 @@ class ActivityEvent(models.Model):
 
 
 class Enrollment(models.Model):
+    certificate_qualified_at = models.DateTimeField(null=True, blank=True)
     plan_started_on = models.DateField(null=True, blank=True)
     admin_note = models.TextField(blank=True)
     class AccessPolicy(models.TextChoices):

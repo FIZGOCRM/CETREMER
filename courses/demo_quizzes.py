@@ -21,3 +21,20 @@ DEMO_LESSON_QUESTIONS = {
          'Comece por quem pode piorar mais rápido.'),
     ],
 }
+
+
+# Avaliações do objeto C do mesmo protótipo; não há comentário nesse banco.
+DEMO_FINAL_QUESTIONS = {
+    'cardiologia': [
+        ('Na avaliação inicial do paciente grave, qual sequência é recomendada?', ['ABCDE: via aérea, respiração, circulação, neurológico, exposição', 'Anamnese completa antes do exame físico', 'Exames laboratoriais antes da estabilização', 'Exame neurológico primeiro'], 0),
+        ('Supradesnivelamento de ST em duas derivações contíguas sugere:', ['Pericardite crônica', 'IAM com supra de ST', 'Hipocalemia', 'Bloqueio de ramo direito isolado'], 1),
+        ('Taquiarritmia com instabilidade hemodinâmica. Conduta imediata:', ['Observar e repetir ECG em 1 hora', 'Betabloqueador oral', 'Cardioversão elétrica sincronizada', 'Alta com retorno ambulatorial'], 2),
+        ('Meta de tempo porta-balão na angioplastia primária:', ['Até 30 minutos', 'Até 90 minutos', 'Até 6 horas', 'Até 24 horas'], 1),
+    ],
+    'plantao': [
+        ('Qual ferramenta estrutura a passagem de plantão?', ['SOAP', 'SBAR', 'APGAR', 'CHA2DS2-VASc'], 1),
+        ('Na suspeita de sepse, o antimicrobiano deve ser iniciado:', ['Após resultado da hemocultura', 'Na primeira hora', 'Em até 24 horas', 'Só se houver febre'], 1),
+        ('O que diferencia emergência de urgência hipertensiva?', ['O valor da pressão diastólica', 'A idade do paciente', 'Lesão aguda de órgão-alvo', 'O uso prévio de anti-hipertensivo'], 2),
+        ('Paciente com rebaixamento de consciência. O primeiro exame à beira-leito é:', ['Tomografia de crânio', 'Glicemia capilar', 'Punção lombar', 'Eletroencefalograma'], 1),
+    ],
+}

@@ -12,7 +12,7 @@
 <div class="tagrow">
 <span class="tag">{{ item.total }} aulas · {{ total_seconds|duracao }}</span>
 <span class="tag tag--line">{{ item.pct }}% concluído</span>{% if access.paid_through %}<span class="tag tag--line">Período quitado até {{ access.paid_through|date:'d/m/Y' }}</span>{% endif %}</div>
-<div class="hero__actions">{% if item.next_lesson %}<a class="btn btn--red" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}<a class="btn btn--outline" href="{% url 'community_hub' %}?curso={{ course.id }}">Comunidade</a>
+<div class="hero__actions">{% if item.status == 'exam' %}<a class="btn btn--red" href="{% url 'final_assessment' course.slug %}">Fazer avaliação final</a>{% elif item.status == 'done' %}<a class="btn btn--red" href="{% url 'certificates' %}">{% if item.certificate %}Ver certificado{% else %}Emitir certificado{% endif %}</a>{% elif item.next_lesson %}<a class="btn btn--red" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}<a class="btn btn--outline" href="{% url 'community_hub' %}?curso={{ course.id }}">Comunidade</a>
 </div>
 {% if item.next_release and not item.next_lesson %}<p>Próximo módulo libera em {{ item.next_release|date:'d/m' }}</p>{% endif %}<section class="member-modules">
 <h2 class="section-title">Aulas e módulos</h2>{% include 'partials/gomut/module_list.html' %}</section>
