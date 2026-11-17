@@ -13,7 +13,7 @@
 <h2>Vídeo ainda não disponível</h2>
 <p>A equipe precisa cadastrar o link desta aula.</p>
 </div>{% endif %}</div>
-<div class="panel panel__body" id="player-error" hidden role="alert"><p>Não foi possível carregar o vídeo. Tente novamente ou abra um chamado no Suporte.</p><a href="/dashboard/suporte/">Abrir chamado</a></div><header class="lesson__head">
+<div class="panel panel__body" id="player-error" hidden role="alert"><p>Não foi possível carregar o vídeo. Tente novamente ou abra um chamado no Suporte.</p><a href="{% url 'support_new' %}">Abrir chamado</a></div><header class="lesson__head">
 <div>
 <p class="eyebrow">Aula {{ lesson_index }} de {{ total }}</p>
 <h1>{{ lesson.title }}</h1>

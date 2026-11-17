@@ -3,6 +3,7 @@ from . import views
 from .views import plans
 from .views import quizzes
 from .views import materials
+from .views import preview
 from .views import reports
 from .views import certificates
 from .views import lessons
@@ -12,6 +13,9 @@ from .views import support
 
 app_name = 'painel'
 urlpatterns = [
+    path('visualizar/',preview.preview_choose,name='preview_choose'),
+    path('visualizar/encerrar/',preview.preview_end,name='preview_end'),
+    path('visualizar/<int:student_id>/',preview.preview_start,name='preview_start'),
     path('relatorios/',reports.reports,name='reports'),
     path('relatorios/exportar/',reports.export_reports,name='reports_export'),
     path('certificados/',certificates.certificates,name='certificates'),

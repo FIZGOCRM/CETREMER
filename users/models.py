@@ -163,3 +163,9 @@ class StudentVisit(models.Model):
     date=models.DateField()
     first_at=models.DateTimeField(auto_now_add=True)
     class Meta:constraints=[models.UniqueConstraint(fields=['student','date'],name='student_visit_daily_unique')]
+
+class MemberPreviewLog(models.Model):
+    admin=models.ForeignKey(User,on_delete=models.PROTECT,related_name='member_previews')
+    student=models.ForeignKey(StudentProfile,on_delete=models.PROTECT,related_name='preview_logs')
+    started_at=models.DateTimeField(auto_now_add=True)
+    ended_at=models.DateTimeField(null=True,blank=True)

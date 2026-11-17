@@ -10,6 +10,7 @@
 */
 (function () {
   'use strict';
+  var preview = document.body.dataset.memberPreview === 'true';
 
   function csrfToken() {
     var field = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -100,6 +101,7 @@
 
   // Botão marcar como concluída (alterna)
   document.querySelectorAll('.btn-toggle-complete').forEach(function (button) {
+    if (preview) { button.disabled = true; return; }
     button.addEventListener('click', function () {
       button.disabled = true;
       showError(false);
@@ -126,7 +128,7 @@
       if (box) box.hidden = false;
     }
     function pulse(isPlaying, beacon) {
-      if (accessEnded) return Promise.resolve();
+      if (preview || accessEnded) return Promise.resolve();
       var payload = {position: position, playing: !!isPlaying && !document.hidden};
       if (beacon && navigator.sendBeacon) {
         var form = new FormData();
@@ -170,6 +172,7 @@
     document.addEventListener('visibilitychange', function () { pulse(playing && !document.hidden, document.hidden); });
     window.addEventListener('pagehide', function () { pulse(false, true); });
     player.on('ended', function () {
+      if (preview) return;
       pulse(true).then(function () {
         playing = false;
         return postJSON(frame.dataset.endedUrl);

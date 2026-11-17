@@ -18,7 +18,7 @@ def login_view(request):
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         next_url = ''
     def destination(user):
-        return next_url or ('painel:dashboard' if user.is_staff or user.role in ('ADMIN', 'CREATOR') else 'dashboard')
+        return next_url or ('painel:dashboard' if user.role in ('ADMIN', 'CREATOR') else 'dashboard')
     if request.user.is_authenticated:
         return redirect(destination(request.user))
     error = None

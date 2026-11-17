@@ -146,8 +146,9 @@ def lesson_detail(request, course_slug, lesson_id):
         raise Http404
     if availability.state != 'available':
         return render(request, 'courses/lesson_locked.html', {'course': course, 'availability': availability}, status=403)
-    enrollment.last_accessed_at = timezone.now()
-    enrollment.save(update_fields=["last_accessed_at"])
+    if not getattr(request,"member_preview",False):
+        enrollment.last_accessed_at = timezone.now()
+        enrollment.save(update_fields=["last_accessed_at"])
     lessons = ordered_lessons(course)
     info = progress_info(student, course, lessons)
     completed_ids = set(
