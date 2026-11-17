@@ -629,3 +629,34 @@ def submit_final_quiz(student, attempt, answers):
     attempt.answers = answers
     attempt.save(update_fields=['answers'])
     return finish_quiz(student, attempt)
+
+
+@transaction.atomic
+def import_quiz_rows(rows):
+    from collections import defaultdict
+    from .models import Quiz
+    from .quiz_importing import quiz_import_targets
+    from users.models import User
+    if not rows:
+        raise ValidationError('Arquivo sem perguntas.')
+    course_ids = {row.course.pk for row in rows}
+    Quiz.objects.filter(course_id__in=course_ids).update(is_active=F('is_active'))
+    _, unlisted, conflicts = quiz_import_targets(rows)
+    if conflicts:
+        raise ValidationError(conflicts)
+    actor = User.objects.filter(role__in=['ADMIN','CREATOR'], is_active=True).order_by('pk').first()
+    if not actor:
+        raise ValidationError('É necessário um administrador ativo para importar perguntas.')
+    grouped = defaultdict(list)
+    for row in rows:
+        grouped[row.key].append(row)
+    for key, group in grouped.items():
+        first = group[0]
+        quiz, _ = Quiz.objects.get_or_create(course=first.course, kind=first.kind, lesson=first.lesson)
+        quiz.questions.filter(is_active=True).update(is_active=False)
+        quiz.is_demo = False; quiz.is_active = True
+        quiz.save(update_fields=['is_demo','is_active'])
+        for row in group:
+            save_quiz_question(quiz, order=row.order, text=row.text, explanation=row.explanation, choices=row.choices, correct_index=row.correct_index, actor=actor)
+    for quiz in unlisted:
+        set_quiz_active(quiz, False, actor=actor)
