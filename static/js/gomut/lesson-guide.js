@@ -22,6 +22,8 @@
     const watch = document.querySelector('[data-watch-step]');
     if (watch) { watch.classList.toggle('is-done', completed); watch.classList.toggle('is-current', !completed); }
     document.querySelectorAll('[data-open-quiz]').forEach(node => { node.disabled = !completed; });
+    const quizStep = document.querySelector('[data-quiz-step]'); if (quizStep) quizStep.classList.toggle('is-current', completed && guide.dataset.quizPending === 'true');
+    const nextStep = document.querySelector('[data-next-step]'); if (nextStep) nextStep.classList.toggle('is-current', completed && (!hasQuiz || guide.dataset.quizPending === 'false'));
     document.querySelectorAll('[data-quiz-lock]').forEach(node => { node.textContent = completed ? 'Liberado' : 'Conclua a aula para liberar'; });
   });
   document.addEventListener('lesson-tracked', event => {

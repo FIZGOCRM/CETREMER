@@ -14,7 +14,7 @@
 </span>
 <div class="ep__thumb">{% include "partials/gomut/cover.html" with course=course %}</div>
 <div class="ep__body">
-<strong class="ep__title">{{ l.title }}</strong>
+<strong class="ep__title">{{ l.title }}</strong>{% if l.quiz_count %}<span class="tag">{% if compact %}Quiz · {% endif %}{% if l.quiz_result %}Q {{ l.quiz_result.correct }}/{{ l.quiz_result.total }}{% elif l.id in completed_ids %}quiz liberado{% else %}quiz ao concluir{% endif %}</span>{% endif %}
 <p class="ep__dur">{{ l.duration_seconds|duracao }}{% if l.availability.state == 'scheduled' %}{% include 'partials/gomut/icon.html' with name='lock' %} · Libera em {{ l.availability.release_date|date:'d/m/Y'|default:'data a definir' }}{% endif %}</p>
 </div>
 </a>

@@ -263,6 +263,67 @@ class Progress(models.Model):
         return f"{self.student.user.username} - {self.lesson.title} ({status})"
 
 
+class Quiz(models.Model):
+    kind = models.CharField(max_length=10, choices=[('lesson', 'Da aula'), ('final', 'Avaliação final')])
+    lesson = models.OneToOneField(Lesson, null=True, blank=True, on_delete=models.PROTECT, related_name='quiz')
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='quizzes')
+    is_active = models.BooleanField(default=True)
+    is_demo = models.BooleanField(default=False)
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(check=models.Q(kind='lesson', lesson__isnull=False) | models.Q(kind='final', lesson__isnull=True), name='quiz_kind_lesson_valid'),
+            models.UniqueConstraint(fields=['course'], condition=models.Q(kind='final'), name='one_final_quiz_per_course'),
+        ]
+
+    def clean(self):
+        if self.lesson_id and self.lesson.module.course_id != self.course_id:
+            raise ValidationError('O quiz e a aula devem pertencer ao mesmo curso.')
+
+
+class QuizQuestion(models.Model):
+    quiz = models.ForeignKey(Quiz, on_delete=models.PROTECT, related_name='questions')
+    order = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    text = models.TextField()
+    explanation = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        constraints = [models.UniqueConstraint(fields=['quiz', 'order'], condition=models.Q(is_active=True), name='active_question_order_unique')]
+
+
+class QuizChoice(models.Model):
+    question = models.ForeignKey(QuizQuestion, on_delete=models.PROTECT, related_name='choices')
+    order = models.PositiveSmallIntegerField()
+    text = models.TextField()
+    is_correct = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+        constraints = [
+            models.UniqueConstraint(fields=['question', 'order'], condition=models.Q(is_active=True), name='active_choice_order_unique'),
+            models.UniqueConstraint(fields=['question'], condition=models.Q(is_correct=True, is_active=True), name='one_active_correct_choice'),
+            models.CheckConstraint(check=models.Q(order__gte=1, order__lte=4), name='choice_order_one_to_four'),
+        ]
+
+
+class QuizAttempt(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT, related_name='quiz_attempts')
+    quiz = models.ForeignKey(Quiz, on_delete=models.PROTECT, related_name='attempts')
+    started_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    correct = models.PositiveIntegerField(default=0)
+    total = models.PositiveIntegerField(default=0)
+    score_pct = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    answers = models.JSONField(default=dict)
+    question_snapshot = models.JSONField(default=list)
+
+    class Meta:
+        ordering = ['-started_at', '-id']
+
+
 class LessonNote(models.Model):
     student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE, related_name='lesson_notes')
     lesson = models.ForeignKey(Lesson, on_delete=models.PROTECT, related_name='notes')

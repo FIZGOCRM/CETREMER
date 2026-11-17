@@ -6,6 +6,11 @@ class LessonNoteForm(forms.Form):
     text = forms.CharField(strip=True)
 
 
+class QuizAnswerForm(forms.Form):
+    question_id = forms.IntegerField(min_value=1)
+    choice_id = forms.IntegerField(min_value=1)
+
+
 class HeartbeatForm(forms.Form):
     position = forms.FloatField(min_value=0)
     playing = forms.BooleanField(required=False)

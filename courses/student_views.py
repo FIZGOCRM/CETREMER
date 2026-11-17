@@ -10,7 +10,7 @@ from core.http import json_error
 
 from .access import access_decision, accessible_courses, lesson_availability
 from .models import Course, Enrollment, Lesson, Module, Progress
-from .selectors import ordered_lessons, progress_info, course_modules, member_summary
+from .selectors import ordered_lessons, progress_info, course_modules, member_summary, lesson_quiz_state
 from .services import set_lesson_progress, plan_status
 from .ui_capabilities import PENDING_SECTIONS
 
@@ -169,8 +169,7 @@ def lesson_detail(request, course_slug, lesson_id):
         .select_related("author", "course")
         .prefetch_related("comments")
     )
-    quiz = getattr(lesson, 'quiz', None)
-    has_quiz = bool(quiz and quiz.is_active and quiz.questions.filter(is_active=True).exists())
+    quiz_context = lesson_quiz_state(student, lesson)
     progress = Progress.objects.filter(student=student, lesson=lesson).first()
     return render(
         request,
@@ -179,9 +178,7 @@ def lesson_detail(request, course_slug, lesson_id):
             "course": course,
             "lesson": lesson,
             'progress': progress,
-            'has_quiz': has_quiz,
-            'quiz_question_count': quiz.questions.filter(is_active=True).count() if has_quiz else 0,
-            'quiz_pending': has_quiz,
+            **quiz_context,
             'watched_pct': min(100, round(100*progress.watched_seconds/lesson.duration_seconds)) if progress and lesson.duration_seconds else 0,
             'notes': lesson.notes.filter(student=student),
             "modules": modules,

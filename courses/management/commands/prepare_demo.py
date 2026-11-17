@@ -68,4 +68,12 @@ class Command(BaseCommand):
             AccessPeriod.objects.get_or_create(enrollment=enrollment, source="manual", reference="gomut-demo-initial", defaults={
                 "starts_on": today, "ends_on": today+timedelta(days=30), "grace_days": 3, "created_by": admin,
             })
+            from courses.demo_quizzes import DEMO_LESSON_QUESTIONS
+            from courses.models import Quiz
+            from courses.services import save_quiz_question
+            first_lesson = Lesson.objects.filter(module__course=course).order_by('module__order', 'order', 'id').first()
+            quiz, new_quiz = Quiz.objects.get_or_create(lesson=first_lesson, defaults={'course': course, 'kind': 'lesson', 'is_demo': True})
+            if new_quiz:
+                for index, (text, choices, correct, explanation) in enumerate(DEMO_LESSON_QUESTIONS[slug], 1):
+                    save_quiz_question(quiz, order=index, text=text, explanation=explanation, choices=choices, correct_index=correct, actor=admin)
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

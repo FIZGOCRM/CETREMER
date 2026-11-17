@@ -9,10 +9,19 @@ def course_modules(enrollment):
     from .access import lesson_availability, module_release_date
     done = set(Progress.objects.filter(student=enrollment.student, lesson__module__course=enrollment.course, is_completed=True).values_list('lesson_id', flat=True))
     modules = list(Module.objects.filter(course=enrollment.course, status='published').prefetch_related(Prefetch('lessons', queryset=Lesson.objects.filter(status='published').select_related('module__course').prefetch_related('materials'))))
+    from django.db.models import Count, Q
+    from .models import Quiz, QuizAttempt
+    quizzes = {q.lesson_id: q for q in Quiz.objects.filter(course=enrollment.course, kind='lesson', is_active=True).annotate(question_count=Count('questions', filter=Q(questions__is_active=True))).filter(question_count__gt=0)}
+    latest = {}
+    for attempt in QuizAttempt.objects.filter(student=enrollment.student, quiz_id__in=[q.pk for q in quizzes.values()], finished_at__isnull=False).order_by('-finished_at', '-id'):
+        latest.setdefault(attempt.quiz_id, attempt)
     for module in modules:
         module.release_date = module_release_date(enrollment, module)
         for lesson in module.lessons.all():
             lesson.availability = lesson_availability(enrollment, lesson, completed_ids=done)
+            quiz = quizzes.get(lesson.pk)
+            lesson.quiz_count = quiz.question_count if quiz else 0
+            lesson.quiz_result = latest.get(quiz.pk) if quiz else None
     return modules
 
 
@@ -62,7 +71,8 @@ def progress_info(student, course, lessons=None, *, enrollment=None, completed_i
 def member_course_items(student):
     from collections import defaultdict
     from .access import access_decision
-    from .models import Certificate, Enrollment
+    from .models import Certificate, Enrollment, Quiz, QuizAttempt
+    from django.db.models import Count, Max, Q
     from .services import plan_status, profile_data_ok
     enrollments = list(Enrollment.objects.filter(student=student).select_related('course__category').prefetch_related('access_periods', 'access_changes').order_by('-enrolled_at'))
     course_ids = [e.course_id for e in enrollments]
@@ -73,6 +83,8 @@ def member_course_items(student):
     for record in Progress.objects.filter(student=student, lesson__module__course_id__in=course_ids, lesson__status='published', lesson__module__status='published').select_related('lesson__module'):
         records_by_course[record.lesson.module.course_id].append(record)
     certificates = {cert.enrollment_id: cert for cert in Certificate.objects.filter(enrollment__student=student)}
+    quizzes = list(Quiz.objects.filter(course_id__in=course_ids, kind='lesson', is_active=True, lesson__status='published', lesson__module__status='published').select_related('lesson').annotate(question_count=Count('questions', filter=Q(questions__is_active=True))).filter(question_count__gt=0).order_by('lesson__module__order', 'lesson__order', 'id'))
+    quiz_results = {row['quiz_id']: row for row in QuizAttempt.objects.filter(student=student, quiz_id__in=[q.pk for q in quizzes], finished_at__isnull=False).values('quiz_id').annotate(best=Max('score_pct'))}
     data_ok = profile_data_ok(student)
     items = []
     for enrollment in enrollments:
@@ -84,6 +96,10 @@ def member_course_items(student):
             started=any(r.is_completed or r.watched_seconds or r.last_position_seconds for r in records))
         item['certificate_ready'] = bool(item['status'] == 'done' and item['access'].allowed and data_ok and not item['certificate'])
         item['ring_offset'] = round(194.78*(1-item['pct']/100), 2)
+        course_quizzes = [q for q in quizzes if q.course_id == enrollment.course_id]
+        item['quizzes_total'] = len(course_quizzes)
+        item['quizzes_done'] = sum(q.pk in quiz_results for q in course_quizzes)
+        item['pending_quiz'] = next((q for q in course_quizzes if q.lesson_id in done and q.pk not in quiz_results), None)
         items.append(item)
     return items
 
@@ -122,6 +138,10 @@ def member_summary(student, *, on=None):
     for item in items:
         if not item['access'].allowed:
             continue
+        quiz = item.get('pending_quiz')
+        if quiz:
+            next_steps.append({'priority': 1, 'title': 'Fazer o quiz: '+quiz.lesson.title, 'detail': item['course'].title+f' · {quiz.question_count} perguntas',
+                'url': reverse('lesson_detail', args=[item['course'].slug, quiz.lesson_id])+'#quiz', 'icon': 'quiz'})
         lesson = item['next_lesson']
         if lesson and item['status'] != 'done':
             next_steps.append({'priority': 2 if item['started'] else 3, 'title': ('Continuar: '+lesson.title) if item['started'] else ('Começar '+item['course'].title),
@@ -137,3 +157,37 @@ def member_summary(student, *, on=None):
         'week_seconds': week_seconds, 'previous_seconds': previous, 'difference_seconds': week_seconds-previous, 'difference_abs_seconds': abs(week_seconds-previous), 'streak': streak,
         'week': week, 'heatmap': heatmap, 'activity': activity, 'next_steps': next_steps[:4],
         'certificates_issued': sum(bool(item['certificate']) for item in items), 'certificates_ready': sum(item['certificate_ready'] for item in items)}
+
+
+def public_quiz_attempt(attempt):
+    return {'id': attempt.pk, 'quiz_id': attempt.quiz_id, 'is_demo': attempt.quiz.is_demo,
+        'questions': [{'id': question['id'], 'text': question['text'], 'choices': question['choices']} for question in attempt.question_snapshot]}
+
+
+def quiz_attempt_result(attempt):
+    from django.core.exceptions import PermissionDenied
+    from django.db.models import Max
+    if not attempt.finished_at:
+        raise PermissionDenied('Finalize a tentativa antes de ver a correção.')
+    best = attempt.quiz.attempts.filter(student=attempt.student, finished_at__isnull=False).aggregate(value=Max('score_pct'))['value'] or 0
+    return {'id': attempt.pk, 'correct': attempt.correct, 'total': attempt.total, 'score_pct': float(attempt.score_pct), 'best_score': float(best),
+        'questions': [dict(question, chosen_choice_id=attempt.answers.get(str(question['id']))) for question in attempt.question_snapshot]}
+
+
+def lesson_quiz_state(student, lesson):
+    quiz = getattr(lesson, 'quiz', None)
+    if not quiz or not quiz.is_active:
+        return {'has_quiz': False}
+    count = quiz.questions.filter(is_active=True).count()
+    if not count:
+        return {'has_quiz': False}
+    latest = quiz.attempts.filter(student=student, finished_at__isnull=False).order_by('-finished_at', '-id').first()
+    completed = Progress.objects.filter(student=student, lesson=lesson, is_completed=True).exists()
+    result = quiz_attempt_result(latest) if latest else None
+    return {'has_quiz': True, 'quiz': quiz, 'quiz_question_count': count, 'quiz_pending': latest is None,
+        'quiz_state': 'done' if latest else 'available' if completed else 'blocked', 'quiz_result': result}
+
+
+def has_active_lesson_quiz(lesson):
+    quiz = getattr(lesson, 'quiz', None)
+    return bool(quiz and quiz.is_active and quiz.questions.filter(is_active=True).exists())

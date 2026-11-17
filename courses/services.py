@@ -351,11 +351,18 @@ def save_module(module, *, actor, confirm_impact=False):
 
 @transaction.atomic
 def delete_content(content, *, actor):
-    from .models import Module, Progress, ActivityEvent, LessonNote
+    from .models import Module, Progress, ActivityEvent, LessonNote, QuizAttempt
     _plan_actor(actor)
     filters = {'lesson__module': content} if isinstance(content, Module) else {'lesson': content}
-    if Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists():
+    attempt_filters = {'quiz__lesson__module': content} if isinstance(content, Module) else {'quiz__lesson': content}
+    has_history = Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists() or QuizAttempt.objects.filter(**attempt_filters).exists()
+    if has_history:
         raise ValidationError('Este conteúdo tem histórico de alunos. Use despublicar para preservar o histórico.')
+    lessons = list(content.lessons.all()) if isinstance(content, Module) else [content]
+    for lesson in lessons:
+        quiz = getattr(lesson, 'quiz', None)
+        if quiz:
+            delete_quiz_content(quiz, actor=actor)
     content.delete()
 
 @transaction.atomic
@@ -399,7 +406,8 @@ def record_heartbeat(student, lesson, *, position, playing):
     total = Lesson.objects.filter(**lesson_filters).count()
     completed = Progress.objects.filter(student=student, lesson__module__course=lesson.module.course,
         lesson__module__status='published', lesson__status='published', is_completed=True).count()
-    return {'access': 'active', 'completed': progress.is_completed, 'has_quiz': bool(getattr(lesson, 'quiz', None) and lesson.quiz.is_active),
+    from .selectors import has_active_lesson_quiz
+    return {'access': 'active', 'completed': progress.is_completed, 'has_quiz': has_active_lesson_quiz(lesson),
         'completed_count': completed, 'total_count': total, 'percentage': round(100*completed/total) if total else 0,
         'position': progress.last_position_seconds, 'watched_seconds': progress.watched_seconds,
         'watched_pct': min(100, round(100*progress.watched_seconds/lesson.duration_seconds)) if lesson.duration_seconds else None,
@@ -444,3 +452,125 @@ def delete_lesson_note(student, note):
         raise PermissionDenied('Esta anotação é privada.')
     require_lesson_access(student, note.lesson)
     note.delete()
+
+
+def require_quiz_access(student, quiz):
+    if not quiz.is_active or quiz.kind != 'lesson' or not quiz.lesson_id or quiz.lesson.module.course_id != quiz.course_id:
+        raise PermissionDenied('Este quiz não está disponível.')
+    from .access import require_lesson_access
+    require_lesson_access(student, quiz.lesson)
+    if not Progress.objects.filter(student=student, lesson=quiz.lesson, is_completed=True).exists():
+        raise PermissionDenied('Conclua a aula para liberar o quiz.')
+
+
+@transaction.atomic
+def save_quiz_question(quiz, *, order, text, explanation, choices, correct_index, actor, question=None):
+    from .models import QuizChoice, QuizQuestion
+    _plan_actor(actor)
+    choices = [str(value).strip() for value in choices]
+    if not 2 <= len(choices) <= 4 or not all(choices) or isinstance(correct_index, bool) or correct_index not in range(len(choices)):
+        raise ValidationError('Cadastre de duas a quatro alternativas preenchidas e exatamente uma correta.')
+    if question and question.quiz_id != quiz.pk:
+        raise ValidationError('A pergunta não pertence a este quiz.')
+    question = question or QuizQuestion(quiz=quiz)
+    question.order, question.text, question.explanation = order, text.strip(), explanation.strip()
+    question.full_clean(); question.save()
+    # Alternativas antigas permanecem guardadas; cada tentativa possui sua cópia.
+    question.choices.filter(is_active=True).update(is_active=False)
+    for index, value in enumerate(choices):
+        choice = QuizChoice(question=question, order=index+1, text=value, is_correct=index == correct_index)
+        choice.full_clean(); choice.save()
+    return question
+
+
+@transaction.atomic
+def delete_quiz_content(content, *, actor):
+    from .models import Quiz, QuizQuestion
+    _plan_actor(actor)
+    quiz = content if isinstance(content, Quiz) else content.quiz
+    if quiz.attempts.exists():
+        raise ValidationError('Há tentativas de alunos. Use desativar para preservar o histórico.')
+    questions = list(quiz.questions.all()) if isinstance(content, Quiz) else [content]
+    for question in questions:
+        question.choices.all().delete()
+        question.delete()
+    if isinstance(content, Quiz):
+        content.delete()
+
+
+@transaction.atomic
+def start_quiz(student, quiz):
+    from .models import QuizAttempt
+    from django.db.models import Prefetch
+    from .models import QuizChoice
+    require_quiz_access(student, quiz)
+    snapshot = []
+    for question in quiz.questions.filter(is_active=True).prefetch_related(Prefetch('choices', queryset=QuizChoice.objects.filter(is_active=True), to_attr='active_choices')):
+        choices = question.active_choices
+        correct = [choice for choice in choices if choice.is_correct]
+        if not 2 <= len(choices) <= 4 or len(correct) != 1:
+            raise ValidationError('O quiz precisa ser revisado pela equipe antes de começar.')
+        snapshot.append({'id': question.pk, 'text': question.text, 'explanation': question.explanation,
+            'choices': [{'id': choice.pk, 'text': choice.text} for choice in choices], 'correct_choice_id': correct[0].pk})
+    if not snapshot:
+        raise ValidationError('Este quiz ainda não tem perguntas publicadas.')
+    return QuizAttempt.objects.create(student=student, quiz=quiz, total=len(snapshot), question_snapshot=snapshot)
+
+
+def _locked_attempt(student, attempt):
+    from .models import QuizAttempt
+    QuizAttempt.objects.filter(pk=attempt.pk, student=student).update(total=F('total'))
+    current = QuizAttempt.objects.select_related('quiz__lesson__module__course').filter(pk=attempt.pk, student=student).first()
+    if current is None:
+        raise PermissionDenied('Tentativa privada do aluno.')
+    require_quiz_access(student, current.quiz)
+    return current
+
+
+@transaction.atomic
+def answer_quiz(student, attempt, *, question_id, choice_id):
+    attempt = _locked_attempt(student, attempt)
+    if attempt.finished_at or str(question_id) in attempt.answers:
+        raise ValidationError('Esta pergunta já foi respondida nesta tentativa.')
+    question = next((q for q in attempt.question_snapshot if q['id'] == question_id), None)
+    if not question or choice_id not in [choice['id'] for choice in question['choices']]:
+        raise ValidationError('Pergunta ou alternativa inválida para esta tentativa.')
+    attempt.answers[str(question_id)] = choice_id
+    attempt.save(update_fields=['answers'])
+    return {'correct': choice_id == question['correct_choice_id'], 'correct_choice_id': question['correct_choice_id'], 'explanation': question['explanation']}
+
+
+@transaction.atomic
+def finish_quiz(student, attempt):
+    from decimal import Decimal
+    from .models import ActivityEvent
+    attempt = _locked_attempt(student, attempt)
+    if not attempt.finished_at:
+        if len(attempt.answers) != len(attempt.question_snapshot):
+            raise ValidationError('Responda todas as perguntas antes de finalizar.')
+        attempt.correct = sum(attempt.answers.get(str(q['id'])) == q['correct_choice_id'] for q in attempt.question_snapshot)
+        attempt.total = len(attempt.question_snapshot)
+        attempt.score_pct = (Decimal(attempt.correct)*100/attempt.total).quantize(Decimal('.01'))
+        attempt.finished_at = timezone.now()
+        attempt.save(update_fields=['correct', 'total', 'score_pct', 'finished_at'])
+        ActivityEvent.objects.create(student=student, kind='quiz_finished', lesson=attempt.quiz.lesson, course=attempt.quiz.course,
+            payload={'quiz_id': attempt.quiz_id, 'score_pct': float(attempt.score_pct)})
+    from .selectors import quiz_attempt_result
+    return quiz_attempt_result(attempt)
+
+
+@transaction.atomic
+def create_lesson_quiz(lesson, *, actor):
+    from .models import Quiz
+    _plan_actor(actor)
+    quiz, _ = Quiz.objects.get_or_create(lesson=lesson, defaults={'course': lesson.module.course, 'kind': 'lesson'})
+    quiz.full_clean()
+    return quiz
+
+
+@transaction.atomic
+def set_quiz_active(content, is_active, *, actor):
+    _plan_actor(actor)
+    content.is_active = bool(is_active)
+    content.full_clean(); content.save(update_fields=['is_active'])
+    return content

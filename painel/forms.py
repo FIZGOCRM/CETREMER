@@ -141,6 +141,26 @@ class ModuleForm(forms.ModelForm):
         return self.cleaned_data['release_month'] or self.instance.release_month or 1
 
 
+class QuizQuestionForm(forms.Form):
+    order = forms.IntegerField(min_value=1, label='Ordem')
+    text = forms.CharField(widget=forms.Textarea, label='Pergunta')
+    explanation = forms.CharField(required=False, widget=forms.Textarea, label='Comentário após responder')
+    choice_a = forms.CharField(label='Alternativa A')
+    choice_b = forms.CharField(label='Alternativa B')
+    choice_c = forms.CharField(required=False, label='Alternativa C')
+    choice_d = forms.CharField(required=False, label='Alternativa D')
+    correct = forms.ChoiceField(choices=[(key, key.upper()) for key in 'abcd'], label='Alternativa correta')
+
+    def clean(self):
+        data = super().clean()
+        keys = [key for key in 'abcd' if data.get('choice_'+key)]
+        if data.get('correct') not in keys:
+            self.add_error('correct', 'A correta deve ser uma alternativa preenchida.')
+        data['choices'] = [data['choice_'+key] for key in keys]
+        data['correct_index'] = keys.index(data['correct']) if data.get('correct') in keys else -1
+        return data
+
+
 class EnrollmentForm(forms.Form):
     email = forms.EmailField(max_length=254, required=False)
     full_name = forms.CharField(max_length=255, required=False)

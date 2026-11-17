@@ -13,8 +13,13 @@ from courses import student_views
 from courses import certificate_views
 from courses import player_views
 from courses import note_views
+from courses import quiz_views
 
 urlpatterns = [
+    path('quizzes/<int:quiz_id>/start/', quiz_views.start, name='quiz_start'),
+    path('quizzes/tentativas/<int:attempt_id>/answer/', quiz_views.answer, name='quiz_answer'),
+    path('quizzes/tentativas/<int:attempt_id>/finish/', quiz_views.finish, name='quiz_finish'),
+    path('quizzes/tentativas/<int:attempt_id>/', quiz_views.result, name='quiz_result'),
     path('courses/lesson/<int:lesson_id>/notes/', note_views.notes, name='lesson_notes'),
     path('courses/lesson/<int:lesson_id>/notes/<int:note_id>/delete/', note_views.delete_note, name='delete_lesson_note'),
     path('courses/lesson/<int:lesson_id>/heartbeat/', player_views.heartbeat, name='lesson_heartbeat'),
