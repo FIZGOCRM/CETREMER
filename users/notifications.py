@@ -108,8 +108,10 @@ def run_daily_notifications(*,on=None):
         if not user.is_active:continue
         plan=plan_status(enrollment,on=today)
         if plan.get('days') in (30,15,7) and plan.get('state')=='ending_soon':
+            from courses.selectors import active_final_quiz
+            assessment=' e a avaliação final' if active_final_quiz(enrollment.course) else ''
             notify(user,'expiry',f'{enrollment.pk}:{plan["ends_on"]}:{plan["days"]}',f'Seu acesso termina em {plan["days"]} dias',
-                f'O acesso a {enrollment.course.title} termina em {plan["last_day"].strftime("%d/%m/%Y")}. Conclua as aulas e a avaliação para emitir seu certificado.',reverse('settings'),email=True,send_before=timezone.make_aware(datetime.combine(today+timedelta(days=1),time.min)))
+                f'O acesso a {enrollment.course.title} termina em {plan["last_day"].strftime("%d/%m/%Y")}. Conclua as aulas{assessment} para emitir seu certificado.',reverse('settings'),email=True,send_before=timezone.make_aware(datetime.combine(today+timedelta(days=1),time.min)))
         if not enrollment.course.is_published or not access_decision(enrollment,on=today).allowed:continue
         for module in Module.objects.filter(course=enrollment.course,status='published'):
             if module.release_month>1 and module_release_date(enrollment,module)==today:

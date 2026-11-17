@@ -118,6 +118,17 @@ class PlanLifecycleTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertNotContains(self.client.get(reverse('dashboard')), 'data-plan-notice')
 
+    def test_no_final_course_expiry_notice_does_not_require_an_assessment(self):
+        from users.notifications import run_daily_notifications
+        from users.models import EmailLog
+        self.create(ends_on=self.today+timedelta(days=7))
+        self.client.force_login(self.user)
+        response=self.client.get(reverse('dashboard'))
+        self.assertContains(response,'Conclua as aulas para emitir seu certificado.')
+        self.assertNotContains(response,'as aulas e a avaliação')
+        run_daily_notifications()
+        self.assertNotIn('avaliação',EmailLog.objects.get(kind='expiry').body)
+
     def test_student_cannot_manage_plan_or_dismiss_another_students_notice(self):
         self.create()
         self.client.force_login(self.user)
