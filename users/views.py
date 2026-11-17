@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 from django.utils.text import slugify
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
+from urllib.parse import urlsplit
 from .first_access import verify_code
 from .models import FirstAccessCode
 from .models import User
@@ -17,6 +18,8 @@ def login_view(request):
     next_url = request.GET.get('next') or request.POST.get('next') or ''
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         next_url = ''
+    next_path = urlsplit(next_url).path
+    producer_access = request.GET.get('acesso') == 'admin' or next_path == '/painel' or next_path.startswith('/painel/')
     def destination(user):
         return next_url or ('painel:dashboard' if user.role in ('ADMIN', 'CREATOR') else 'dashboard')
     if request.user.is_authenticated:
@@ -28,11 +31,15 @@ def login_view(request):
             login(request, user)
             return redirect(destination(user))
         error = 'E-mail ou senha incorretos. Confira e tente de novo.'
-    return render(request, 'login_admin.html' if request.GET.get('acesso') == 'admin' else 'login.html', {'error': error, 'next': next_url})
+    return render(request, 'login_admin.html' if producer_access else 'login.html', {'error': error, 'next': next_url})
 
 
 def logout_view(request):
+    producer_access = request.user.is_authenticated and request.user.role in ('ADMIN', 'CREATOR')
     logout(request)
+    if producer_access:
+        from django.urls import reverse
+        return redirect(reverse('login')+'?acesso=admin')
     return redirect('landing')
 
 

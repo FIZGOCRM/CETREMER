@@ -4,7 +4,7 @@ Data: 17/11/2026. Branch: `feat/area-aluno-handoff`.
 
 Fonte de decisão: [plano oficial](<handoff v1 oficial/prompt-implementacao-gomut_3.md>). Os documentos antigos não substituem esse plano. Esta entrega é local, para QA, e não uma implantação em produção.
 
-**Atualização do QA:** [avisos de prazo](ajuste-avisos-vencimento.md) agora ficam nas notificações somente nos três últimos dias efetivos de acesso. Faixas do Início e contagens nos cursos foram retiradas. A conta fictícia também recebeu [histórico de estudo ilustrativo](qa-dados-demonstracao.md) solicitado para visualizar os gráficos. A suíte atual tem **347 testes aprovados**; os números por etapa abaixo são registros históricos.
+**Atualização do QA:** [avisos de prazo](ajuste-avisos-vencimento.md) agora ficam nas notificações somente nos três últimos dias efetivos de acesso. Faixas do Início e contagens nos cursos foram retiradas. A conta fictícia também recebeu [histórico de estudo ilustrativo](qa-dados-demonstracao.md) solicitado para visualizar os gráficos. O [acesso do produtor](qa-login-produtor.md) agora mantém a identidade GoMut desde o redirecionamento de login até a saída de conta. A suíte atual tem **352 testes aprovados**; os números por etapa abaixo são registros históricos.
 
 ## 1. O que foi feito
 
@@ -83,7 +83,7 @@ Nenhuma dependência adicionada; stack mantida: Django 4.2.30, templates, CSS/JS
 
 ## 4. Verificação
 
-- Suíte atual: **347 testes, zero falhas e zero erros**. Linha de base: 138.
+- Suíte atual: **352 testes, zero falhas e zero erros**. Linha de base: 138.
 - Migrações: esquema vazio nos testes e atualizações na demo; `makemigrations --check --dry-run` sem alterações pendentes.
 - `git diff --check`: sem erros.
 - Rodada geral da entrega: **72 combinações página/largura**, Chrome e Edge, 390 e 1440 px, HTTP 200, sem overflow horizontal ou `pageerror`. Após o ajuste dos avisos, mais dez combinações no Chrome e duas conferências do cartão de exemplo, sem overflow ou erro JS.

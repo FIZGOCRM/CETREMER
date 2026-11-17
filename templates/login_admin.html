@@ -23,10 +23,10 @@
 <img src="{% static 'gomut/marca/gomut-go-mamute-vidro-4k.png' %}" alt="" width="3840" height="1965">
 </div>
 </div>
-<form class="gm-login__cartao form" method="post" action="{% url 'login' %}{% if request.GET.acesso == 'admin' %}?acesso=admin{% endif %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+<form class="gm-login__cartao form" method="post" action="{% url 'login' %}?acesso=admin">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
 <div>
-<h2>{% if request.GET.acesso == 'admin' %}Gerenciar meus negócios{% else %}Acessar minhas compras{% endif %}</h2>
-<p>{% if request.GET.acesso == 'admin' %}Entre e gerencie seu negócio.{% else %}Entre e acesse seus cursos.{% endif %}</p>
+<h2>Painel do produtor</h2>
+<p>Entre para gerenciar cursos, alunos e conteúdos.</p>
 </div>{% for message in messages %}<p class="tag tag--line" role="status">{{ message }}</p>{% endfor %}{% if error %}<p class="tag tag--line" role="alert">{{ error }}</p>{% endif %}<div class="field">
 <label class="sr-only" for="username">E-mail</label>
 <input class="input" id="username" name="username" type="email" placeholder="Seu e-mail" autocomplete="username" required value="{{ request.POST.username|default:'' }}">
