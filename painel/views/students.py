@@ -13,6 +13,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 
 from core.decorators import painel_required
+from core.csv_export import safe_csv_cell
 from courses.access import access_decision
 from courses.models import Course, Enrollment
 from courses.selectors import progress_info
@@ -227,12 +228,12 @@ def students_export(request):
     ):
         p = user.student_profile
         writer.writerow(
-            [
+            [safe_csv_cell(value) for value in [
                 p.full_name or "",
                 user.email,
                 p.cpf or "",
                 ", ".join(e.course.title for e in p.enrollments.all()),
-            ]
+            ]]
         )
     return response
 

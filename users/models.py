@@ -157,3 +157,9 @@ class EmailLog(models.Model):
     body=models.TextField(blank=True)
     created_at=models.DateTimeField(auto_now_add=True)
     class Meta:constraints=[models.UniqueConstraint(fields=['kind','reference'],name='email_kind_reference_unique')]
+
+class StudentVisit(models.Model):
+    student=models.ForeignKey(StudentProfile,on_delete=models.PROTECT,related_name='visits')
+    date=models.DateField()
+    first_at=models.DateTimeField(auto_now_add=True)
+    class Meta:constraints=[models.UniqueConstraint(fields=['student','date'],name='student_visit_daily_unique')]
