@@ -46,6 +46,7 @@ def panel_posts(params):
     elif tab=='solved':posts=posts.filter(is_hidden=False,solution__isnull=False)
     else:posts=posts.filter(is_hidden=False,team_status=tab if tab in ('new','forwarded','answered') else 'new')
     if params.get('curso','').isdigit():posts=posts.filter(course_id=params['curso'])
+    if params.get('q'):posts=posts.filter(Q(title__icontains=params['q'])|Q(content__icontains=params['q']))
     posts=list(posts.order_by('-is_pinned','created_at'))
     for post in posts:post.overdue=post.team_status!='answered' and post.created_at<timezone.now()-timedelta(hours=24)
     return posts,tab

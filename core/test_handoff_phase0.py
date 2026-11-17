@@ -37,7 +37,7 @@ class HandoffPhaseZeroTests(TestCase):
         for name in panel_names:
             response = self.client.get(reverse(f'painel:{name}'))
             self.assertEqual(response.status_code, 200)
-            if name in ('dashboard','courses','students'):
+            if name in ('dashboard','courses','students','community'):
                 self.assertTemplateUsed(response,'base_painel_gomut.html')
                 self.assertNotContains(response,'css/cetremer.css')
             else:

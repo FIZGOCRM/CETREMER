@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied,ValidationError
 from django.shortcuts import get_object_or_404,redirect
@@ -20,6 +21,7 @@ def tickets(request):
         except ValidationError as exc:messages.error(request,' '.join(exc.messages))
         return redirect(request.get_full_path())
     tickets=visible_tickets(request.user).prefetch_related('events')
+    if request.GET.get('q'):tickets=tickets.filter(Q(title__icontains=request.GET['q'])|Q(body__icontains=request.GET['q']))
     status=request.GET.get('status','active')
     tickets=tickets.filter(status='resolved') if status=='resolved' else tickets.exclude(status='resolved')
     return page(request,'tickets',tickets=tickets,tab=status)
