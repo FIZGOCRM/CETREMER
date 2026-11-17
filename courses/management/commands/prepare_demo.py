@@ -99,4 +99,8 @@ class Command(BaseCommand):
         from community.models import CommunityPost
         for course in Course.objects.filter(slug__in=['gomut-demo-plantao','gomut-demo-cardiologia']):
             CommunityPost.objects.get_or_create(course=course,author=student,title='Como organizar a revisão deste curso?',defaults={'content':'Tópico fictício para conhecer a comunidade. Como vocês organizam a revisão das aulas?'})
+        from support.models import FaqItem,SupportSubject
+        from support.demo import DEMO_FAQ,DEMO_SUBJECTS
+        for index,name in enumerate(DEMO_SUBJECTS):SupportSubject.objects.get_or_create(name=name,defaults={'order':index})
+        for index,(category,question,answer) in enumerate(DEMO_FAQ):FaqItem.objects.get_or_create(question=question,defaults={'category':category,'answer':answer,'order':index})
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

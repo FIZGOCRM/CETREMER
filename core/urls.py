@@ -1,3 +1,4 @@
+from support import views as support_views
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.conf import settings
@@ -17,6 +18,10 @@ from courses import quiz_views
 from courses import material_views
 
 urlpatterns = [
+    path('suporte/',support_views.hub,name='support'),
+    path('suporte/novo/',support_views.new_ticket,name='support_new'),
+    path('suporte/chamados/<int:ticket_id>/',support_views.ticket_detail,name='support_ticket'),
+    path('suporte/chamados/<int:ticket_id>/voto/',support_views.vote,name='support_vote'),
     re_path(r'^media/materials/', material_views.deny_direct_material),
     path('materiais/<slug:kind>/<int:material_id>/', material_views.open_material, name='material_open'),
     path('dashboard/ebooks/', material_views.ebooks, name='ebooks'),

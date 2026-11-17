@@ -57,6 +57,7 @@ INSTALLED_APPS = [
 
     # Custom Apps
     'users',
+    'support',
     'courses',
     'sales',
     'community',

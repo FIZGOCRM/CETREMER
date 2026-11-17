@@ -2,7 +2,7 @@
 <footer class="footer" id="footer">
 <div class="member-footer">
 <span>Emergensimples · {% now 'Y' %}</span>
-<a href="{% url 'member_section' 'ajuda' %}">Central de ajuda</a>{% if site.terms_url %}<a href="{{ site.terms_url }}">Termos de Uso</a>{% endif %}{% if site.privacy_url %}<a href="{{ site.privacy_url }}">Política de Privacidade</a>{% endif %}</div>
+<a href="{% url 'support' %}">Central de ajuda</a>{% if site.terms_url %}<a href="{{ site.terms_url }}">Termos de Uso</a>{% endif %}{% if site.privacy_url %}<a href="{{ site.privacy_url }}">Política de Privacidade</a>{% endif %}</div>
 </footer>
 <nav class="tabbar" id="tabbar" aria-label="Navegação inferior">
 <a href="{% url 'dashboard' %}">{% include 'partials/gomut/icon.html' with name='home' %}<span>Início</span>
