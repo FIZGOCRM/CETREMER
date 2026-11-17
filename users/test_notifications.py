@@ -12,7 +12,7 @@ class NotificationTests(TestCase):
         self.other=User.objects.create_user(username='notice-other',email='other@example.org')
         self.course=Course.objects.create(is_published=True, title='Curso de avisos',slug='notices',creator=self.admin.creator_profile)
         self.enrollment=Enrollment.objects.create(student=self.user.student_profile,course=self.course,plan_started_on=timezone.localdate(),access_policy='PERIODS')
-        AccessPeriod.objects.create(enrollment=self.enrollment,starts_on=timezone.localdate(),ends_on=timezone.localdate()+timedelta(days=30))
+        AccessPeriod.objects.create(enrollment=self.enrollment,starts_on=timezone.localdate(),ends_on=timezone.localdate()+timedelta(days=30),source='manual',reference='notice-plan')
         self.module=Module.objects.create(course=self.course,title='Módulo')
 
     def test_daily_expiry_is_mandatory_and_idempotent_without_smtp(self):
@@ -129,3 +129,50 @@ class NotificationTests(TestCase):
         lesson.refresh_from_db();self.assertGreater(lesson.published_at,previous_publication)
         run_daily_notifications()
         self.assertTrue(Notification.objects.filter(kind='new_lesson').exists())
+
+    def retry_with_smtp(self):
+        from users.notifications import retry_pending_emails
+        site=SiteSettings.load();site.email_host='smtp.example.org';site.save()
+        with patch('users.notifications.send_mail',return_value=1) as send:
+            retry_pending_emails()
+            return send.call_count
+
+    def test_queued_lesson_email_rechecks_access_and_publication(self):
+        from courses.services import save_lesson,end_plan_early
+        from users.notifications import run_daily_notifications
+        from users.models import EmailLog
+        save_lesson(Lesson(module=self.module,title='Aula publicada'))
+        run_daily_notifications()
+        self.assertTrue(EmailLog.objects.filter(kind='new_lesson').exists())
+        end_plan_early(self.enrollment,timezone.localdate(),'withdrawal',actor=self.admin)
+        self.assertEqual(self.retry_with_smtp(),0)
+
+    def test_queued_lesson_email_rechecks_postponed_module(self):
+        from courses.services import save_lesson
+        from users.notifications import run_daily_notifications
+        save_lesson(Lesson(module=self.module,title='Aula publicada'))
+        run_daily_notifications()
+        self.module.release_month=3;self.module.save()
+        # The expiry notice remains valid; only it may be delivered.
+        self.assertEqual(self.retry_with_smtp(),1)
+
+    def test_queued_live_email_rechecks_cancellation_removal_and_schedule(self):
+        from courses.models import LiveEvent,LiveReminder
+        from users.notifications import run_live_reminders
+        for mode in ('cancel','remove','reschedule'):
+            site=SiteSettings.load();site.email_host='';site.save()
+            event=LiveEvent.objects.create(course=self.course,title=mode,starts_at=timezone.now()+timedelta(minutes=45))
+            reminder=LiveReminder.objects.create(student=self.user.student_profile,event=event)
+            run_live_reminders()
+            if mode=='cancel':event.is_active=False;event.save()
+            elif mode=='remove':reminder.delete()
+            else:event.starts_at+=timedelta(days=1);event.save()
+        self.assertEqual(self.retry_with_smtp(),0)
+
+    def test_obsolete_emails_are_not_counted_as_actionable_pending(self):
+        from courses.models import LiveEvent,LiveReminder
+        from users.notifications import run_live_reminders,pending_email_count
+        event=LiveEvent.objects.create(course=self.course,title='Encontro',starts_at=timezone.now()+timedelta(minutes=45))
+        reminder=LiveReminder.objects.create(student=self.user.student_profile,event=event)
+        run_live_reminders();self.assertEqual(pending_email_count(),1)
+        reminder.delete();self.assertEqual(pending_email_count(),0)

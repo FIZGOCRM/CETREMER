@@ -13,15 +13,53 @@ def notify(user,kind,reference,title,body='',url='',*,email=False,send_before=No
     return notice
 
 
+def email_is_current(log):
+    """Revalidate the event, recipient and entitlement at delivery time."""
+    from courses.access import access_decision, lesson_availability, module_release_date
+    from courses.models import Enrollment, Lesson, Module, LiveEvent, LiveReminder
+    from courses.live_services import require_event_access
+    from courses.services import plan_status
+    from django.core.exceptions import PermissionDenied
+    if log.status=='sent' or log.kind in ('first_access','reset_access','smtp_test'):return False
+    if log.send_before and log.send_before<=timezone.now():return False
+    if not log.user.is_active or not log.user.email:return False
+    if log.kind not in ('new_lesson','module_release','expiry','live_reminder'):return True
+    if log.user.role!='STUDENT':return False
+    student=log.user.student_profile
+    if log.kind in ('new_lesson','module_release') and not student.email_new_lessons:return False
+    if log.kind=='live_reminder' and not student.email_live_events:return False
+    parts=log.reference.split(':',3 if log.kind!='live_reminder' else 2)
+    def identifier(value):
+        return value.isdecimal() and 0<int(value)<2**63
+    if not parts or not identifier(parts[0]) or int(parts[0])!=log.user_id:return False
+    if log.kind=='live_reminder':
+        if len(parts)!=3 or not identifier(parts[1]):return False
+        event=LiveEvent.objects.filter(pk=int(parts[1]),is_active=True,starts_at__gt=timezone.now()).first()
+        if not event or event.starts_at.isoformat()!=parts[2] or not LiveReminder.objects.filter(student=student,event=event).exists():return False
+        try:require_event_access(log.user,event)
+        except PermissionDenied:return False
+        return True
+    if len(parts)!=4 or not identifier(parts[1]):return False
+    enrollment=Enrollment.objects.filter(pk=int(parts[1]),student=student).select_related('course').prefetch_related('access_periods','access_changes').first()
+    if not enrollment:return False
+    if log.kind=='expiry':
+        plan=plan_status(enrollment)
+        return plan.get('state')=='ending_soon' and str(plan.get('ends_on'))==parts[2] and str(plan.get('days'))==parts[3]
+    if not enrollment.course.is_published or not access_decision(enrollment).allowed or not identifier(parts[2]):return False
+    if log.kind=='new_lesson':
+        lesson=Lesson.objects.filter(pk=int(parts[2]),module__course=enrollment.course).select_related('module__course').first()
+        return bool(lesson and lesson.published_at and lesson.published_at.isoformat()==parts[3] and lesson_availability(enrollment,lesson).state=='available')
+    module=Module.objects.filter(pk=int(parts[2]),course=enrollment.course,status='published').first()
+    release=module_release_date(enrollment,module) if module else None
+    return bool(release and str(release)==parts[3] and release<=timezone.localdate())
+
+
 @transaction.atomic
 def _deliver(log_id):
     # Reserve the SQLite writer before reading delivery state, including parallel cron runs.
     EmailLog.objects.filter(pk=log_id).update(status=F('status'))
     log=EmailLog.objects.select_related('user').get(pk=log_id)
-    if log.status=='sent' or log.kind in ('first_access','reset_access','smtp_test'):return log
-    if log.send_before and log.send_before<=timezone.now():return log
-    if log.kind in ('new_lesson','module_release') and not log.user.student_profile.email_new_lessons:return log
-    if log.kind=='live_reminder' and not log.user.student_profile.email_live_events:return log
+    if not email_is_current(log):return log
     if not SiteSettings.load().email_host or not log.user.email or not log.user.is_active:
         log.status='not_sent'
     else:
@@ -95,5 +133,6 @@ def run_live_reminders():
 
 def pending_email_count():
     from django.db.models import Q
-    return EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access','smtp_test']).filter(Q(send_before__isnull=True)|Q(send_before__gt=timezone.now())).count()
+    logs=EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access','smtp_test']).filter(Q(send_before__isnull=True)|Q(send_before__gt=timezone.now())).select_related('user','user__student_profile')
+    return sum(email_is_current(log) for log in logs.iterator())
 
