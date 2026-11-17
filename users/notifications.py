@@ -18,7 +18,7 @@ def email_is_current(log):
     from courses.access import access_decision, lesson_availability, module_release_date
     from courses.models import Enrollment, Lesson, Module, LiveEvent, LiveReminder
     from courses.live_services import require_event_access
-    from courses.services import plan_status
+    from courses.services import plan_expiry_notice
     from django.core.exceptions import PermissionDenied
     if log.status=='sent' or log.kind in ('first_access','reset_access','smtp_test'):return False
     if log.send_before and log.send_before<=timezone.now():return False
@@ -43,8 +43,8 @@ def email_is_current(log):
     enrollment=Enrollment.objects.filter(pk=int(parts[1]),student=student).select_related('course').prefetch_related('access_periods','access_changes').first()
     if not enrollment:return False
     if log.kind=='expiry':
-        plan=plan_status(enrollment)
-        return plan.get('state')=='ending_soon' and str(plan.get('ends_on'))==parts[2] and str(plan.get('days'))==parts[3]
+        notice=plan_expiry_notice(enrollment)
+        return bool(notice and str(notice['last_day'])==parts[2] and str(notice['days'])==parts[3])
     if not enrollment.course.is_published or not access_decision(enrollment).allowed or not identifier(parts[2]):return False
     if log.kind=='new_lesson':
         lesson=Lesson.objects.filter(pk=int(parts[2]),module__course=enrollment.course).select_related('module__course').first()
@@ -97,7 +97,7 @@ def retry_pending_emails():
 def run_daily_notifications(*,on=None):
     from courses.access import access_decision,module_release_date,lesson_availability
     from courses.models import Enrollment,Lesson,Module,LiveReminder
-    from courses.services import plan_status
+    from courses.services import plan_expiry_notice
     from courses.live_services import require_event_access
     from django.core.exceptions import PermissionDenied
     today=on or timezone.localdate()
@@ -106,12 +106,11 @@ def run_daily_notifications(*,on=None):
     for enrollment in enrollments:
         user=enrollment.student.user
         if not user.is_active:continue
-        plan=plan_status(enrollment,on=today)
-        if plan.get('days') in (30,15,7) and plan.get('state')=='ending_soon':
-            from courses.selectors import active_final_quiz
-            assessment=' e a avaliação final' if active_final_quiz(enrollment.course) else ''
-            notify(user,'expiry',f'{enrollment.pk}:{plan["ends_on"]}:{plan["days"]}',f'Seu acesso termina em {plan["days"]} dias',
-                f'O acesso a {enrollment.course.title} termina em {plan["last_day"].strftime("%d/%m/%Y")}. Conclua as aulas{assessment} para emitir seu certificado.',reverse('settings'),email=True,send_before=timezone.make_aware(datetime.combine(today+timedelta(days=1),time.min)))
+        notice=plan_expiry_notice(enrollment,on=today)
+        if notice:
+            remaining='amanhã' if notice['days']==1 else f'em {notice["days"]} dias'
+            notify(user,'expiry',f'{enrollment.pk}:{notice["last_day"]}:{notice["days"]}',f'Seu acesso termina {remaining}',
+                f'O acesso a {enrollment.course.title} fica disponível até {notice["last_day"].strftime("%d/%m/%Y")}. Confira as datas do seu plano em Minha conta.',reverse('settings')+'#meu-plano',email=True,send_before=timezone.make_aware(datetime.combine(today+timedelta(days=1),time.min)))
         if not enrollment.course.is_published or not access_decision(enrollment,on=today).allowed:continue
         for module in Module.objects.filter(course=enrollment.course,status='published'):
             if module.release_month>1 and module_release_date(enrollment,module)==today:

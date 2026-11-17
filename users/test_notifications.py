@@ -19,6 +19,8 @@ class NotificationTests(TestCase):
         from users.notifications import run_daily_notifications
         from users.models import Notification,EmailLog
         self.user.student_profile.email_new_lessons=False;self.user.student_profile.email_live_events=False;self.user.student_profile.save()
+        period=self.enrollment.access_periods.get()
+        period.starts_on=timezone.localdate()-timedelta(days=30);period.ends_on=timezone.localdate();period.grace_days=3;period.save()
         with patch('users.notifications.send_mail') as send:
             run_daily_notifications();run_daily_notifications()
         self.assertEqual(Notification.objects.filter(kind='expiry').count(),1)
@@ -153,8 +155,8 @@ class NotificationTests(TestCase):
         save_lesson(Lesson(module=self.module,title='Aula publicada'))
         run_daily_notifications()
         self.module.release_month=3;self.module.save()
-        # The expiry notice remains valid; only it may be delivered.
-        self.assertEqual(self.retry_with_smtp(),1)
+        # No expiry warning before the last three access days; postponed lesson is unavailable.
+        self.assertEqual(self.retry_with_smtp(),0)
 
     def test_queued_live_email_rechecks_cancellation_removal_and_schedule(self):
         from courses.models import LiveEvent,LiveReminder

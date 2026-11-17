@@ -16,18 +16,6 @@ from .services import set_lesson_progress, plan_status
 
 
 @login_required
-@require_POST
-def dismiss_plan_notice(request, enrollment_id):
-    if request.user.role != 'STUDENT':
-        raise PermissionDenied
-    enrollment = get_object_or_404(Enrollment, pk=enrollment_id, student=request.user.student_profile)
-    milestone = plan_status(enrollment).get('milestone')
-    if milestone:
-        request.session[f'plan-notice-{enrollment.pk}-{milestone}'] = True
-    return redirect('dashboard')
-
-
-@login_required
 def dashboard(request):
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
@@ -35,10 +23,6 @@ def dashboard(request):
     summary = member_summary(student)
     items = summary['items']
     enrollments = [item['enrollment'] for item in items]
-    for item, enrollment in zip(items, enrollments):
-        item["enrollment"] = enrollment
-        key = f'plan-notice-{enrollment.pk}-{item["plan"].get("milestone", "")}'
-        item['show_plan_notice'] = bool(item['plan'].get('milestone')) and not request.session.get(key)
     continuing = [
         item
         for item in items

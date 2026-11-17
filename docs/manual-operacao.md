@@ -86,4 +86,10 @@ Antes de cada entrega a fila confere novamente destinatário, preferência, plan
 
 O envio automático reserva o registro por até cinco minutos, sem manter uma transação SQLite aberta durante o SMTP (timeout configurado: 15 segundos). Dois agendamentos concorrentes não enviam a mesma reserva. O painel mostra a reserva e seu horário; se o processo cair, outra execução pode retomá-la após cinco minutos. Existe uma janela inevitável de duplicação se o SMTP aceitar a mensagem e o processo cair antes de salvar `sent`; investigar os registros do provedor antes de forçar um reenvio. Os comandos de envio devem rodar fora de transações externas. Links de primeiro acesso e de recuperação não entram nessa retentativa.
 
+### Prazo de acesso — ajuste de QA
+
+Os avisos ao aluno começam somente nos três últimos dias efetivos de acesso, na central de notificações: 3 dias, 2 dias e último dia. O cálculo inclui a tolerância no término natural e não acrescenta tolerância no encerramento antecipado. Cada matrícula tem sua data, e executar o comando diário novamente não duplica o aviso. Os e-mails de vencimento seguem essa mesma janela, quando houver SMTP configurado.
+
+O Início, o hero, os cartões de cursos e o progresso não mostram faixas nem contagem regressiva. As datas permanecem em Minha conta; “Acesso até” informa o último dia efetivo, incluindo tolerância. O link “Ver meu plano” na notificação leva diretamente a essa seção. O painel da equipe mantém os indicadores antecipados de gestão. Notificações antigas permanecem no histórico; e-mails pendentes cuja condição mudou não são enviados.
+
 Agendamentos e backup: seguir [checklist de produção](producao-checklist.md) e [restauração SQLite](operacao-sqlite.md). Nada é agendado automaticamente pelo código.

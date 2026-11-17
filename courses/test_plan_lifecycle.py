@@ -109,22 +109,21 @@ class PlanLifecycleTests(TestCase):
         response = self.client.get(reverse('lesson_detail', args=[self.course.slug, lesson.pk]))
         self.assertContains(response, 'Abrir chamado', status_code=403)
 
-    def test_dismissal_is_per_notice_milestone(self):
-        self.create(ends_on=self.today+timedelta(days=7))
+    def test_near_end_has_no_inline_notice_or_dismissal_action(self):
+        self.create(ends_on=self.today)
         self.client.force_login(self.user)
         response = self.client.get(reverse('dashboard'))
-        self.assertContains(response, 'Seu acesso a')
-        response = self.client.post(f'/dashboard/planos/{self.enrollment.pk}/dispensar/', {'milestone': '7'})
-        self.assertEqual(response.status_code, 302)
-        self.assertNotContains(self.client.get(reverse('dashboard')), 'data-plan-notice')
+        self.assertNotContains(response, 'data-plan-notice')
+        self.assertNotContains(response, 'Fechar aviso')
+        self.assertEqual(self.client.post(f'/dashboard/planos/{self.enrollment.pk}/dispensar/').status_code,404)
 
     def test_no_final_course_expiry_notice_does_not_require_an_assessment(self):
         from users.notifications import run_daily_notifications
         from users.models import EmailLog
-        self.create(ends_on=self.today+timedelta(days=7))
+        self.create(ends_on=self.today)
         self.client.force_login(self.user)
         response=self.client.get(reverse('dashboard'))
-        self.assertContains(response,'Conclua as aulas para emitir seu certificado.')
+        self.assertNotContains(response,'data-plan-notice')
         self.assertNotContains(response,'as aulas e a avaliação')
         run_daily_notifications()
         self.assertNotIn('avaliação',EmailLog.objects.get(kind='expiry').body)

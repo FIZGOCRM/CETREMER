@@ -301,7 +301,7 @@ def correct_plan_dates(enrollment, new_start, new_end, reason, *, actor):
 
 
 def plan_status(enrollment, *, on=None):
-    from datetime import timedelta
+    from datetime import date, timedelta
     on = on or timezone.localdate()
     periods = list(enrollment.access_periods.all())
     if not periods:
@@ -325,13 +325,30 @@ def plan_status(enrollment, *, on=None):
         month = max(1, (on.year-enrollment.plan_started_on.year)*12+on.month-enrollment.plan_started_on.month+1)
         if on < add_calendar_months(enrollment.plan_started_on, month-1):
             month = max(1, month-1)
-    milestone = 'grace' if state == 'grace' else str(next((n for n in (7,15,30) if 0 < days <= n), '')) if state == 'ending_soon' else ''
     reason_labels = {'withdrawal': 'Desistência', 'nonpayment': 'Inadimplência', 'student_request': 'Pedido do aluno', 'other': 'Outro'}
     reason = (last.reason_text or reason_labels.get(last.reason_code, 'Encerramento antecipado')) if early else 'Fim do período'
+    access_end = period.ends_on.toordinal() + (0 if early else period.grace_days)
+    access_last_day = date.fromordinal(min(date.max.toordinal(), access_end-1))
     return {'state': state, 'label': labels[state], 'days': days, 'starts_on': period.starts_on,
         'ends_on': period.ends_on, 'last_day': period.ends_on-timedelta(days=1), 'month': month,
+        'access_last_day': access_last_day,
         'reason': reason,
-        'milestone': milestone, 'period': period}
+        'period': period}
+
+
+def plan_expiry_notice(enrollment, *, on=None):
+    """Warn once daily during the last three actual access days, including grace."""
+    from .models import Enrollment
+    if enrollment.access_policy == Enrollment.AccessPolicy.UNRESTRICTED or not enrollment.course.is_published:
+        return None
+    today = on or timezone.localdate()
+    plan = plan_status(enrollment, on=today)
+    if plan['state'] not in ('active', 'ending_soon', 'grace') or not plan.get('access_last_day'):
+        return None
+    days = (plan['access_last_day']-today).days+1
+    if not 1 <= days <= 3:
+        return None
+    return {'days': days, 'last_day': plan['access_last_day']}
 
 @transaction.atomic
 def save_module(module, *, actor, confirm_impact=False):

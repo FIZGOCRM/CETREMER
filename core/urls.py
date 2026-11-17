@@ -43,7 +43,6 @@ urlpatterns = [
     path('courses/lesson/<int:lesson_id>/notes/<int:note_id>/delete/', note_views.delete_note, name='delete_lesson_note'),
     path('courses/lesson/<int:lesson_id>/heartbeat/', player_views.heartbeat, name='lesson_heartbeat'),
     path('courses/lesson/<int:lesson_id>/ended/', player_views.ended, name='lesson_ended'),
-    path('dashboard/planos/<int:enrollment_id>/dispensar/', student_views.dismiss_plan_notice, name='dismiss_plan_notice'),
     path('webhooks/asaas/', asaas_webhook, name='asaas_webhook'),
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),

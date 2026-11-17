@@ -1,6 +1,6 @@
 <article class="gcard" data-course-card data-search-text="{{ item.course.title }} {{ item.course.description }} {{ item.course.category.name }}">
 <a class="card" href="{% url 'member_course' item.course.slug %}"{% if item.access.allowed %} data-course-dialog{% endif %} aria-label="{{ item.course.title }}">{% include 'partials/gomut/cover.html' with course=item.course %}{% if not item.access.allowed %}<span class="card__badge">{% if item.access.state == 'expired' %}Encerrado{% else %}Acesso pendente{% endif %}</span>{% elif item.status == 'done' %}<span class="card__badge card__badge--done">Concluído</span>{% endif %}</a>
 <div class="gcard__meta">
-<strong>{{ item.course.title }}</strong>{% if item.plan %}<span class="badge">{{ item.plan.label }}</span>{% endif %}
+<strong>{{ item.course.title }}</strong>
 <span>{{ item.total }} aulas · {{ item.pct }}% concluído</span>{% include 'partials/gomut/progress.html' with value=item.pct %}</div>
 </article>

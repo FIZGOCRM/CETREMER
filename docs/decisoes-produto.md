@@ -162,3 +162,16 @@ Cada linha vira teste ou conferência na etapa indicada.
 
 - Aprovado em 17/11/2026: LinkedIn usa o link público estático e Copiar dados para o LinkedIn, pois a documentação oficial informa que não há preenchimento automático. Fonte: https://www.linkedin.com/help/linkedin/answer/a528030 .
 - Autorização de 17/11/2026: seguir as recomendações nas demais dúvidas de implementação, registrar decisões e continuar todas as fatias para entrega de QA, sem novas confirmações intermediárias. Entradas reais não fornecidas continuam pendentes.
+
+## Ajuste solicitado no QA — 17/11/2026
+
+Esta decisão posterior substitui, para o aluno, a regra antiga de faixas e avisos aos 30, 15 e 7 dias:
+
+- Remover as faixas de vencimento do Início e o “Termina em X dias” do hero, cartões de cursos e progresso.
+- Concentrar o alerta na central de notificações/sininho, a partir dos três últimos dias de acesso: um aviso aos 3, 2 e 1 dias, por matrícula, sem duplicação na execução diária.
+- Contar até o término efetivo do acesso, incluindo a tolerância natural existente. Encerramento antecipado continua sem tolerância.
+- Manter as datas em Minha conta; “Acesso até” inclui a tolerância, quando aplicável.
+- Os e-mails automáticos já existentes acompanham a mesma janela curta. Retentativas de avisos antigos ou de planos corrigidos continuam recusadas.
+- Manter a gestão e os filtros de vencimento antecipado no painel da equipe. Não alterar datas, tolerância ou regras de acesso para obter o novo visual.
+
+O comando diário continua responsável pela criação dos avisos; o agendamento de produção ainda depende da operação. Notificações históricas não são apagadas.

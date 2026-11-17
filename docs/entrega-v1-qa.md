@@ -4,6 +4,8 @@ Data: 17/11/2026. Branch: `feat/area-aluno-handoff`.
 
 Fonte de decisão: [plano oficial](<handoff v1 oficial/prompt-implementacao-gomut_3.md>). Os documentos antigos não substituem esse plano. Esta entrega é local, para QA, e não uma implantação em produção.
 
+**Atualização do QA:** [avisos de prazo](ajuste-avisos-vencimento.md) agora ficam nas notificações somente nos três últimos dias efetivos de acesso. Faixas do Início e contagens nos cursos foram retiradas. A suíte atual tem **343 testes aprovados**; os números por etapa abaixo são registros históricos.
+
 ## 1. O que foi feito
 
 - Área do aluno com cursos próprios, retomada, progresso, quizzes, avaliação opcional e certificado.
@@ -81,10 +83,10 @@ Nenhuma dependência adicionada; stack mantida: Django 4.2.30, templates, CSS/JS
 
 ## 4. Verificação
 
-- Suíte final: **334 testes, zero falhas e zero erros**. Linha de base: 138.
+- Suíte atual: **343 testes, zero falhas e zero erros**. Linha de base: 138.
 - Migrações: esquema vazio nos testes e atualizações na demo; `makemigrations --check --dry-run` sem alterações pendentes.
 - `git diff --check`: sem erros.
-- Última rodada de navegação: **72 combinações página/largura**, Chrome e Edge, 390 e 1440 px, HTTP 200, sem overflow horizontal ou `pageerror`.
+- Rodada geral da entrega: **72 combinações página/largura**, Chrome e Edge, 390 e 1440 px, HTTP 200, sem overflow horizontal ou `pageerror`. Após o ajuste dos avisos, mais dez combinações no Chrome e duas conferências do cartão de exemplo, sem overflow ou erro JS.
 - Prévia de membro: conferência adicional em oito combinações; zero POST espontâneo, POST de heartbeat forjado recusado, snapshot dos dados do aluno inalterado e auditoria encerrada ao sair.
 - SMTP/SQLite: três regressões também executadas em SQLite temporário **em disco**; heartbeat concorrente não aguarda o envio; reserva impede entrega concorrente e se recupera após expirar.
 - Conferências anteriores por etapa incluem nota criada/removida, quiz 100%, avaliação 75%, emissão e impressão do certificado em uma página, PDF autenticado, janela de plano, reordenação por teclado e CSV baixado.

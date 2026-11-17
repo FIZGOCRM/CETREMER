@@ -97,9 +97,6 @@
   .member-dialog.is-expanded { width: 100%; height: 100dvh; max-height: 100dvh; }
 }
 
-/* Avisos de plano: abaixo do hero, fora da navegação fixa. */
-.plan-notice { margin: 16px var(--gutter, 24px); padding: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.plan-notice > p:first-child { flex: 1 1 300px; }
 
 .ep[aria-disabled="true"] { opacity: .65; cursor: default; }
 /* Progresso: os gráficos usam somente os dados creditados pelo servidor. */
@@ -190,3 +187,5 @@
 body[data-member-preview=true] #view { padding-top:48px; }.member-preview-banner { position:fixed;top:calc(var(--nav-h) + 10px);left:50%;transform:translateX(-50%);z-index:200;display:flex;align-items:center;gap:12px;padding:8px 8px 8px 18px;border-radius:30px;background:#04736bf5;color:#fff;font-size:13px;box-shadow:0 8px 28px #0005;max-width:calc(100% - 24px); }.member-preview-banner>span { min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }.member-preview-banner>a { background:#fff;color:#035a54;padding:7px 12px;border-radius:20px;font-weight:700;white-space:nowrap;font-size:12px; }
 @media(max-width:899px) { .member-preview-banner { top:auto;bottom:calc(82px + env(safe-area-inset-bottom,0px));width:calc(100% - 24px);justify-content:space-between;font-size:11px;padding-left:12px; }.member-preview-banner>a { font-size:11px; }body[data-member-preview=true] #view { padding-top:0; } }
 @media print { .member-preview-banner { display:none!important; } }
+
+.notification-topic { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--c-text-2); }
