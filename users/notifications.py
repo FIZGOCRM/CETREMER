@@ -18,7 +18,7 @@ def _deliver(log_id):
     # Reserve the SQLite writer before reading delivery state, including parallel cron runs.
     EmailLog.objects.filter(pk=log_id).update(status=F('status'))
     log=EmailLog.objects.select_related('user').get(pk=log_id)
-    if log.status=='sent' or log.kind in ('first_access','reset_access'):return log
+    if log.status=='sent' or log.kind in ('first_access','reset_access','smtp_test'):return log
     if log.send_before and log.send_before<=timezone.now():return log
     if log.kind in ('new_lesson','module_release') and not log.user.student_profile.email_new_lessons:return log
     if log.kind=='live_reminder' and not log.user.student_profile.email_live_events:return log
@@ -43,7 +43,7 @@ def queue_email(user,kind,reference,subject,body,*,send_before=None):
 def retry_pending_emails():
     if not SiteSettings.load().email_host:return 0
     count=0
-    for pk in EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access']).values_list('pk',flat=True):
+    for pk in EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access','smtp_test']).values_list('pk',flat=True):
         count+=_deliver(pk).status=='sent'
     return count
 
@@ -95,5 +95,5 @@ def run_live_reminders():
 
 def pending_email_count():
     from django.db.models import Q
-    return EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access']).filter(Q(send_before__isnull=True)|Q(send_before__gt=timezone.now())).count()
+    return EmailLog.objects.exclude(status='sent').exclude(kind__in=['first_access','reset_access','smtp_test']).filter(Q(send_before__isnull=True)|Q(send_before__gt=timezone.now())).count()
 

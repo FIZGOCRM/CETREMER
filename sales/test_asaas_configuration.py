@@ -43,7 +43,7 @@ class GatewayPanelConfigurationTests(TestCase):
         self.assertEqual(site.gateway_name, "LEGACY_PROVIDER")
         self.assertTrue(site.gateway_sandbox)
         response = self.client.get(reverse("painel:settings"))
-        self.assertContains(response, "Configuração gerenciada no servidor")
+        self.assertTemplateUsed(response, "base_painel_gomut.html")
         for secret in [
             "server-only-secret",
             "server-webhook-secret",

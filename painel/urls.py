@@ -3,6 +3,7 @@ from . import views
 from .views import plans
 from .views import quizzes
 from .views import materials
+from .views import certificates
 from .views import lessons
 from .views.course_management import course_overview_view
 from .views import live
@@ -10,6 +11,7 @@ from .views import support
 
 app_name = 'painel'
 urlpatterns = [
+    path('certificados/',certificates.certificates,name='certificates'),
     path('aulas/<int:lesson_id>/editar/',lessons.lesson_edit,name='lesson_edit'),
     path('cursos/<int:course_id>/visao-geral/',course_overview_view,name='course_overview'),
     path('ao-vivo/',live.live,name='live'),

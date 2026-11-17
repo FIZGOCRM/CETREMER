@@ -1,69 +1,28 @@
-"""Management HTTP adapters: settings."""
-
 from django.contrib import messages
-from django.core.mail import send_mail
+from django.core.exceptions import ValidationError
 from django.shortcuts import redirect
-
-from core.crypto import encrypt
+from django.urls import reverse
 from core.decorators import painel_required
-from sales.integrations.asaas.config import AsaasConfig
-from users.models import SiteSettings
-
+from users.models import SiteSettings,EmailLog
+from users.services import save_site_configuration,send_configuration_test
+from users.notifications import pending_email_count
+from painel.settings_forms import SECTIONS,SiteConfigurationForm
 from .common import page
-
 
 @painel_required
 def settings(request):
-    site = SiteSettings.load()
-    if request.method == "POST":
-        for field in (
-            "school_name",
-            "support_email",
-            "whatsapp",
-            "terms_url",
-            "privacy_url",
-            "email_from_name",
-            "email_from",
-            "email_host",
-            "email_username",
-            "signer_name",
-            "signer_role",
-        ):
-            if field in request.POST:
-                setattr(site, field, request.POST[field].strip())
-        try:
-            site.email_port = int(request.POST.get("email_port") or 587)
-        except ValueError:
-            site.email_port = 587
-        site.email_use_tls = bool(request.POST.get("email_use_tls"))
-        for field in ("logo", "signature_image"):
-            if request.FILES.get(field):
-                setattr(site, field, request.FILES[field])
-        if request.POST.get("email_password"):
-            site.email_password_encrypted = encrypt(request.POST["email_password"])
-        site.save()
-        if request.POST.get("action") == "test_email":
-            try:
-                count = send_mail(
-                    "Teste de e-mail CETREMER",
-                    "Configuração de e-mail funcionando.",
-                    None,
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                if count:
-                    messages.success(request, "E-mail de teste enviado.")
-                else:
-                    messages.error(request, "SMTP não configurado.")
-            except Exception as exc:
-                messages.error(request, f"Erro no SMTP: {exc}")
+    tab=request.GET.get('aba','membros')
+    if tab not in (*SECTIONS,'ajuda','avisos'):tab='membros'
+    site=SiteSettings.load()
+    section=tab if request.method!='POST' or request.POST.get('section') else None
+    form=SiteConfigurationForm(request.POST or None,request.FILES or None,instance=site,section=section)
+    if request.method=='POST' and form.is_valid():
+        try:save_site_configuration(form.save(commit=False),actor=request.user,email_password=form.cleaned_data.get('email_password',''))
+        except ValidationError as exc:form.add_error(None,' '.join(exc.messages))
         else:
-            messages.success(request, "Configurações salvas.")
-        return redirect("painel:settings")
-    return page(
-        request,
-        "settings",
-        site=site,
-        asaas_status=AsaasConfig.from_settings().public_status(),
-        email_password_set=bool(site.email_password_encrypted),
-    )
+            if request.POST.get('action')=='test_email':
+                if send_configuration_test(request.user):messages.success(request,'E-mail de teste aceito pelo servidor. Confira o recebimento na sua caixa de entrada.')
+                else:messages.error(request,'E-mail de teste não foi enviado. Confira SMTP, remetente e registro de envio.')
+            else:messages.success(request,'Configurações salvas.')
+            return redirect(reverse('painel:settings')+'?aba='+tab)
+    return page(request,'settings',form=form,tab=tab,email_password_set=bool(site.email_password_encrypted),pending_email_count=pending_email_count(),email_logs=EmailLog.objects.select_related('user').order_by('-created_at')[:30])

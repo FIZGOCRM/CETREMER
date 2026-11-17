@@ -138,3 +138,26 @@ def send_access_link(user,url):
         except Exception:status='failed'
     EmailLog.objects.create(user=user,kind=kind,reference=str(uuid4()),status=status,subject=subject,body='')
     return sent
+
+@transaction.atomic
+def save_site_configuration(site, *, actor, email_password=''):
+    from django.core.exceptions import PermissionDenied
+    from core.crypto import encrypt
+    if actor.role not in ('ADMIN','CREATOR'):raise PermissionDenied
+    if email_password:site.email_password_encrypted=encrypt(email_password)
+    site.full_clean();site.save();return site
+
+
+def send_configuration_test(actor):
+    from .models import SiteSettings,EmailLog
+    from uuid import uuid4
+    from django.core.exceptions import PermissionDenied
+    if actor.role not in ('ADMIN','CREATOR'):raise PermissionDenied
+    site=SiteSettings.load();count=0;status='not_sent'
+    if site.email_host and actor.email:
+        try:
+            count=send_mail(f'Teste de e-mail · {site.school_name}','Este é um teste solicitado pela equipe.',None,[actor.email],fail_silently=False)
+            status='sent' if count else 'failed'
+        except Exception:status='failed'
+    EmailLog.objects.create(user=actor,kind='smtp_test',reference=str(uuid4()),status=status,subject='Teste solicitado pela equipe',body='')
+    return count

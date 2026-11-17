@@ -16,3 +16,7 @@ document.querySelectorAll('[data-plan-open]').forEach(link=>link.addEventListene
  dialog.querySelector('iframe').src=url.href;dialog.showModal();
  dialog.addEventListener('close',()=>{dialog.querySelector('iframe').removeAttribute('src');},{once:true});
 }));
+document.querySelectorAll('[data-copy-text]').forEach(button=>button.addEventListener('click',async()=>{
+ try { await navigator.clipboard.writeText(button.dataset.copyText);button.textContent='Copiado'; }
+ catch { button.textContent='Selecione e copie o código'; }
+}));

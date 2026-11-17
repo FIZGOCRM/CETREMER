@@ -29,6 +29,9 @@ def tickets(request):
 @painel_required
 def support_settings(request,kind):
     if not is_team(request.user):raise PermissionDenied
+    if kind not in ('faq','subjects'):
+        from django.http import Http404
+        raise Http404
     model,form_class=(FaqItem,FaqForm) if kind=='faq' else (SupportSubject,SubjectForm)
     instance=get_object_or_404(model,pk=request.GET['id']) if request.GET.get('id') else None
     form=form_class(request.POST or None,instance=instance)
