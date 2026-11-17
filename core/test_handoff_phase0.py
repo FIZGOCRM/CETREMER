@@ -37,8 +37,12 @@ class HandoffPhaseZeroTests(TestCase):
         for name in panel_names:
             response = self.client.get(reverse(f'painel:{name}'))
             self.assertEqual(response.status_code, 200)
-            self.assertTemplateUsed(response, 'base_admin.html')
-            self.assertContains(response, 'css/cetremer.css')
+            if name == 'dashboard':
+                self.assertTemplateUsed(response,'base_painel_gomut.html')
+                self.assertNotContains(response,'css/cetremer.css')
+            else:
+                self.assertTemplateUsed(response, 'base_admin.html')
+                self.assertContains(response, 'css/cetremer.css')
 
     def test_complete_lesson_unknown_lesson_returns_404(self):
         self.client.force_login(self.student)

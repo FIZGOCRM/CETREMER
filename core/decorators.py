@@ -9,7 +9,7 @@ def painel_required(view):
     @login_required
     def wrapper(request, *args, **kwargs):
         user = request.user
-        if user.is_staff or getattr(user, 'role', '') in ('ADMIN', 'CREATOR'):
+        if getattr(user, 'role', '') in ('ADMIN', 'CREATOR'):
             return view(request, *args, **kwargs)
         raise PermissionDenied
 

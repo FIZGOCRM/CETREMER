@@ -14,6 +14,6 @@
 <link rel="stylesheet" href="{% static 'css/gomut/members.css' %}">{% block extra_css %}{% endblock %}<script src="{% static 'js/gomut/navigation.js' %}" defer>
 </script>
 </head>
-<body>{% block body %}{% endblock %}<div class="toasts" id="toasts" role="status" aria-live="polite">
+<body {% block body_attributes %}{% endblock %}>{% block body %}{% endblock %}<div class="toasts" id="toasts" role="status" aria-live="polite">
 </div>{% block extra_js %}{% endblock %}</body>
 </html>
