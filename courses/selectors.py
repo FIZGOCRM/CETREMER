@@ -86,7 +86,7 @@ def member_course_items(student):
     from .models import Certificate, Enrollment, Quiz, QuizAttempt
     from django.db.models import Count, Max, Q
     from .services import plan_status, profile_data_ok
-    enrollments = list(Enrollment.objects.filter(student=student).select_related('course__category').prefetch_related('access_periods', 'access_changes').order_by('-enrolled_at'))
+    enrollments = list(Enrollment.objects.filter(student=student, course__is_published=True).select_related('course__category').prefetch_related('access_periods', 'access_changes').order_by('-enrolled_at'))
     course_ids = [e.course_id for e in enrollments]
     lessons_by_course = defaultdict(list)
     for lesson in Lesson.objects.filter(module__course_id__in=course_ids, status='published', module__status='published').select_related('module__course').order_by('module__order', 'order', 'id'):
@@ -272,7 +272,7 @@ def library_items(student, *, kind='', course=None, q=''):
     from django.db.models import Q
     from django.urls import reverse
     enrollments = {e.course_id:e for e in Enrollment.objects.filter(student=student).select_related('course').prefetch_related('access_periods')}
-    allowed = [pk for pk,e in enrollments.items() if access_decision(e).allowed and (not course or pk == course)]
+    allowed = [pk for pk,e in enrollments.items() if e.course.is_published and access_decision(e).allowed and (not course or pk == course)]
     opened = set(MaterialOpen.objects.filter(student=student).values_list('material_kind','material_id'))
     done = set(Progress.objects.filter(student=student,is_completed=True).values_list('lesson_id',flat=True))
     items = []
@@ -301,5 +301,5 @@ def search_lessons(student,term):
     from .access import lesson_availability
     enrollments={e.course_id:e for e in Enrollment.objects.filter(student=student).prefetch_related('access_periods')}
     completed=set(Progress.objects.filter(student=student,is_completed=True).values_list('lesson_id',flat=True))
-    lessons=Lesson.objects.filter(module__course_id__in=enrollments,status='published',module__status='published').filter(Q(title__icontains=term)|Q(module__title__icontains=term)).select_related('module__course').order_by('module__course__title','module__order','order','pk')[:100]
+    lessons=Lesson.objects.filter(module__course_id__in=enrollments,module__course__is_published=True,status='published',module__status='published').filter(Q(title__icontains=term)|Q(module__title__icontains=term)).select_related('module__course').order_by('module__course__title','module__order','order','pk')[:100]
     return [{'lesson':lesson,'availability':lesson_availability(enrollments[lesson.module.course_id],lesson,completed_ids=completed)} for lesson in lessons]

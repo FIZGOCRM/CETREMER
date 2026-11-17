@@ -12,8 +12,8 @@ class MemberRedesignTests(TestCase):
     def setUp(self):
         owner = User.objects.create_user(username="owner-member", role=User.Role.CREATOR)
         self.student = User.objects.create_user(username="member-test")
-        self.course = Course.objects.create(title="Curso Um", slug="curso-um", creator=owner.creator_profile)
-        self.other = Course.objects.create(title="Curso Dois", slug="curso-dois", creator=owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title="Curso Um", slug="curso-um", creator=owner.creator_profile)
+        self.other = Course.objects.create(is_published=True, title="Curso Dois", slug="curso-dois", creator=owner.creator_profile)
         self.module = Module.objects.create(course=self.course, title="Fundamentos", order=1)
         self.lesson = Lesson.objects.create(module=self.module, title="Primeira aula", video_url="https://vimeo.com/76979871")
         self.enrollment = Enrollment.objects.create(student=self.student.student_profile, course=self.course)

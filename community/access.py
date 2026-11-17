@@ -12,7 +12,7 @@ def require_topic_access(user, post):
     if is_team(user): return
     if user.role != 'STUDENT' or post.is_hidden:
         raise PermissionDenied('Sem acesso a este tópico.')
-    if post.course_id and not Enrollment.objects.filter(student=user.student_profile,course_id=post.course_id).exists():
+    if post.course_id and not Enrollment.objects.filter(student=user.student_profile,course_id=post.course_id,course__is_published=True).exists():
         raise PermissionDenied('Sem acesso a este curso.')
 
 

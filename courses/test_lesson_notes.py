@@ -10,7 +10,7 @@ class LessonExperienceTests(TestCase):
         self.owner = User.objects.create_user(username='notes-owner', role='CREATOR')
         self.user = User.objects.create_user(username='notes-user')
         self.other = User.objects.create_user(username='notes-other')
-        self.course = Course.objects.create(title='Curso', slug='notes', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='notes', creator=self.owner.creator_profile)
         self.lesson = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M'), title='A', duration_seconds=100)
         for user in (self.user, self.other):
             Enrollment.objects.create(student=user.student_profile, course=self.course)

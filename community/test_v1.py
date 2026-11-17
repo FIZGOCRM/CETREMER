@@ -11,7 +11,7 @@ class CommunityV1Tests(TestCase):
         self.admin=User.objects.create_user(username='mentor-v1',role='CREATOR')
         self.student=User.objects.create_user(username='student-v1')
         self.other=User.objects.create_user(username='other-v1')
-        self.course=Course.objects.create(title='Saúde',slug='saude-v1',creator=self.admin.creator_profile)
+        self.course=Course.objects.create(is_published=True, title='Saúde',slug='saude-v1',creator=self.admin.creator_profile)
         self.enrollment=Enrollment.objects.create(student=self.student.student_profile,course=self.course)
         self.post=CommunityPost.objects.create(author=self.student,course=self.course,title='Dúvida da turma',content='Uma dúvida de demonstração sem dados pessoais.')
         self.client.force_login(self.student)

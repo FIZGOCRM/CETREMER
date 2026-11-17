@@ -15,7 +15,7 @@ class QuizImportTests(TestCase):
 
     def setUp(self):
         self.owner = User.objects.create_user(username='csv-owner', role='CREATOR')
-        self.course = Course.objects.create(title='Curso', slug='csv-course', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='csv-course', creator=self.owner.creator_profile)
         self.module = Module.objects.create(course=self.course, title='M')
         self.lesson = Lesson.objects.create(module=self.module, title='Aula única')
         self.row = 'csv-course,aula,Aula única,1,Pergunta?,A,B,,,A,Explicação\n'

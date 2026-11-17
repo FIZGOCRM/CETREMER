@@ -87,7 +87,7 @@ def dashboard(request):
 
 @login_required
 def member_course(request, course_slug):
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(Course, slug=course_slug, is_published=True)
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
     enrollment = Enrollment.objects.filter(student=request.user.student_profile, course=course).first()
@@ -125,7 +125,7 @@ def member_section(request, section):
 
 @login_required
 def lesson_detail(request, course_slug, lesson_id):
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(Course, slug=course_slug, is_published=True)
     lesson = get_object_or_404(Lesson, id=lesson_id, module__course=course)
     if request.user.role != "STUDENT":
         return redirect("course_preview", course_slug=course.slug)

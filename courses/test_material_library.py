@@ -14,7 +14,7 @@ class MaterialLibraryTests(TestCase):
         self.media = override_settings(MEDIA_ROOT=self.folder.name); self.media.enable(); self.addCleanup(self.media.disable)
         self.owner = User.objects.create_user(username='material-owner', role='CREATOR')
         self.user = User.objects.create_user(username='material-student')
-        self.course = Course.objects.create(title='Curso', slug='material-course', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='material-course', creator=self.owner.creator_profile)
         self.lesson = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M'), title='A')
         Enrollment.objects.create(student=self.user.student_profile, course=self.course)
         self.material = LessonMaterial.objects.create(lesson=self.lesson, title='PDF da aula', file=SimpleUploadedFile('aula.pdf', b'%PDF-1.4\n%%EOF', content_type='application/pdf'))

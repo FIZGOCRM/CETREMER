@@ -83,7 +83,7 @@ class PlatformTestCase(TestCase):
         url = reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': second_lesson.id})
         self.assertEqual(self.client.get(url).context['lesson'], second_lesson)
         self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': self.course.slug, 'lesson_id': 999999})).status_code, 404)
-        other_course = Course.objects.create(title='Other', slug='other', creator=self.creator_profile)
+        other_course = Course.objects.create(is_published=True, title='Other', slug='other', creator=self.creator_profile)
         Enrollment.objects.create(student=self.student_profile, course=other_course)
         self.assertEqual(self.client.get(reverse('lesson_detail', kwargs={'course_slug': other_course.slug, 'lesson_id': second_lesson.id})).status_code, 404)
 

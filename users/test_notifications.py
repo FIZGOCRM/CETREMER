@@ -10,7 +10,7 @@ class NotificationTests(TestCase):
         self.admin=User.objects.create_user(username='notice-admin',role='CREATOR')
         self.user=User.objects.create_user(username='notice-student',email='notice@example.org')
         self.other=User.objects.create_user(username='notice-other',email='other@example.org')
-        self.course=Course.objects.create(title='Curso de avisos',slug='notices',creator=self.admin.creator_profile)
+        self.course=Course.objects.create(is_published=True, title='Curso de avisos',slug='notices',creator=self.admin.creator_profile)
         self.enrollment=Enrollment.objects.create(student=self.user.student_profile,course=self.course,plan_started_on=timezone.localdate(),access_policy='PERIODS')
         AccessPeriod.objects.create(enrollment=self.enrollment,starts_on=timezone.localdate(),ends_on=timezone.localdate()+timedelta(days=30))
         self.module=Module.objects.create(course=self.course,title='Módulo')

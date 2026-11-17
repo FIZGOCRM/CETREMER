@@ -64,7 +64,7 @@ def run_daily_notifications(*,on=None):
         if plan.get('days') in (30,15,7) and plan.get('state')=='ending_soon':
             notify(user,'expiry',f'{enrollment.pk}:{plan["ends_on"]}:{plan["days"]}',f'Seu acesso termina em {plan["days"]} dias',
                 f'O acesso a {enrollment.course.title} termina em {plan["last_day"].strftime("%d/%m/%Y")}. Conclua as aulas e a avaliação para emitir seu certificado.',reverse('settings'),email=True,send_before=timezone.make_aware(datetime.combine(today+timedelta(days=1),time.min)))
-        if not access_decision(enrollment,on=today).allowed:continue
+        if not enrollment.course.is_published or not access_decision(enrollment,on=today).allowed:continue
         for module in Module.objects.filter(course=enrollment.course,status='published'):
             if module.release_month>1 and module_release_date(enrollment,module)==today:
                 notify(user,'module_release',f'{enrollment.pk}:{module.pk}:{today}','Módulo liberado',f'{module.title} já está disponível em {enrollment.course.title}.',reverse('member_course',args=[enrollment.course.slug]),email=enrollment.student.email_new_lessons)

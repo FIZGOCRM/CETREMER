@@ -57,6 +57,7 @@ def access_decision(enrollment, *, on=None):
 
 
 def has_course_access(student, course, *, on=None):
+    if not course.is_published:return False
     enrollment = (
         Enrollment.objects.filter(student=student, course=course)
         .prefetch_related("access_periods")
@@ -72,7 +73,7 @@ def accessible_courses(student, *, on=None):
         "access_periods"
     )
     ids = [e.course_id for e in enrollments if access_decision(e, on=on).allowed]
-    return Course.objects.filter(pk__in=ids)
+    return Course.objects.filter(pk__in=ids, is_published=True)
 
 @dataclass(frozen=True)
 class LessonAvailability:
@@ -89,7 +90,7 @@ def module_release_date(enrollment, module):
 
 def lesson_availability(enrollment, lesson, *, on=None, completed_ids=None):
     from .models import Progress
-    if lesson.status != 'published' or lesson.module.status != 'published':
+    if not lesson.module.course.is_published or lesson.status != 'published' or lesson.module.status != 'published':
         return LessonAvailability('draft')
     if not access_decision(enrollment, on=on).allowed:
         return LessonAvailability('plan_ended')

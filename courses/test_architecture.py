@@ -13,7 +13,7 @@ class CertificateHttpTests(TestCase):
         self.profile.full_name = "Aluno Teste"
         self.profile.cpf = "52998224725"
         self.profile.save()
-        self.course = Course.objects.create(
+        self.course = Course.objects.create(is_published=True, 
             title="BLS", slug="bls", creator=creator.creator_profile
         )
         self.lesson = Lesson.objects.create(

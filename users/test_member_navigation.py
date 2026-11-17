@@ -8,7 +8,7 @@ class MemberNavigationTests(TestCase):
     def setUp(self):
         self.admin=User.objects.create_user(username='nav-admin',role='CREATOR')
         self.user=User.objects.create_user(username='nav-student',email='nav@example.org',password='StrongPassword123!')
-        self.course=Course.objects.create(title='Curso próprio',slug='nav-course',creator=self.admin.creator_profile)
+        self.course=Course.objects.create(is_published=True, title='Curso próprio',slug='nav-course',creator=self.admin.creator_profile)
         Enrollment.objects.create(student=self.user.student_profile,course=self.course,plan_started_on=timezone.localdate())
         self.module=Module.objects.create(course=self.course,title='Módulo pesquisável')
         self.lesson=Lesson.objects.create(module=self.module,title='ECG da demonstração')
@@ -24,7 +24,7 @@ class MemberNavigationTests(TestCase):
             self.assertContains(response,'Suporte')
 
     def test_search_owns_courses_and_excludes_drafts_but_marks_scheduled(self):
-        other=Course.objects.create(title='Alheio',slug='nav-other',creator=self.admin.creator_profile)
+        other=Course.objects.create(is_published=True, title='Alheio',slug='nav-other',creator=self.admin.creator_profile)
         Lesson.objects.create(module=Module.objects.create(course=other,title='Outro'),title='ECG secreto')
         Lesson.objects.create(module=self.module,title='ECG rascunho',status='draft')
         self.module.release_month=2;self.module.save()

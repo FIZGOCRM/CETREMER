@@ -469,7 +469,7 @@ def delete_lesson_note(student, note):
 
 
 def require_quiz_access(student, quiz):
-    if not quiz.is_active:
+    if not quiz.course.is_published or not quiz.is_active:
         raise PermissionDenied('Este quiz não está disponível.')
     if quiz.kind == 'final':
         from .models import Enrollment, Lesson

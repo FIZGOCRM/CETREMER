@@ -32,7 +32,7 @@ def open_material(request, kind, material_id):
                 require_lesson_access(student, material.lesson)
             else:
                 enrollment = Enrollment.objects.filter(student=student,course=material.course).prefetch_related('access_periods').first()
-                if not material.is_active or not access_decision(enrollment).allowed:
+                if not material.course.is_published or not material.is_active or not access_decision(enrollment).allowed:
                     raise PermissionDenied('Este material não está disponível para seu plano.')
         except PermissionDenied as exc:
             return render(request,'courses/material_unavailable.html',{'message':str(exc)},status=403)
@@ -65,4 +65,4 @@ def ebooks(request):
     valid = form.is_valid()
     filters = form.cleaned_data if valid else {}
     return render(request, 'courses/ebooks.html', {'items':library_items(student, **filters) if valid else [],
-        'form':form,'courses':Course.objects.filter(enrollments__student=student).order_by('title'), 'selected_course':filters.get('course')},status=200 if valid else 400)
+        'form':form,'courses':Course.objects.filter(enrollments__student=student,is_published=True).order_by('title'), 'selected_course':filters.get('course')},status=200 if valid else 400)

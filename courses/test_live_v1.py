@@ -11,7 +11,7 @@ class LiveEventTests(TestCase):
         self.admin=User.objects.create_user(username='live-admin',role='CREATOR')
         self.user=User.objects.create_user(username='live-member')
         self.other=User.objects.create_user(username='live-other')
-        self.course=Course.objects.create(title='Saúde ao vivo',slug='live-course',creator=self.admin.creator_profile)
+        self.course=Course.objects.create(is_published=True, title='Saúde ao vivo',slug='live-course',creator=self.admin.creator_profile)
         Enrollment.objects.create(student=self.user.student_profile,course=self.course)
         self.client.force_login(self.user)
 

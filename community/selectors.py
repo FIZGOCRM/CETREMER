@@ -8,7 +8,7 @@ from .models import CommunityPost
 
 
 def owned_courses(user):
-    return Course.objects.all() if is_team(user) else Course.objects.filter(enrollments__student__user=user)
+    return Course.objects.all() if is_team(user) else Course.objects.filter(enrollments__student__user=user,is_published=True)
 
 
 def visible_posts(user):

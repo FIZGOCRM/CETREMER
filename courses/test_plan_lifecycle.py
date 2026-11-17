@@ -15,7 +15,7 @@ class PlanLifecycleTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(username='plan-admin', role='CREATOR')
         self.user = User.objects.create_user(username='plan-student')
-        self.course = Course.objects.create(title='Curso', slug='plan-course', creator=self.admin.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='plan-course', creator=self.admin.creator_profile)
         self.enrollment = Enrollment.objects.create(student=self.user.student_profile, course=self.course)
         self.today = timezone.localdate()
 
@@ -89,7 +89,7 @@ class PlanLifecycleTests(TestCase):
 
     def test_two_courses_keep_independent_dates_and_natural_grace(self):
         first = self.create(ends_on=self.today)
-        other = Course.objects.create(title='Outro', slug='other-plan', creator=self.admin.creator_profile)
+        other = Course.objects.create(is_published=True, title='Outro', slug='other-plan', creator=self.admin.creator_profile)
         second = Enrollment.objects.create(student=self.user.student_profile, course=other)
         self.call('create_plan', second, starts_on=self.today)
         self.enrollment.refresh_from_db(); second.refresh_from_db()

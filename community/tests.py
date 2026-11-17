@@ -13,7 +13,7 @@ class CommunityEnrollmentTests(TestCase):
     def setUp(self):
         creator = User.objects.create_user(username='creator', password='CreatorPassword123!', role=User.Role.CREATOR)
         self.student = User.objects.create_user(username='student', password='StudentPassword123!', role=User.Role.STUDENT)
-        self.course = Course.objects.create(title='Paid course', slug='paid-course', creator=creator.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Paid course', slug='paid-course', creator=creator.creator_profile)
         self.client.force_login(self.student)
 
     def test_hub_rejects_unenrolled_course_but_allows_general(self):

@@ -18,7 +18,7 @@ class AccessPeriodTests(TestCase):
         self.user = User.objects.create_user(
             username="period-student", email="period@example.com"
         )
-        self.course = Course.objects.create(
+        self.course = Course.objects.create(is_published=True, 
             title="BLS", slug="period-bls", creator=self.creator.creator_profile
         )
         self.lesson = Lesson.objects.create(
@@ -106,7 +106,7 @@ class AccessPeriodTests(TestCase):
 
     def test_expired_course_does_not_block_other_course_or_delete_history(self):
         self.managed_period(end=-4)
-        other = Course.objects.create(
+        other = Course.objects.create(is_published=True, 
             title="Other", slug="other-access", creator=self.creator.creator_profile
         )
         Enrollment.objects.create(student=self.user.student_profile, course=other)

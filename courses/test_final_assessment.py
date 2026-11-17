@@ -17,7 +17,7 @@ class FinalAssessmentTests(TestCase):
         self.user = User.objects.create_user(username='final-student')
         self.student = self.user.student_profile
         self.student.full_name = 'Aluno Completo'; self.student.cpf = '52998224725'; self.student.save()
-        self.course = Course.objects.create(title='Curso', slug='final-course', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='final-course', creator=self.owner.creator_profile)
         self.lesson = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M'), title='A')
         self.enrollment = Enrollment.objects.create(student=self.student, course=self.course)
         self.quiz = Quiz.objects.create(course=self.course, kind='final')

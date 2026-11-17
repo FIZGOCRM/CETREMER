@@ -86,7 +86,7 @@ def result(request, attempt_id):
         return _error(exc)
     attempt = get_object_or_404(QuizAttempt.objects.select_related('quiz__lesson__module__course'), pk=attempt_id, student=student)
     try:
-        if not attempt.quiz.is_active:
+        if not attempt.quiz.course.is_published or not attempt.quiz.is_active:
             raise PermissionDenied('Este quiz foi desativado.')
         if attempt.quiz.kind == 'final':
             enrollment = Enrollment.objects.filter(student=student, course=attempt.quiz.course).first()
@@ -127,7 +127,7 @@ def final_assessment(request, course_slug):
         student = _student(request)
     except PermissionDenied as exc:
         return _error(exc)
-    course = get_object_or_404(Course, slug=course_slug)
+    course = get_object_or_404(Course, slug=course_slug, is_published=True)
     enrollment = get_object_or_404(Enrollment.objects.prefetch_related('access_periods'), student=student, course=course)
     decision = access_decision(enrollment)
     if not decision.allowed:

@@ -10,7 +10,7 @@ class MemberPreviewTests(TestCase):
   self.student=User.objects.create_user(username='preview-member',email='preview@example.org')
   self.student.student_profile.full_name='Aluno escolhido';self.student.student_profile.save()
   self.other=User.objects.create_user(username='preview-other')
-  self.course=Course.objects.create(title='Curso do aluno',slug='preview-course',creator=self.admin.creator_profile)
+  self.course=Course.objects.create(is_published=True, title='Curso do aluno',slug='preview-course',creator=self.admin.creator_profile)
   self.enrollment=Enrollment.objects.create(student=self.student.student_profile,course=self.course)
   self.lesson=Lesson.objects.create(module=Module.objects.create(course=self.course,title='Módulo'),title='Aula do aluno',video_url='https://vimeo.com/76979871')
   self.progress=Progress.objects.create(student=self.student.student_profile,lesson=self.lesson,last_position_seconds=12)

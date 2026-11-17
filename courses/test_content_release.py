@@ -15,7 +15,7 @@ class ContentReleaseTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(username='release-admin', role='CREATOR')
         self.user = User.objects.create_user(username='release-student')
-        self.course = Course.objects.create(title='Curso', slug='release', creator=self.admin.creator_profile)
+        self.course = Course.objects.create(title='Curso', slug='release', creator=self.admin.creator_profile, is_published=True)
         self.module = Module.objects.create(course=self.course, title='Módulo')
         self.lesson = Lesson.objects.create(module=self.module, title='Aula')
         self.enrollment = Enrollment.objects.create(student=self.user.student_profile, course=self.course)
@@ -27,6 +27,25 @@ class ContentReleaseTests(TestCase):
         method = getattr(access, 'lesson_availability', None)
         self.assertTrue(callable(method), 'Liberação de conteúdo ainda não implementada')
         return method(self.enrollment, self.lesson, on=on)
+
+    def test_draft_course_is_hidden_and_all_content_boundaries_refuse_access(self):
+        from django.core.exceptions import PermissionDenied
+        from courses.selectors import member_course_items, library_items, search_lessons
+        from courses.models import CourseMaterial
+        services.correct_plan_dates(self.enrollment, timezone.localdate(), services.add_calendar_months(timezone.localdate(), 12), 'Teste', actor=self.admin)
+        self.course.is_published=False;self.course.save()
+        self.lesson.video_url='https://vimeo.com/76979871';self.lesson.save()
+        material=CourseMaterial.objects.create(course=self.course,title='Material oculto',file='materials/course/test.pdf')
+        self.assertEqual(self.client.get(reverse('member_course',args=[self.course.slug])).status_code,404)
+        self.assertEqual(self.client.get(reverse('lesson_detail',args=[self.course.slug,self.lesson.pk])).status_code,404)
+        self.assertFalse(member_course_items(self.user.student_profile))
+        self.assertFalse(library_items(self.user.student_profile))
+        self.assertFalse(search_lessons(self.user.student_profile,'Aula'))
+        self.assertEqual(self.client.get(reverse('material_open',args=['course',material.pk])).status_code,403)
+        self.assertEqual(self.client.post(reverse('complete_lesson',args=[self.lesson.pk])).status_code,403)
+        with self.assertRaises(PermissionDenied):
+            services.record_heartbeat(self.user.student_profile,self.lesson,position=10,playing=True)
+        self.assertFalse(access.accessible_courses(self.user.student_profile).exists())
 
     def test_calendar_release_clamps_day_31_and_uses_original_anchor(self):
         self.module.release_month = 2
@@ -131,7 +150,7 @@ class ContentReleaseTests(TestCase):
         self.assertTrue(LessonMaterial.objects.filter(pk=material.pk).exists())
 
     def test_two_courses_release_by_their_own_original_start(self):
-        other = Course.objects.create(title='Outro', slug='other-release', creator=self.admin.creator_profile)
+        other = Course.objects.create(is_published=True, title='Outro', slug='other-release', creator=self.admin.creator_profile)
         other_module = Module.objects.create(course=other, title='M2', release_month=3)
         other_lesson = Lesson.objects.create(module=other_module, title='A2')
         second = Enrollment.objects.create(student=self.user.student_profile, course=other)

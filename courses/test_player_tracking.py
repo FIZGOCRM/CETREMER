@@ -16,7 +16,7 @@ class PlayerTrackingTests(TestCase):
         self.admin = User.objects.create_user(username='player-admin', role='CREATOR')
         self.user = User.objects.create_user(username='player-student')
         self.student = self.user.student_profile
-        self.course = Course.objects.create(title='Curso', slug='player', creator=self.admin.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='player', creator=self.admin.creator_profile)
         self.module = Module.objects.create(course=self.course, title='M')
         self.lesson = Lesson.objects.create(module=self.module, title='A', duration_seconds=100, video_url='https://vimeo.com/76979871')
         self.enrollment = Enrollment.objects.create(student=self.student, course=self.course)

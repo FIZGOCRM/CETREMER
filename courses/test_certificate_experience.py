@@ -10,7 +10,7 @@ class CertificateExperienceTests(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user(username='cert-experience-owner', role='CREATOR')
         self.user = User.objects.create_user(username='cert-experience-student')
-        self.course = Course.objects.create(title='Curso com certificado', slug='cert-experience', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso com certificado', slug='cert-experience', creator=self.owner.creator_profile)
         self.lesson = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M'), title='A')
         self.enrollment = Enrollment.objects.create(student=self.user.student_profile, course=self.course)
         set_lesson_progress(self.user.student_profile, self.lesson, completed=True)

@@ -14,7 +14,7 @@ class ProgressDashboardTests(TestCase):
         self.owner = User.objects.create_user(username='dashboard-owner', role='CREATOR')
         self.user = User.objects.create_user(username='dashboard-student')
         self.student = self.user.student_profile
-        self.course = Course.objects.create(title='Curso', slug='dashboard-course', creator=self.owner.creator_profile)
+        self.course = Course.objects.create(is_published=True, title='Curso', slug='dashboard-course', creator=self.owner.creator_profile)
         self.lesson = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M'), title='A', duration_seconds=3600)
         Enrollment.objects.create(student=self.student, course=self.course)
         self.today = timezone.localdate()
@@ -65,7 +65,7 @@ class ProgressDashboardTests(TestCase):
     def test_next_steps_are_limited_and_continue_precedes_new_course(self):
         Progress.objects.create(student=self.student, lesson=self.lesson, last_position_seconds=20)
         for index in range(5):
-            course = Course.objects.create(title=f'Novo {index}', slug=f'next-{index}', creator=self.owner.creator_profile)
+            course = Course.objects.create(is_published=True, title=f'Novo {index}', slug=f'next-{index}', creator=self.owner.creator_profile)
             Lesson.objects.create(module=Module.objects.create(course=course, title='M'), title='Primeira')
             Enrollment.objects.create(student=self.student, course=course)
         summary = self.summary()
@@ -78,7 +78,7 @@ class ProgressDashboardTests(TestCase):
         with CaptureQueriesContext(connection) as baseline:
             self.summary()
         for number in range(5):
-            course = Course.objects.create(title=f'Extra {number}', slug=f'extra-{number}', creator=self.owner.creator_profile)
+            course = Course.objects.create(is_published=True, title=f'Extra {number}', slug=f'extra-{number}', creator=self.owner.creator_profile)
             Lesson.objects.create(module=Module.objects.create(course=course, title='M'), title='A')
             Enrollment.objects.create(student=self.student, course=course)
         with CaptureQueriesContext(connection) as expanded:
