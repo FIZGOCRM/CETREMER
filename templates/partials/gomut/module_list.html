@@ -7,7 +7,7 @@
 <p class="week__meta">{{ module.lessons.all|length }} aulas</p>
 </div>{% include 'partials/gomut/icon.html' with name='down' %}</summary>
 <ol class="eps{% if compact %} eps--compact{% endif %}">{% for l in module.lessons.all %}<li>
-<a class="ep{% if l.id == lesson.id %} is-current{% endif %}" href="{% url 'lesson_detail' course.slug l.id %}"{% if l.id == lesson.id %} aria-current="page"{% endif %}>
+<a class="ep{% if l.id == lesson.id %} is-current{% endif %}" {% if l.availability.state == 'available' %}href="{% url 'lesson_detail' course.slug l.id %}"{% else %}aria-disabled="true"{% endif %}{% if l.id == lesson.id %} aria-current="page"{% endif %}>
 <span class="ep__n" data-member-lesson-id="{{ l.id }}">
 <span data-lesson-number{% if l.id in completed_ids %} hidden{% endif %}>{{ forloop.counter }}</span>
 <span data-completed-mark{% if l.id not in completed_ids %} hidden{% endif %}>{% include "partials/gomut/icon.html" with name="check" %}</span>
@@ -15,7 +15,7 @@
 <div class="ep__thumb">{% include "partials/gomut/cover.html" with course=course %}</div>
 <div class="ep__body">
 <strong class="ep__title">{{ l.title }}</strong>
-<p class="ep__dur">{{ l.duration_seconds|duracao }}</p>
+<p class="ep__dur">{{ l.duration_seconds|duracao }}{% if l.availability.state == 'scheduled' %}{% include 'partials/gomut/icon.html' with name='lock' %} · Libera em {{ l.availability.release_date|date:'d/m/Y'|default:'data a definir' }}{% endif %}</p>
 </div>
 </a>
 </li>{% empty %}<li class="muted">Aulas em preparação.</li>{% endfor %}</ol>

@@ -13,8 +13,8 @@ from django.views.decorators.http import require_POST
 from core.decorators import painel_required
 from courses.integrations.vimeo import video_duration
 from courses.models import Category, Course, Enrollment, Lesson, Module
-from courses.services import save_course, save_lesson
-from painel.forms import CourseForm, IdentifierForm, LessonForm
+from courses.services import save_course, save_lesson, save_module, delete_content
+from painel.forms import CourseForm, IdentifierForm, LessonForm, ModuleForm
 from users.models import CreatorProfile
 
 from .common import page
@@ -104,19 +104,21 @@ def course_lessons(request, course_id):
             if ids["module_id"]
             else None
         )
-        if action == "new_module":
-            title = request.POST.get("title", "").strip()
-            if title:
-                Module.objects.create(
-                    course=course,
-                    title=title,
-                    order=Module.objects.filter(course=course).count() + 1,
-                )
-        elif action == "rename_module" and module:
-            module.title = (
-                request.POST.get("title", module.title).strip() or module.title
-            )
-            module.save(update_fields=["title"])
+        if action in ('new_module', 'rename_module', 'save_module'):
+            candidate = module or Module(course=course, order=course.modules.count()+1)
+            form = ModuleForm(request.POST, instance=candidate)
+            if form.is_valid():
+                try:
+                    save_module(form.save(commit=False), actor=request.user, confirm_impact=bool(request.POST.get('confirm_impact')))
+                except ValidationError as exc:
+                    return page(request, 'module_confirmation', course=course, module=candidate, form=form, errors=exc.messages)
+            else:
+                messages.error(request, ' '.join(error for errors in form.errors.values() for error in errors))
+        elif action == 'delete_module' and module:
+            try:
+                delete_content(module, actor=request.user)
+            except ValidationError as exc:
+                messages.error(request, ' '.join(exc.messages))
         elif action in ("save_lesson", "delete_lesson"):
             lesson = (
                 Lesson.objects.filter(
@@ -126,7 +128,10 @@ def course_lessons(request, course_id):
                 else None
             )
             if action == "delete_lesson" and lesson:
-                lesson.delete()
+                try:
+                    delete_content(lesson, actor=request.user)
+                except ValidationError as exc:
+                    messages.error(request, ' '.join(exc.messages))
             elif module and request.POST.get("title", "").strip():
                 if lesson is None:
                     lesson = Lesson(

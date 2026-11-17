@@ -100,3 +100,5 @@
 /* Avisos de plano: abaixo do hero, fora da navegação fixa. */
 .plan-notice { margin: 16px var(--gutter, 24px); padding: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .plan-notice > p:first-child { flex: 1 1 300px; }
+
+.ep[aria-disabled="true"] { opacity: .65; cursor: default; }

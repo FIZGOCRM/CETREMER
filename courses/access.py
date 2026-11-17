@@ -73,3 +73,29 @@ def accessible_courses(student, *, on=None):
     )
     ids = [e.course_id for e in enrollments if access_decision(e, on=on).allowed]
     return Course.objects.filter(pk__in=ids)
+
+@dataclass(frozen=True)
+class LessonAvailability:
+    state: str
+    release_date: Optional[date] = None
+
+
+def module_release_date(enrollment, module):
+    from .services import add_calendar_months
+    if not enrollment or not enrollment.plan_started_on:
+        return None
+    return add_calendar_months(enrollment.plan_started_on, module.release_month - 1)
+
+
+def lesson_availability(enrollment, lesson, *, on=None, completed_ids=None):
+    from .models import Progress
+    if lesson.status != 'published' or lesson.module.status != 'published':
+        return LessonAvailability('draft')
+    if not access_decision(enrollment, on=on).allowed:
+        return LessonAvailability('plan_ended')
+    release = module_release_date(enrollment, lesson.module)
+    if (release and release > (on or timezone.localdate())) or (not release and lesson.module.release_month > 1):
+        completed = lesson.pk in completed_ids if completed_ids is not None else Progress.objects.filter(student=enrollment.student, lesson=lesson, is_completed=True).exists()
+        if not completed:
+            return LessonAvailability('scheduled', release)
+    return LessonAvailability('available', release)

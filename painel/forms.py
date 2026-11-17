@@ -98,11 +98,12 @@ class CourseForm(forms.ModelForm):
 
 
 class LessonForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=[('draft', 'Rascunho'), ('published', 'Publicado')], required=False)
     duration_minutes = forms.IntegerField(min_value=0, required=False)
 
     class Meta:
         model = Lesson
-        fields = ["module", "title", "description", "video_url"]
+        fields = ["module", "title", "description", "video_url", 'status']
 
     def __init__(self, *args, course, **kwargs):
         super().__init__(*args, **kwargs)
@@ -120,6 +121,24 @@ class LessonForm(forms.ModelForm):
         }:
             raise forms.ValidationError("Use um link do Vimeo ou YouTube.")
         return url
+
+    def clean_status(self):
+        return self.cleaned_data['status'] or self.instance.status or 'published'
+
+
+class ModuleForm(forms.ModelForm):
+    status = forms.ChoiceField(choices=[('draft', 'Rascunho'), ('published', 'Publicado')], required=False)
+    release_month = forms.IntegerField(min_value=1, required=False)
+
+    class Meta:
+        model = Module
+        fields = ['title', 'status', 'release_month']
+
+    def clean_status(self):
+        return self.cleaned_data['status'] or self.instance.status or 'published'
+
+    def clean_release_month(self):
+        return self.cleaned_data['release_month'] or self.instance.release_month or 1
 
 
 class EnrollmentForm(forms.Form):

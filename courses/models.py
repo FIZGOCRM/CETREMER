@@ -2,7 +2,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
 
 from users.models import CreatorProfile, StudentProfile
@@ -106,6 +106,8 @@ class Course(models.Model):
 
 
 class Module(models.Model):
+    status = models.CharField(max_length=12, choices=[('draft', 'Rascunho'), ('published', 'Publicado')], default='published')
+    release_month = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="modules")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -113,6 +115,7 @@ class Module(models.Model):
 
     class Meta:
         ordering = ["order"]
+        constraints = [models.CheckConstraint(check=models.Q(release_month__gte=1), name='module_release_positive')]
 
     def __str__(self):
         return f"{self.course.title} - {self.title}"
@@ -152,6 +155,7 @@ def get_embed_url(url):
 
 
 class Lesson(models.Model):
+    status = models.CharField(max_length=12, choices=[('draft', 'Rascunho'), ('published', 'Publicado')], default='published')
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)

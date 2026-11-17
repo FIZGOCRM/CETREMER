@@ -8,9 +8,9 @@ from django.views.decorators.http import require_POST
 from community.models import CommunityPost
 from core.http import json_error
 
-from .access import access_decision, accessible_courses
+from .access import access_decision, accessible_courses, lesson_availability
 from .models import Course, Enrollment, Lesson, Module, Progress
-from .selectors import ordered_lessons, progress_info
+from .selectors import ordered_lessons, progress_info, course_modules
 from .services import set_lesson_progress, plan_status
 from .ui_capabilities import PENDING_SECTIONS
 
@@ -100,7 +100,7 @@ def member_course(request, course_slug):
         return render(request, "courses/access_pending.html", {"course": course, "access": decision, "plan": plan_status(enrollment) if enrollment else None}, status=403)
     lessons = ordered_lessons(course)
     info = progress_info(request.user.student_profile, course, lessons)
-    modules = list(course.modules.prefetch_related("lessons__materials").order_by("order", "id"))
+    modules = course_modules(enrollment)
     done = set(Progress.objects.filter(student=request.user.student_profile, lesson__module__course=course, is_completed=True).values_list("lesson_id", flat=True))
     return render(request, "courses/course_detail.html", {
         "course": course, "modules": modules, "item": info, "completed_ids": done,
@@ -145,6 +145,11 @@ def lesson_detail(request, course_slug, lesson_id):
             {"course": course, "access": decision, "plan": plan_status(enrollment)},
             status=403,
         )
+    availability = lesson_availability(enrollment, lesson)
+    if availability.state == 'draft':
+        raise Http404
+    if availability.state != 'available':
+        return render(request, 'courses/lesson_locked.html', {'course': course, 'availability': availability}, status=403)
     enrollment.last_accessed_at = timezone.now()
     enrollment.save(update_fields=["last_accessed_at"])
     lessons = ordered_lessons(course)
@@ -154,7 +159,7 @@ def lesson_detail(request, course_slug, lesson_id):
             student=student, lesson__in=lessons, is_completed=True
         ).values_list("lesson_id", flat=True)
     )
-    modules = list(Module.objects.filter(course=course).prefetch_related("lessons"))
+    modules = course_modules(enrollment)
     for position, item in enumerate(lessons, 1):
         item.position = position
     by_id = {item.id: item for item in lessons}
@@ -185,8 +190,9 @@ def lesson_detail(request, course_slug, lesson_id):
             "remaining": info["total"] - info["completed"],
             "pct": info["pct"],
             "total_seconds": sum(item.duration_seconds for item in lessons),
-            "prev_lesson": lessons[index - 1] if index else None,
-            "next_lesson_nav": lessons[index + 1] if index + 1 < len(lessons) else None,
+            "prev_lesson": next((l for l in reversed(lessons[:index]) if lesson_availability(enrollment, l, completed_ids=completed_ids).state == 'available'), None),
+            "next_lesson_nav": next((l for l in lessons[index+1:] if lesson_availability(enrollment, l, completed_ids=completed_ids).state == 'available'), None),
+            'next_release': info.get('next_release'),
             "lesson_index": index + 1,
             "is_completed": lesson.id in completed_ids,
             "materials": lesson.materials.all(),

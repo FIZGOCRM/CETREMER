@@ -20,7 +20,7 @@
 </div>
 <div class="lesson__actions">{% csrf_token %}<button type="button" class="btn btn--sm btn-toggle-complete {% if is_completed %}btn--done{% else %}btn--red{% endif %}" data-lesson-id="{{ lesson.id }}" data-url="{% url 'toggle_progress' lesson.id %}" aria-pressed="{{ is_completed|yesno:'true,false' }}">{% include 'partials/gomut/icon.html' with name='check' %}<span data-label>{% if is_completed %}Concluída{% else %}Marcar como concluída{% endif %}</span>
 </button>{% if prev_lesson %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/gomut/icon.html' with name='left' %}Anterior</a>{% endif %}{% if next_lesson_nav %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}">Próxima{% include 'partials/gomut/icon.html' with name='right' %}</a>{% endif %}</div>
-</header>
+</header>{% if next_release and not next_lesson_nav %}<p>Próximo módulo libera em {{ next_release|date:'d/m' }}</p>{% endif %}
 <p class="tag tag--line" role="alert" data-progress-error hidden>Não foi possível salvar. Tente de novo.</p>
 <div data-tabs>
 <div class="tabs" role="tablist" aria-label="Conteúdo da aula">

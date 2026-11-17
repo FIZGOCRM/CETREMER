@@ -33,6 +33,11 @@ def set_lesson_progress(student, lesson, *, completed=None):
     """
     if not has_course_access(student, lesson.module.course):
         raise PermissionDenied("Matrícula necessária.")
+    from .access import lesson_availability
+    from .models import Enrollment
+    enrollment = Enrollment.objects.filter(student=student, course=lesson.module.course).first()
+    if lesson_availability(enrollment, lesson).state != 'available':
+        raise PermissionDenied('Esta aula ainda não está liberada.')
     progress, _ = Progress.objects.get_or_create(student=student, lesson=lesson)
     desired = not progress.is_completed if completed is None else completed
     if desired != progress.is_completed:
@@ -314,3 +319,34 @@ def plan_status(enrollment, *, on=None):
         'ends_on': period.ends_on, 'last_day': period.ends_on-timedelta(days=1), 'month': month,
         'reason': reason,
         'milestone': milestone, 'period': period}
+
+@transaction.atomic
+def save_module(module, *, actor, confirm_impact=False):
+    from .models import Enrollment, Module, Progress
+    from .access import module_release_date
+    _plan_actor(actor)
+    module.full_clean()
+    old = Module.objects.select_for_update().filter(pk=module.pk).first() if module.pk else None
+    affected = 0
+    if old and module.release_month > old.release_month:
+        lesson_ids = set(old.lessons.filter(status='published').values_list('id', flat=True))
+        for enrollment in Enrollment.objects.filter(course=module.course).prefetch_related('access_periods'):
+            previous = module_release_date(enrollment, old)
+            future = module_release_date(enrollment, module)
+            if access_decision(enrollment).allowed and previous and future and previous <= timezone.localdate() < future:
+                done = set(Progress.objects.filter(student=enrollment.student, lesson_id__in=lesson_ids, is_completed=True).values_list('lesson_id', flat=True))
+                affected += bool(lesson_ids - done)
+    if affected and not confirm_impact:
+        raise ValidationError(f'{affected} aluno(s) perderão acesso às aulas não concluídas até a nova data. Confirme para salvar.')
+    module.save()
+    return module
+
+
+@transaction.atomic
+def delete_content(content, *, actor):
+    from .models import Module, Progress
+    _plan_actor(actor)
+    filters = {'lesson__module': content} if isinstance(content, Module) else {'lesson': content}
+    if Progress.objects.filter(**filters).exists():
+        raise ValidationError('Este conteúdo tem progresso de alunos. Use despublicar para preservar o histórico.')
+    content.delete()

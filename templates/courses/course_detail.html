@@ -14,6 +14,6 @@
 <span class="tag tag--line">{{ item.pct }}% concluído</span>{% if access.paid_through %}<span class="tag tag--line">Período quitado até {{ access.paid_through|date:'d/m/Y' }}</span>{% endif %}</div>
 <div class="hero__actions">{% if item.next_lesson %}<a class="btn btn--red" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}<a class="btn btn--outline" href="{% url 'community_hub' %}?curso={{ course.id }}">Comunidade</a>
 </div>
-<section class="member-modules">
+{% if item.next_release and not item.next_lesson %}<p>Próximo módulo libera em {{ item.next_release|date:'d/m' }}</p>{% endif %}<section class="member-modules">
 <h2 class="section-title">Aulas e módulos</h2>{% include 'partials/gomut/module_list.html' %}</section>
 </div>{% endblock %}

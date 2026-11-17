@@ -52,10 +52,11 @@ def course_preview(request, course_slug):
             is_enrolled = enrollment is not None
             decision = access_decision(enrollment)
 
-    modules = Module.objects.filter(course=course).prefetch_related("lessons")
-    total_lessons = Lesson.objects.filter(module__course=course).count()
+    from django.db.models import Prefetch
+    modules = Module.objects.filter(course=course, status='published').prefetch_related(Prefetch('lessons', queryset=Lesson.objects.filter(status='published')))
+    total_lessons = Lesson.objects.filter(module__course=course, status='published', module__status='published').count()
     first_lesson = (
-        Lesson.objects.filter(module__course=course)
+        Lesson.objects.filter(module__course=course, status='published', module__status='published')
         .order_by("module__order", "order", "id")
         .first()
     )

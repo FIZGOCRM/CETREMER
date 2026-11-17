@@ -10,7 +10,7 @@
         {% if item.next_lesson and item.access.allowed %}<a class="btn btn--light" href="{% url 'lesson_detail' item.course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.status == 'done' %}Rever{% elif item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}
         <a class="btn btn--dim" href="{% url 'member_course' item.course.slug %}" data-course-dialog>{% include 'partials/gomut/icon.html' with name='info' %}Mais informações</a>
       </div>
-      <div class="hero__resume">
+      {% if item.next_release and not item.next_lesson %}<p>Próximo módulo libera em {{ item.next_release|date:'d/m' }}</p>{% endif %}<div class="hero__resume">
         {% if item.next_lesson %}<span>{{ item.next_lesson.module.title }} · {{ item.next_lesson.title }}</span>{% endif %}
         {% include 'partials/gomut/progress.html' with value=item.pct %}
         <span class="course-hero__progress-label">{{ item.completed }} de {{ item.total }} aulas concluídas</span>
