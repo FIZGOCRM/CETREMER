@@ -25,6 +25,12 @@ class QuizAnswerForm(forms.Form):
     choice_id = forms.IntegerField(min_value=1)
 
 
+class MaterialFilterForm(forms.Form):
+    kind = forms.ChoiceField(required=False, label='Tipo', choices=[('','Todos'),('lesson','Das aulas'),('course','Do curso'),('opened','Já abri')], widget=forms.Select(attrs={'class':'select'}))
+    course = forms.IntegerField(min_value=1, required=False)
+    q = forms.CharField(required=False, strip=True)
+
+
 class HeartbeatForm(forms.Form):
     position = forms.FloatField(min_value=0)
     playing = forms.BooleanField(required=False)

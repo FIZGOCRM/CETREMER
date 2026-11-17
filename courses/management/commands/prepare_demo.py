@@ -86,4 +86,9 @@ class Command(BaseCommand):
             if new_final:
                 for index, (text, choices, correct) in enumerate(DEMO_FINAL_QUESTIONS[slug], 1):
                     save_quiz_question(final, order=index, text=text, explanation='', choices=choices, correct_index=correct, actor=admin)
+            from django.core.files.base import ContentFile
+            from courses.demo_materials import demo_pdf_bytes
+            from courses.models import CourseMaterial, LessonMaterial
+            CourseMaterial.objects.get_or_create(course=course, title='Material ilustrativo do curso', defaults={'file':ContentFile(demo_pdf_bytes(),name='demonstracao-curso.pdf'),'order':1})
+            LessonMaterial.objects.get_or_create(lesson=first_lesson, title='Material ilustrativo da aula', defaults={'file':ContentFile(demo_pdf_bytes(),name='demonstracao-aula.pdf'),'order':1})
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))

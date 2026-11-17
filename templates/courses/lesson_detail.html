@@ -34,7 +34,7 @@
 <p class="member-description">{{ lesson.description|default:'Conteúdo em preparação.' }}</p>
 </section>
 <section class="tabpanel" id="materials" role="tabpanel" aria-labelledby="tab-materials" hidden>
-<h2 class="section-title">E-book da aula</h2>{% for material in materials %}<a class="file" href="{% if material.file %}{{ material.file.url }}{% else %}{{ material.url }}{% endif %}" target="_blank" rel="noopener">{% include 'partials/gomut/icon.html' with name='download' %}<span>{{ material.title }}</span>
+<h2 class="section-title">E-book da aula</h2><a class="linkbtn" href="{% url 'ebooks' %}">Ver todos os e-books</a>{% for material in materials %}<a class="file" href="{% url 'material_open' 'lesson' material.pk %}" target="_blank" rel="noopener">{% include 'partials/gomut/icon.html' with name='download' %}<span>{{ material.title }}</span>
 <strong>Baixar</strong>
 </a>{% empty %}<p class="muted">Nenhum material de apoio cadastrado para esta aula.</p>{% endfor %}</section>
 {% if has_quiz %}<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>{% include 'partials/gomut/quiz_tab.html' %}</section>{% endif %}

@@ -679,3 +679,20 @@ def update_certificate_data(student, *, full_name, cpf):
 def issue_certificate_with_data(enrollment, *, full_name, cpf):
     update_certificate_data(enrollment.student, full_name=full_name, cpf=cpf)
     return issue_enrollment_certificate(enrollment)
+
+
+def mark_material_open(student, kind, material_id):
+    from .models import MaterialOpen
+    return MaterialOpen.objects.get_or_create(student=student,material_kind=kind,material_id=material_id)[0]
+
+
+def save_course_material(material, *, actor):
+    _plan_actor(actor)
+    material.full_clean();material.save()
+    return material
+
+
+def remove_course_material(material, *, actor):
+    _plan_actor(actor)
+    material.is_active=False
+    material.save(update_fields=['is_active'])

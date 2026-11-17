@@ -2,9 +2,11 @@
 from . import views
 from .views import plans
 from .views import quizzes
+from .views import materials
 
 app_name = 'painel'
 urlpatterns = [
+    path('cursos/<int:course_id>/materiais/', materials.course_materials, name='course_materials'),
     path('cursos/<int:course_id>/avaliacao/', quizzes.final_quiz, name='final_quiz'),
     path('aulas/<int:lesson_id>/quiz/', quizzes.lesson_quiz, name='lesson_quiz'),
     path('planos/<int:enrollment_id>/', plans.plan_manage, name='plan_manage'),

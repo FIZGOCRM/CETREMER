@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView
@@ -14,8 +14,12 @@ from courses import certificate_views
 from courses import player_views
 from courses import note_views
 from courses import quiz_views
+from courses import material_views
 
 urlpatterns = [
+    re_path(r'^media/materials/', material_views.deny_direct_material),
+    path('materiais/<slug:kind>/<int:material_id>/', material_views.open_material, name='material_open'),
+    path('dashboard/ebooks/', material_views.ebooks, name='ebooks'),
     path('dashboard/cursos/<slug:course_slug>/avaliacao/', quiz_views.final_assessment, name='final_assessment'),
     path('quizzes/tentativas/<int:attempt_id>/submit-final/', quiz_views.submit_final, name='submit_final_quiz'),
     path('quizzes/<int:quiz_id>/start/', quiz_views.start, name='quiz_start'),

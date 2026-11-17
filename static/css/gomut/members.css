@@ -174,3 +174,9 @@
   .certificate-paper__school { font-size:16pt!important; }
   .certificate-paper__signature { min-width:55mm; }
 }
+/* Biblioteca de PDFs: capas e estados de abertura reais. */
+.ebook-filters { display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:24px 0; }.ebook-filters label { display:flex;flex-direction:column;gap:6px;min-width:150px; }
+.ebook-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px; }.ebook-card { min-width:0; }.ebook-card .cover { margin-bottom:18px; }.ebook-card h3 { margin:10px 0; }.ebook-card .btn { margin-top:12px; }
+@media(max-width:1099px) { .ebook-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:599px) { .ebook-grid { grid-template-columns:minmax(0,1fr); }.ebook-filters label { width:100%; } }
+.ebook-filters select { background:#202020;color:#fff;border:1px solid #555;border-radius:4px;padding:13px;min-height:48px;max-width:100%;font:inherit; }

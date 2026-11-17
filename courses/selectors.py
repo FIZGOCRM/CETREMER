@@ -260,3 +260,32 @@ def student_final_data(student, course):
     final = active_final_quiz(course)
     best = final.attempts.filter(student=student, finished_at__isnull=False).aggregate(value=Max('score_pct'))['value'] if final else None
     return {'quiz':final, 'best_score':float(best) if best is not None else None}
+
+
+def library_items(student, *, kind='', course=None, q=''):
+    from .models import CourseMaterial, Enrollment, LessonMaterial, MaterialOpen
+    from .access import access_decision, lesson_availability
+    from django.db.models import Q
+    from django.urls import reverse
+    enrollments = {e.course_id:e for e in Enrollment.objects.filter(student=student).select_related('course').prefetch_related('access_periods')}
+    allowed = [pk for pk,e in enrollments.items() if access_decision(e).allowed and (not course or pk == course)]
+    opened = set(MaterialOpen.objects.filter(student=student).values_list('material_kind','material_id'))
+    done = set(Progress.objects.filter(student=student,is_completed=True).values_list('lesson_id',flat=True))
+    items = []
+    if kind != 'course':
+        materials = LessonMaterial.objects.filter(lesson__module__course_id__in=allowed, lesson__status='published',lesson__module__status='published').select_related('lesson__module__course')
+        if q:
+            materials = materials.filter(Q(title__icontains=q)|Q(lesson__title__icontains=q)|Q(lesson__module__course__title__icontains=q))
+        for material in materials:
+            lesson = material.lesson
+            if lesson_availability(enrollments[lesson.module.course_id], lesson, completed_ids=done).state == 'available' and (material.file or material.url):
+                items.append({'kind':'lesson','material':material,'course':lesson.module.course,'lesson':lesson,'opened':('lesson',material.pk) in opened,'url':reverse('material_open',args=['lesson',material.pk])})
+    if kind != 'lesson':
+        materials = CourseMaterial.objects.filter(course_id__in=allowed,is_active=True).select_related('course')
+        if q:
+            materials = materials.filter(Q(title__icontains=q)|Q(course__title__icontains=q))
+        for material in materials:
+            items.append({'kind':'course','material':material,'course':material.course,'opened':('course',material.pk) in opened,'url':reverse('material_open',args=['course',material.pk])})
+    if kind == 'opened':
+        items = [item for item in items if item['opened']]
+    return sorted(items,key=lambda item:(item['course'].title,item['material'].order,item['material'].pk))

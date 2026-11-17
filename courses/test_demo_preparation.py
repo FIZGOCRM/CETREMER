@@ -8,6 +8,10 @@ from users.models import User
 
 
 class DemoPreparationTests(TestCase):
+    def setUp(self):
+        from tempfile import TemporaryDirectory
+        self.folder = TemporaryDirectory();self.addCleanup(self.folder.cleanup)
+        self.media = override_settings(MEDIA_ROOT=self.folder.name);self.media.enable();self.addCleanup(self.media.disable)
     def test_refuses_without_demo_mode(self):
         with self.assertRaises(CommandError):
             call_command("prepare_demo", password="DemoPassword123!", stdout=StringIO())

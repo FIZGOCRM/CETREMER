@@ -5,7 +5,7 @@ from datetime import date
 
 from django import forms
 
-from courses.models import Course, Lesson, Module
+from courses.models import Course, Lesson, Module, CourseMaterial
 
 
 class AccessPeriodForm(forms.Form):
@@ -95,6 +95,13 @@ class CourseForm(forms.ModelForm):
         if url and urlparse(url).hostname != "calendar.google.com":
             raise forms.ValidationError("Use o link público de uma agenda do Google.")
         return url
+
+
+class CourseMaterialForm(forms.ModelForm):
+    class Meta:
+        model = CourseMaterial
+        fields = ['title','file','order']
+        labels = {'title':'Título','file':'Arquivo PDF','order':'Ordem'}
 
 
 class LessonForm(forms.ModelForm):

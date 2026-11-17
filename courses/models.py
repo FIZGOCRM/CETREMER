@@ -226,19 +226,36 @@ class LessonMaterial(models.Model):
 
     def clean(self):
         super().clean()
-        if self.file:
-            if (
-                getattr(self.file.file, "content_type", "application/pdf")
-                != "application/pdf"
-            ):
-                raise ValidationError({"file": "Envie um arquivo PDF."})
-            if self.file.size > settings.MATERIAL_MAX_MB * 1024 * 1024:
-                raise ValidationError(
-                    {"file": f"O PDF deve ter no máximo {settings.MATERIAL_MAX_MB} MB."}
-                )
+        from .validators import validate_pdf_file
+        validate_pdf_file(self.file)
 
     def __str__(self):
         return self.title
+
+
+class CourseMaterial(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='materials')
+    title = models.CharField(max_length=120)
+    file = models.FileField(upload_to='materials/course/', validators=[FileExtensionValidator(['pdf'])])
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['order', 'id']
+
+    def clean(self):
+        from .validators import validate_pdf_file
+        validate_pdf_file(self.file)
+
+
+class MaterialOpen(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT, related_name='material_opens')
+    material_kind = models.CharField(max_length=10, choices=[('lesson','Da aula'),('course','Do curso')])
+    material_id = models.PositiveBigIntegerField()
+    opened_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student','material_kind','material_id'], name='material_open_student_unique')]
 
 
 class Progress(models.Model):
