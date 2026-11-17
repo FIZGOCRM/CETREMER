@@ -12,7 +12,7 @@
 <button class="nav__icon" type="button" data-search-toggle aria-label="Buscar cursos" aria-expanded="false" aria-controls="member-search">{% include 'partials/gomut/icon.html' with name='search' %}</button>
 <input class="search__input" id="member-search" type="search" placeholder="Cursos, aulas, áreas" aria-label="Buscar nos meus cursos" tabindex="-1">
 </div>
-<a class="nav__icon" href="{% url 'member_section' 'notificacoes' %}" aria-label="Notificações — necessita de backend">{% include 'partials/gomut/icon.html' with name='bell' %}</a>
+<a class="nav__icon" href="{% url 'notifications' %}" aria-label="Notificações: {{ unread_notification_count }} não lidas">{% include 'partials/gomut/icon.html' with name='bell' %}{% if unread_notification_count %}<span class="notification-count">{{ unread_notification_count }}</span>{% endif %}</a>
 <div class="dd">
 <button class="nav__profile" type="button" data-dropdown aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu" aria-label="Abrir menu do perfil">
 <span class="avatar">{{ user.student_profile.full_name|default:user.email|default:user.username|iniciais }}</span>

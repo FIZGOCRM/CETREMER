@@ -155,6 +155,7 @@ def get_embed_url(url):
 
 
 class Lesson(models.Model):
+    published_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=12, choices=[('draft', 'Rascunho'), ('published', 'Publicado')], default='published')
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="lessons")
     title = models.CharField(max_length=200)

@@ -28,7 +28,10 @@ def update_ticket(user,ticket,*,status,answer=None,note=''):
     ticket.resolved_at=(ticket.resolved_at or timezone.now()) if status=='resolved' else None
     ticket.full_clean();ticket.save()
     if previous!=status or previous_answer!=ticket.answer:
-        TicketEvent.objects.create(ticket=ticket,status=status,actor=user,note=note.strip() or (ticket.answer if previous_answer!=ticket.answer else ticket.get_status_display()))
+        event=TicketEvent.objects.create(ticket=ticket,status=status,actor=user,note=note.strip() or (ticket.answer if previous_answer!=ticket.answer else ticket.get_status_display()))
+        from users.notifications import notify
+        from django.urls import reverse
+        notify(ticket.student.user,'ticket_update',event.pk,f'Chamado #{ticket.number}: {ticket.get_status_display()}',ticket.title,reverse('support_ticket',args=[ticket.pk]))
     return ticket
 
 @transaction.atomic

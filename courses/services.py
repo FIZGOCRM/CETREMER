@@ -135,7 +135,7 @@ def save_lesson(lesson, *, materials=()):
     from .models import LessonMaterial
 
     from .models import Lesson
-    previous = Lesson.objects.filter(pk=lesson.pk).values('video_url', 'duration_seconds').first() if lesson.pk else None
+    previous = Lesson.objects.filter(pk=lesson.pk).values('video_url', 'duration_seconds', 'status').first() if lesson.pk else None
     lesson.full_clean()
     pending = [
         LessonMaterial(lesson=lesson, title=file.name, file=file) for file in materials
@@ -143,6 +143,8 @@ def save_lesson(lesson, *, materials=()):
     # Validate every upload before writing the lesson or touching file storage.
     for material in pending:
         material.full_clean(exclude=["lesson"])
+    if lesson.status == 'published' and (not previous or previous['status'] != 'published'):
+        lesson.published_at = timezone.now()
     lesson.save()
     if previous and (previous['video_url'] != lesson.video_url or previous['duration_seconds'] != lesson.duration_seconds):
         Progress.objects.filter(lesson=lesson).update(last_position_seconds=0, last_heartbeat_at=None)
@@ -349,6 +351,8 @@ def save_module(module, *, actor, confirm_impact=False):
     if affected and not confirm_impact:
         raise ValidationError(f'{affected} aluno(s) perderão acesso às aulas não concluídas até a nova data. Confirme para salvar.')
     module.save()
+    if old and old.status != 'published' and module.status == 'published':
+        module.lessons.filter(status='published').update(published_at=timezone.now())
     return module
 
 

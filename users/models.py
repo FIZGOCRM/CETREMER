@@ -23,6 +23,8 @@ class User(AbstractUser):
         return f"{self.username} ({self.get_role_display()})"
 
 class StudentProfile(models.Model):
+    email_new_lessons = models.BooleanField(default=True)
+    email_live_events = models.BooleanField(default=True)
     last_heartbeat_at = models.DateTimeField(null=True, blank=True)
     heartbeat_playing = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
@@ -131,3 +133,27 @@ def create_user_profile(sender, instance, created, **kwargs):
         elif instance.is_superuser:
             # Create a default creator profile for admin to manage items
             CreatorProfile.objects.create(user=instance, company_name="Admin Academy")
+
+class Notification(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE,related_name='notifications')
+    kind=models.CharField(max_length=40)
+    reference=models.CharField(max_length=180,blank=True)
+    title=models.CharField(max_length=240)
+    body=models.TextField(blank=True)
+    url=models.CharField(max_length=500,blank=True)
+    read_at=models.DateTimeField(null=True,blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    class Meta:
+        ordering=['-created_at','-pk']
+        constraints=[models.UniqueConstraint(fields=['user','kind','reference'],name='notification_user_event_unique')]
+
+class EmailLog(models.Model):
+    send_before=models.DateTimeField(null=True,blank=True)
+    user=models.ForeignKey(User,on_delete=models.PROTECT,related_name='email_logs')
+    kind=models.CharField(max_length=40)
+    reference=models.CharField(max_length=180)
+    status=models.CharField(max_length=12,default='not_sent',choices=[('sent','Enviado'),('not_sent','Não enviado'),('failed','Falhou')])
+    subject=models.CharField(max_length=240)
+    body=models.TextField(blank=True)
+    created_at=models.DateTimeField(auto_now_add=True)
+    class Meta:constraints=[models.UniqueConstraint(fields=['kind','reference'],name='email_kind_reference_unique')]

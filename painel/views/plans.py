@@ -51,4 +51,5 @@ def expirations(request):
         if plan.get('ends_on') and today <= plan['ends_on'] <= today + timedelta(days=60):
             items.append({'enrollment': enrollment, 'plan': plan, 'progress': progress_info(enrollment.student, enrollment.course)})
     items.sort(key=lambda item: item['plan']['ends_on'])
-    return page(request, 'expirations', items=items)
+    from users.notifications import pending_email_count
+    return page(request, 'expirations', items=items, pending_email_count=pending_email_count())

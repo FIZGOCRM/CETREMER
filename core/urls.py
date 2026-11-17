@@ -1,3 +1,4 @@
+from users import notification_views
 from courses import live_views
 from support import views as support_views
 from django.contrib import admin
@@ -19,6 +20,8 @@ from courses import quiz_views
 from courses import material_views
 
 urlpatterns = [
+    path('notificacoes/',notification_views.notifications,name='notifications'),
+    path('notificacoes/lidas/',notification_views.read_all,name='notifications_read_all'),
     path('ao-vivo/<int:event_id>/lembrete/',live_views.remind,name='live_remind'),
     path('ao-vivo/<int:event_id>/<slug:kind>/',live_views.open_link,name='live_link'),
     path('suporte/',support_views.hub,name='support'),

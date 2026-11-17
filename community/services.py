@@ -27,6 +27,9 @@ def add_reply(user, post, content, *, display_as='self'):
     reply=Comment.objects.create(post=post,author=user,content=content.strip(),display_as=display_as)
     if display_as in ('mentor','team'):
         post.team_status='answered';post.save(update_fields=['team_status'])
+        from users.notifications import notify
+        from django.urls import reverse
+        if post.author_id != user.pk:notify(post.author,'team_reply',reply.pk,'A equipe respondeu sua dúvida','Sua conversa recebeu uma atualização.',reverse('community_topic',args=[post.pk]))
     return reply
 
 
@@ -41,6 +44,10 @@ def mark_solution(user, post, comment=None):
     post.solution=comment;post.solution_marked_by=('team' if is_team(user) else 'author') if comment else ''
     post.solved_at=timezone.now() if comment else None
     post.save(update_fields=['solution','solution_marked_by','solved_at'])
+    if comment:
+        from users.notifications import notify
+        from django.urls import reverse
+        notify(comment.author,'solution',f'{post.pk}:{comment.pk}','Sua resposta foi marcada como solução','Sua contribuição ajudou a turma.',reverse('community_topic',args=[post.pk]))
 
 
 @transaction.atomic

@@ -106,4 +106,6 @@ class Command(BaseCommand):
         from courses.models import LiveEvent
         LiveEvent.objects.get_or_create(title='Encontro ilustrativo da plataforma',defaults={'course':None,'starts_at':timezone.now()+timedelta(days=2),'duration_minutes':60,'description':'Demonstração da agenda. Não é um encontro clínico real; a equipe deve cadastrar a sala.'})
         LiveEvent.objects.get_or_create(title='Gravação ilustrativa da plataforma',defaults={'course':None,'starts_at':timezone.now()-timedelta(days=2),'duration_minutes':60,'recording_url':'https://vimeo.com/76979871','description':'Vídeo público do Vimeo para demonstrar o acesso à gravação.'})
+        from users.models import Notification
+        Notification.objects.get_or_create(user=student,kind='demo',reference='welcome',defaults={'title':'Conheça os avisos da plataforma','body':'Aviso ilustrativo. Aqui aparecem novas aulas, respostas e encontros dos seus cursos.','url':'/dashboard/'})
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))
