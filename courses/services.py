@@ -724,3 +724,18 @@ def reorder_course_content(course, module_ids, lessons, *, actor):
     for index,module_id in enumerate(module_ids,1):Module.objects.filter(pk=module_id,course=course).update(order=index)
     for module_id,ids in lessons.items():
         for index,lesson_id in enumerate(ids,1):Lesson.objects.filter(pk=lesson_id,module__course=course).update(module_id=module_id,order=index)
+
+@transaction.atomic
+def save_lesson_editor(lesson, *, actor, ebook=None):
+    from .models import LessonMaterial
+    _plan_actor(actor)
+    material=None
+    if ebook:
+        from .validators import validate_pdf_file
+        validate_pdf_file(ebook)
+        material=lesson.materials.order_by('order','pk').first() or LessonMaterial(lesson=lesson,order=1)
+        material.file=ebook;material.title=ebook.name[:120];material.url=''
+        material.full_clean()
+    save_lesson(lesson)
+    if material:material.save()
+    return lesson

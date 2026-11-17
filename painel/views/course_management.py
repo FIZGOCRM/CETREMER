@@ -98,6 +98,9 @@ def course_lessons(request, course_id):
         return HttpResponseBadRequest("Identificador inválido.")
     ids = identifiers.cleaned_data
     course = get_object_or_404(Course, pk=course_id)
+    if request.method == "GET" and ids["aula"]:
+        lesson=get_object_or_404(Lesson,pk=ids["aula"],module__course=course)
+        return redirect("painel:lesson_edit",lesson_id=lesson.pk)
     if request.method == "POST":
         action = request.POST.get("action", "save_lesson")
         module = (

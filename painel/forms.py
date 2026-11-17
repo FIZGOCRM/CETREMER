@@ -196,3 +196,34 @@ class IdentifierForm(forms.Form):
 class CourseBasicsForm(CourseForm):
     class Meta(CourseForm.Meta):
         fields=[name for name in CourseForm.Meta.fields if name not in ('price','live_meet_url','live_calendar_url')]
+
+class LessonEditorForm(LessonForm):
+    duration_text=forms.CharField(label='Duração (min:seg)',max_length=12)
+    ebook=forms.FileField(required=False,label='Enviar ou trocar e-book PDF')
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        seconds=self.instance.duration_seconds or 0
+        self.initial['duration_text']=f'{seconds//60}:{seconds%60:02d}'
+    def clean_duration_text(self):
+        value=self.cleaned_data['duration_text'].strip()
+        parts=value.split(':')
+        if len(parts) not in (2,3) or any(not part.isdigit() for part in parts):raise forms.ValidationError('Use min:seg ou hora:min:seg, por exemplo 12:05.')
+        numbers=list(map(int,parts))
+        if numbers[-1]>=60 or (len(numbers)==3 and numbers[-2]>=60):raise forms.ValidationError('Minutos e segundos após os dois-pontos devem ser menores que 60.')
+        seconds=0
+        for number in numbers:seconds=seconds*60+number
+        return seconds
+    def clean_ebook(self):
+        from courses.validators import validate_pdf_file
+        file=self.cleaned_data['ebook']
+        if file:
+            try:validate_pdf_file(file)
+            except forms.ValidationError as exc:raise forms.ValidationError(exc.messages)
+        return file
+    def clean_video_url(self):
+        url=self.cleaned_data['video_url']
+        if not url:return url
+        parsed=urlparse(url);parts=[part for part in parsed.path.split('/') if part]
+        valid=(parsed.hostname in ('vimeo.com','www.vimeo.com') and parts and parts[0].isdigit()) or (parsed.hostname=='player.vimeo.com' and len(parts)>=2 and parts[0]=='video' and parts[1].isdigit())
+        if not valid:raise forms.ValidationError('Use o link do vídeo do Vimeo (com o número do vídeo).')
+        return url
