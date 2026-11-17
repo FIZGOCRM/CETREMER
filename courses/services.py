@@ -91,7 +91,7 @@ def issue_enrollment_certificate(enrollment):
     code = secrets.token_hex(6).upper()
     while Certificate.objects.filter(code=code).exists():
         code = secrets.token_hex(6).upper()
-    certificate, _ = Certificate.objects.get_or_create(
+    certificate, created = Certificate.objects.get_or_create(
         enrollment=enrollment,
         defaults={
             "code": code,
@@ -102,6 +102,9 @@ def issue_enrollment_certificate(enrollment):
             "completed_at": requirements['qualified_at'] or timezone.now(),
         },
     )
+    if created:
+        from .models import ActivityEvent
+        ActivityEvent.objects.create(student=student, course=course, kind='certificate_issued', payload={'code':certificate.code})
     return certificate
 
 
@@ -660,3 +663,19 @@ def import_quiz_rows(rows):
             save_quiz_question(quiz, order=row.order, text=row.text, explanation=row.explanation, choices=row.choices, correct_index=row.correct_index, actor=actor)
     for quiz in unlisted:
         set_quiz_active(quiz, False, actor=actor)
+
+
+@transaction.atomic
+def update_certificate_data(student, *, full_name, cpf):
+    student.full_name = full_name.strip()
+    student.cpf = validate_cpf(cpf)
+    student.full_clean()
+    student.save(update_fields=['full_name', 'cpf'])
+    for enrollment in student.enrollments.all():
+        refresh_certificate_qualification(enrollment)
+
+
+@transaction.atomic
+def issue_certificate_with_data(enrollment, *, full_name, cpf):
+    update_certificate_data(enrollment.student, full_name=full_name, cpf=cpf)
+    return issue_enrollment_certificate(enrollment)

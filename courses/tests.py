@@ -122,7 +122,7 @@ class PlatformTestCase(TestCase):
         self.client.force_login(self.student_user)
         url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
         self.assertEqual(self.client.post(url).status_code, 302)
-        self.assertContains(self.client.get(url), 'CERTIFICADO')
+        self.assertContains(self.client.get(url), enrollment.certificate.code)
         self.assertContains(self.client.get(url), 'Aluno Certificado')
         self.assertEqual(Certificate.objects.filter(enrollment=enrollment).count(), 1)
         code = enrollment.certificate.code
@@ -286,7 +286,9 @@ class PlatformTestCase(TestCase):
         cert_url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
         response = self.client.get(cert_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Certificado Bloqueado")
+        self.assertContains(response, "Certificado bloqueado")
+        from courses.models import Certificate
+        self.assertFalse(Certificate.objects.filter(enrollment__student=self.student_profile, enrollment__course=self.course).exists())
 
     def test_certificate_allowed_if_complete(self):
         """Verifies that a student gets their certificate once they hit 100% completion progress."""
@@ -305,7 +307,8 @@ class PlatformTestCase(TestCase):
         self.assertEqual(self.client.post(cert_url).status_code, 302)
         response = self.client.get(cert_url)
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "CERTIFICADO")
+        from courses.models import Certificate
+        self.assertContains(response, Certificate.objects.get(enrollment__student=self.student_profile, enrollment__course=self.course).code)
         self.assertContains(response, "Aluno Certificado")
 
     def test_creator_integrations_route_redirects_to_panel_settings(self):

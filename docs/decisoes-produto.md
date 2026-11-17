@@ -159,3 +159,6 @@ Cada linha vira teste ou conferência na etapa indicada.
 - Execução de todas as fatias autorizada sem confirmação intermediária. Entradas externas pendentes continuam pendentes.
 
 - Aprovado em 17/11/2026: encerramento antecipado no próprio dia de início permite intervalo vazio (sem acesso e sem tolerância), explicitamente marcado; criação normal exige fim posterior ao início.
+
+- Aprovado em 17/11/2026: LinkedIn usa o link público estático e Copiar dados para o LinkedIn, pois a documentação oficial informa que não há preenchimento automático. Fonte: https://www.linkedin.com/help/linkedin/answer/a528030 .
+- Autorização de 17/11/2026: seguir as recomendações nas demais dúvidas de implementação, registrar decisões e continuar todas as fatias para entrega de QA, sem novas confirmações intermediárias. Entradas reais não fornecidas continuam pendentes.

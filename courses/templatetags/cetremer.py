@@ -65,6 +65,12 @@ def cpf(value):
 
 
 @register.filter
+def cpf_masked(value):
+    digits = ''.join(ch for ch in str(value or '') if ch.isdigit())
+    return '***.***.***-'+digits[-2:] if len(digits) == 11 else 'Não informado'
+
+
+@register.filter
 def iniciais(name):
     parts = [p for p in str(name or "").replace("_", " ").split() if p]
     if not parts:

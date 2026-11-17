@@ -1,14 +1,1 @@
-{% extends 'base_aluno.html' %}
-{% block title %}Emitir certificado · CETREMER{% endblock %}
-{% block page_title %}Certificado{% endblock %}
-{% block content %}
-<section class="card card--pad-lg stack gap-18">
-  <h2 class="card__title">{{ course.title }}</h2>
-  <p>Você concluiu as aulas e preencheu os dados necessários. Confira seu nome e CPF em Minha conta antes de emitir o certificado.</p>
-  <form method="post" action="{% url 'issue_certificate' course.slug %}">
-    {% csrf_token %}
-    <button type="submit" class="btn btn--primary">Emitir certificado</button>
-  </form>
-  <a href="{% url 'settings' %}">Conferir meus dados</a>
-</section>
-{% endblock %}
+{% extends 'base_membros.html' %}{% block title %}Emitir certificado · {{ site.school_name }}{% endblock %}{% block content %}<div class="page"><section class="panel panel__body"><h1>{{ course.title }}</h1><p>Você cumpriu os requisitos. Confira o nome que aparecerá no certificado.</p><p>{{ user.student_profile.full_name }}</p><form method="post">{% csrf_token %}<button class="btn btn--red">Emitir certificado</button></form><a href="{% url 'certificates' %}">Conferir meus dados e requisitos</a></section></div>{% endblock %}

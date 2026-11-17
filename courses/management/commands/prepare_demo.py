@@ -21,6 +21,11 @@ class Command(BaseCommand):
         if not settings.GOMUT_DEMO_MODE:
             raise CommandError("Prepare uma base de demonstração separada e habilite GOMUT_DEMO_MODE.")
         password = options["password"]
+        from users.models import SiteSettings
+        site, _ = SiteSettings.objects.get_or_create(pk=1, defaults={'school_name':'Emergensimples', 'email_from_name':'Emergensimples'})
+        if site.school_name == 'CETREMER':
+            site.school_name = 'Emergensimples'
+            site.save(update_fields=['school_name'])
         from django.contrib.auth.password_validation import validate_password
         from django.core.exceptions import ValidationError
         try:

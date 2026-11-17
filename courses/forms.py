@@ -1,4 +1,18 @@
 from django import forms
+from users.validators import validate_cpf
+
+
+class CertificateDataForm(forms.Form):
+    full_name = forms.CharField(max_length=200, label='Nome completo', widget=forms.TextInput(attrs={'class':'input'}))
+    cpf = forms.CharField(required=False, label='CPF', widget=forms.PasswordInput(render_value=False, attrs={'type':'text', 'inputmode':'numeric', 'class':'input', 'autocomplete':'off'}))
+
+    def __init__(self, *args, profile, **kwargs):
+        self.profile = profile
+        kwargs.setdefault('initial', {'full_name':profile.full_name or ''})
+        super().__init__(*args, **kwargs)
+
+    def clean_cpf(self):
+        return validate_cpf(self.cleaned_data.get('cpf') or self.profile.cpf or '')
 
 
 class LessonNoteForm(forms.Form):

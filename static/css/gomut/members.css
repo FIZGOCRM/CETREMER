@@ -144,3 +144,33 @@
 
 .lesson-steps .step-check { display:none; }.lesson-steps .is-done .step-check { display:inline-flex;color:var(--c-green);vertical-align:middle;margin-right:5px; }
 [data-quiz-unlock-progress] { display:block;width:100%;height:6px;accent-color:var(--c-red);margin:12px 0; }
+
+.certificate-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px; }
+.certificate-card__head { display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;align-items:center; }.certificate-card__head .cover { aspect-ratio:16/10; }.certificate-card__head .cover__title { font-size:18px; }.certificate-card__head .cover__kicker { display:none; }
+.certificate-checks { list-style:none;padding:0;margin:20px 0; }.certificate-checks li { display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--c-line);padding:14px 0;color:var(--c-text-3); }.certificate-checks strong { margin-left:auto; }.certificate-checks .is-ok { color:var(--c-green); }
+.certificate-data-form { display:flex;flex-direction:column;gap:16px;margin:20px 0; }.certificate-data-form p { display:flex;flex-direction:column;gap:6px; }.certificate-data-form .errorlist { color:var(--c-red-hover); }
+.certificate-card details { margin:20px 0; }.certificate-public { max-width:800px;margin:auto; }.certificate-public dt { color:var(--c-text-3);margin-top:12px; }
+.certificate-paper { position:relative;background:#ffffff;color:#1c1718;border-radius:6px;padding:clamp(20px,5vw,56px);aspect-ratio:1.414;overflow:hidden;container-type:inline-size;box-shadow:0 30px 60px rgba(0,0,0,.5); }
+.certificate-paper::before { content:'';position:absolute;left:0;top:0;bottom:0;width:2.2cqw;background:var(--c-red); }.certificate-paper__content { position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:1cqw; }
+.certificate-paper__content > p { font-size:max(10px,1.9cqw);line-height:1.5;max-width:60ch; }.certificate-paper__content .certificate-paper__eyebrow { font-size:max(9px,1.4cqw);letter-spacing:.2em;font-weight:700;color:var(--c-red);text-transform:uppercase; }
+.certificate-paper h2 { font-family:var(--font-display);font-weight:800;font-size:6.2cqw;line-height:1;text-transform:uppercase;margin:1.4cqw 0;overflow-wrap:anywhere; }
+.certificate-paper__watermark { position:absolute;right:-4%;bottom:12%;width:70%;opacity:.07; }.certificate-paper__watermark svg { position:static;width:100%;height:auto;stroke:var(--c-red);color:var(--c-red);stroke-width:3;filter:none; }
+.certificate-paper__footer { display:flex;justify-content:space-between;align-items:flex-end;gap:3cqw;font-size:max(8px,1.35cqw);line-height:1.5;margin-top:3cqw; }.certificate-paper__school { font-size:max(11px,2.2cqw); }.certificate-paper__verify { overflow-wrap:anywhere;max-width:60ch; }
+.certificate-paper__signature { border-top:1px solid #bbb;padding-top:.8cqw;min-width:22cqw;text-align:center; }.certificate-paper__signature img { max-width:18cqw;max-height:10cqw;object-fit:contain; }
+@media(max-width:899px) { .certificate-grid { grid-template-columns:minmax(0,1fr); } }
+@media(max-width:599px) { .certificate-card__head { grid-template-columns:90px minmax(0,1fr); }.certificate-paper { aspect-ratio:auto;min-height:340px; }.certificate-paper h2 { font-size:7cqw; }.certificate-paper__footer { flex-wrap:wrap;font-size:10px; }.certificate-paper__signature { min-width:140px;margin-top:12px; } }
+@media print {
+  @page { size:A4 landscape;margin:0; }
+  html,body { width:297mm;height:210mm;margin:0!important;padding:0!important;background:#ffffff!important; }
+  body { -webkit-print-color-adjust:exact;print-color-adjust:exact; }
+  #nav,.tabbar,.footer,.no-print,.skip-link,#toasts { display:none!important; }
+  #view,.certificate-page { width:297mm!important;height:210mm!important;margin:0!important;padding:0!important;max-width:none!important; }
+  .certificate-paper { width:297mm!important;height:210mm!important;aspect-ratio:auto!important;min-height:0!important;margin:0!important;border:0;border-radius:0;box-shadow:none;break-inside:avoid;padding:18mm 20mm 16mm 24mm!important; }
+  .certificate-paper__content { height:100%;min-height:0; }
+  .certificate-paper h2 { font-size:42pt!important; }
+  .certificate-paper__content > p { font-size:13pt!important; }
+  .certificate-paper__content .certificate-paper__eyebrow { font-size:10pt!important; }
+  .certificate-paper__footer { font-size:9pt!important;flex-wrap:nowrap!important;margin-top:5mm; }
+  .certificate-paper__school { font-size:16pt!important; }
+  .certificate-paper__signature { min-width:55mm; }
+}
