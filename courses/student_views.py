@@ -183,6 +183,7 @@ def lesson_detail(request, course_slug, lesson_id):
         {
             "course": course,
             "lesson": lesson,
+            'progress': Progress.objects.filter(student=student, lesson=lesson).first(),
             "modules": modules,
             "completed_ids": completed_ids,
             "completed_count": info["completed"],

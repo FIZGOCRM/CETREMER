@@ -23,6 +23,8 @@ class User(AbstractUser):
         return f"{self.username} ({self.get_role_display()})"
 
 class StudentProfile(models.Model):
+    last_heartbeat_at = models.DateTimeField(null=True, blank=True)
+    heartbeat_playing = models.BooleanField(default=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     points = models.PositiveIntegerField(default=0)
     level = models.PositiveIntegerField(default=1)

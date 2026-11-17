@@ -1,4 +1,4 @@
-{% extends 'base_membros.html' %}{% load cetremer static %}
+{% extends 'base_membros.html' %}{% load cetremer static l10n %}
 {% block title %}{{ lesson.title }} · {{ course.title }}{% endblock %}
 {% block content %}<div class="lesson">
 <div class="lesson__main">
@@ -7,13 +7,13 @@
 <span>·</span>
 <span>{{ lesson.module.title }}</span>
 </nav>
-<div class="vimeo-player">{% if lesson.vimeo_id %}<iframe src="{{ lesson.player_url }}" data-vimeo data-lesson-id="{{ lesson.id }}" data-complete-url="{% url 'complete_lesson' lesson.id %}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
+<div class="vimeo-player">{% if lesson.vimeo_id %}<iframe src="{{ lesson.player_url }}" data-vimeo data-position="{{ progress.last_position_seconds|default:0|unlocalize }}" data-duration="{{ lesson.duration_seconds|unlocalize }}" data-completed="{{ is_completed|yesno:'true,false' }}" data-heartbeat-url="{% url 'lesson_heartbeat' lesson.id %}" data-ended-url="{% url 'lesson_ended' lesson.id %}" data-lesson-id="{{ lesson.id }}" data-complete-url="{% url 'complete_lesson' lesson.id %}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
 </iframe>{% elif lesson.youtube_embed_url %}<iframe src="{{ lesson.youtube_embed_url }}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
 </iframe>{% else %}<div class="empty">
 <h2>Vídeo ainda não disponível</h2>
 <p>A equipe precisa cadastrar o link desta aula.</p>
 </div>{% endif %}</div>
-<header class="lesson__head">
+<div class="panel panel__body" id="player-error" hidden role="alert"><p>Não foi possível carregar o vídeo. Tente novamente ou abra um chamado no Suporte.</p><a href="/dashboard/suporte/">Abrir chamado</a></div><header class="lesson__head">
 <div>
 <p class="eyebrow">Aula {{ lesson_index }} de {{ total }}</p>
 <h1>{{ lesson.title }}</h1>

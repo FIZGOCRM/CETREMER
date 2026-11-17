@@ -18,14 +18,18 @@
     return match ? decodeURIComponent(match[1]) : '';
   }
 
-  function postJSON(url) {
+  function postJSON(url, payload) {
     return fetch(url, {
       method: 'POST',
       credentials: 'same-origin',
-      headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+      headers: { 'X-CSRFToken': csrfToken(), 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: payload === undefined ? undefined : JSON.stringify(payload)
     }).then(function (response) {
-      if (!response.ok) throw new Error('HTTP ' + response.status);
-      return response.json();
+      return response.json().then(function (data) {
+        if (data.access === 'ended') { document.dispatchEvent(new CustomEvent('course-access-ended', {detail: data})); }
+        if (!response.ok) throw new Error(data.message || data.error || 'Não foi possível salvar.');
+        return data;
+      });
     });
   }
 
@@ -105,23 +109,78 @@
     });
   });
 
-  // Vimeo: concluir automaticamente ao fim do vídeo (endpoint idempotente, nunca alterna)
+  // Vimeo: o servidor calcula todo o crédito; posição nunca concede tempo.
   var frame = document.querySelector('iframe[data-vimeo]');
   var connected = false;
   function connectVimeo() {
     if (connected || !frame || !window.Vimeo || !window.Vimeo.Player) return;
     connected = true;
     var player = new window.Vimeo.Player(frame);
-    var sent = false;
+    var playing = false;
+    var position = Number(frame.dataset.position) || 0;
+    var inFlight = false;
+    var accessEnded = false;
+    function videoError() {
+      var box = document.getElementById('player-error');
+      if (box) box.hidden = false;
+    }
+    function pulse(isPlaying, beacon) {
+      if (accessEnded) return Promise.resolve();
+      var payload = {position: position, playing: !!isPlaying && !document.hidden};
+      if (beacon && navigator.sendBeacon) {
+        var form = new FormData();
+        form.append('csrfmiddlewaretoken', csrfToken());
+        form.append('payload', JSON.stringify(payload));
+        navigator.sendBeacon(frame.dataset.heartbeatUrl, form);
+        return Promise.resolve();
+      }
+      if (inFlight) return Promise.resolve();
+      inFlight = true;
+      return postJSON(frame.dataset.heartbeatUrl, payload).then(function (data) {
+        applyProgress(data, frame.dataset.lessonId);
+        document.dispatchEvent(new CustomEvent('lesson-tracked', {detail: data}));
+        showError(false);
+      }).catch(function () { if (!accessEnded) showError(true); })
+        .finally(function () { inFlight = false; });
+    }
+    document.addEventListener('course-access-ended', function (event) {
+      accessEnded = true;
+      playing = false;
+      player.pause().catch(function () {});
+      window.location.assign(event.detail.url || window.location.href);
+    });
+    var readyTimer = setTimeout(videoError, 12000);
+    player.ready().then(function () {
+      clearTimeout(readyTimer);
+      var duration = Number(frame.dataset.duration) || 0;
+      if (frame.dataset.completed === 'true' && duration && position >= duration * .95) position = 0;
+      if (position > 0) return player.setCurrentTime(position);
+    }).catch(videoError);
+    player.on('error', videoError);
+    player.on('timeupdate', function (data) { position = data.seconds; });
+    player.on('play', function () { playing = true; pulse(true); });
+    player.on('pause', function () { playing = false; pulse(false); });
+    setInterval(function () {
+      if (playing && !document.hidden) player.getCurrentTime().then(function (seconds) {
+        position = seconds; pulse(true);
+      }).catch(videoError);
+    }, 15000);
+    document.addEventListener('visibilitychange', function () { pulse(playing && !document.hidden, document.hidden); });
+    window.addEventListener('pagehide', function () { pulse(false, true); });
     player.on('ended', function () {
-      if (sent) return;
-      sent = true;
-      postJSON(frame.getAttribute('data-complete-url'))
-        .then(function (data) { applyProgress(data, frame.getAttribute('data-lesson-id')); })
-        .catch(function () { sent = false; showError(true); });
+      pulse(true).then(function () {
+        playing = false;
+        return postJSON(frame.dataset.endedUrl);
+      }).then(function (data) {
+        applyProgress(data, frame.dataset.lessonId);
+        document.dispatchEvent(new CustomEvent('lesson-video-ended', {detail: data}));
+      }).catch(function () { showError(true); }).finally(function () { pulse(false); });
     });
   }
   connectVimeo();
   var sdk = document.querySelector('[data-vimeo-sdk]');
-  if (sdk) sdk.addEventListener('load', connectVimeo, { once: true });
+  if (sdk) {
+    sdk.addEventListener('load', connectVimeo, { once: true });
+    sdk.addEventListener('error', function () { var error = document.getElementById('player-error'); if (error) error.hidden = false; });
+  }
 })();

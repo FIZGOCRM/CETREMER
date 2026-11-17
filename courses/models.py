@@ -242,6 +242,9 @@ class LessonMaterial(models.Model):
 
 
 class Progress(models.Model):
+    last_position_seconds = models.FloatField(default=0, validators=[MinValueValidator(0)])
+    watched_seconds = models.PositiveIntegerField(default=0)
+    last_heartbeat_at = models.DateTimeField(null=True, blank=True)
     student = models.ForeignKey(
         StudentProfile, on_delete=models.CASCADE, related_name="progress_records"
     )
@@ -249,7 +252,7 @@ class Progress(models.Model):
         Lesson, on_delete=models.CASCADE, related_name="student_progress"
     )
     is_completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("student", "lesson")
@@ -258,6 +261,27 @@ class Progress(models.Model):
     def __str__(self):
         status = "Completed" if self.is_completed else "In Progress"
         return f"{self.student.user.username} - {self.lesson.title} ({status})"
+
+
+class StudyDay(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT, related_name='study_days')
+    date = models.DateField()
+    seconds = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'date'], name='study_student_date_unique')]
+
+
+class ActivityEvent(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.PROTECT, related_name='activity_events')
+    kind = models.CharField(max_length=40)
+    lesson = models.ForeignKey(Lesson, null=True, blank=True, on_delete=models.PROTECT)
+    course = models.ForeignKey(Course, null=True, blank=True, on_delete=models.PROTECT)
+    payload = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-id']
 
 
 class Enrollment(models.Model):

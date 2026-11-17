@@ -11,8 +11,11 @@ from sales.webhook_views import asaas_webhook
 from community import views as community_views
 from courses import student_views
 from courses import certificate_views
+from courses import player_views
 
 urlpatterns = [
+    path('courses/lesson/<int:lesson_id>/heartbeat/', player_views.heartbeat, name='lesson_heartbeat'),
+    path('courses/lesson/<int:lesson_id>/ended/', player_views.ended, name='lesson_ended'),
     path('dashboard/planos/<int:enrollment_id>/dispensar/', student_views.dismiss_plan_notice, name='dismiss_plan_notice'),
     path('webhooks/asaas/', asaas_webhook, name='asaas_webhook'),
     path('admin/', admin.site.urls),
