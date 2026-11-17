@@ -14,7 +14,7 @@ from core.decorators import painel_required
 from courses.integrations.vimeo import video_duration
 from courses.models import Category, Course, Enrollment, Lesson, Module
 from courses.services import save_course, save_lesson, save_module, delete_content
-from painel.forms import CourseForm, IdentifierForm, LessonForm, ModuleForm
+from painel.forms import CourseBasicsForm, CourseForm, IdentifierForm, LessonForm, ModuleForm
 from users.models import CreatorProfile
 
 from .common import page
@@ -55,11 +55,12 @@ def _creator(user):
 def course_edit(request, course_id=None):
     course = get_object_or_404(Course, pk=course_id) if course_id else None
     data = request.POST.copy() if request.method == "POST" else None
-    if data is not None:
+    if data is not None and "objectives" in data:
         data["learning_objectives"] = "\n".join(
             x.strip() for x in request.POST.getlist("objectives") if x.strip()
         )
-    form = CourseForm(data, request.FILES or None, instance=course)
+    form_class=CourseBasicsForm if course else CourseForm
+    form = form_class(data, request.FILES or None, instance=course)
     if request.method == "POST" and form.is_valid():
         course = save_course(form.save(commit=False), creator=_creator(request.user))
         messages.success(request, "Curso salvo com sucesso.")
@@ -226,3 +227,9 @@ def course_reorder(request, course_id):
     except (ValueError, KeyError, TypeError, json.JSONDecodeError):
         return JsonResponse({"ok": False}, status=400)
     return JsonResponse({"ok": True})
+
+@painel_required
+def course_overview_view(request,course_id):
+    from painel.selectors import course_overview
+    course=get_object_or_404(Course,pk=course_id)
+    return page(request,'course_overview',course=course,overview=course_overview(course))

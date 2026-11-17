@@ -192,3 +192,7 @@ class IdentifierForm(forms.Form):
     curso = forms.IntegerField(min_value=1, max_value=2**63 - 1, required=False)
     aula = forms.IntegerField(min_value=1, max_value=2**63 - 1, required=False)
     nova = forms.IntegerField(min_value=1, max_value=2**63 - 1, required=False)
+
+class CourseBasicsForm(CourseForm):
+    class Meta(CourseForm.Meta):
+        fields=[name for name in CourseForm.Meta.fields if name not in ('price','live_meet_url','live_calendar_url')]
