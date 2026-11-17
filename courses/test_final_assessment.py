@@ -73,6 +73,55 @@ class FinalAssessmentTests(TestCase):
         with self.assertRaises(ValidationError):
             services.issue_enrollment_certificate(self.enrollment)
 
+    def assert_qualification_survives_expiry(self):
+        self.enrollment.refresh_from_db()
+        self.assertIsNotNone(self.enrollment.certificate_qualified_at)
+        services.end_plan_early(self.enrollment, timezone.localdate()+timedelta(days=1), 'withdrawal', actor=self.owner)
+        with patch('django.utils.timezone.now', return_value=timezone.now()+timedelta(days=2)):
+            self.assertIsNotNone(services.issue_enrollment_certificate(self.enrollment))
+
+    def prepare_pending_final(self):
+        services.create_plan(self.enrollment, timezone.localdate(), actor=self.owner)
+        services.set_lesson_progress(self.student, self.lesson, completed=True)
+
+    def test_admin_deactivating_final_records_qualification_before_expiry(self):
+        self.prepare_pending_final()
+        services.set_quiz_active(self.quiz, False, actor=self.owner)
+        self.assert_qualification_survives_expiry()
+
+    def test_admin_deactivating_last_final_question_records_qualification(self):
+        self.prepare_pending_final()
+        services.set_quiz_active(self.question, False, actor=self.owner)
+        self.assert_qualification_survives_expiry()
+
+    def test_deleting_final_without_attempts_records_qualification(self):
+        self.prepare_pending_final()
+        services.delete_quiz_content(self.quiz, actor=self.owner)
+        self.assert_qualification_survives_expiry()
+
+    def test_unpublishing_pending_lesson_records_qualification(self):
+        self.quiz.is_active=False;self.quiz.save()
+        pending=Lesson.objects.create(module=self.lesson.module,title='Pendente')
+        self.prepare_pending_final()
+        pending.status='draft';services.save_lesson(pending)
+        self.assert_qualification_survives_expiry()
+
+    def test_unpublishing_pending_module_records_qualification(self):
+        self.quiz.is_active=False;self.quiz.save()
+        module=Module.objects.create(course=self.course,title='Pendente')
+        Lesson.objects.create(module=module,title='Pendente')
+        self.prepare_pending_final()
+        module.status='draft';services.save_module(module,actor=self.owner)
+        self.assert_qualification_survives_expiry()
+
+    def test_requirement_removed_after_expiry_does_not_qualify_retroactively(self):
+        self.prepare_pending_final()
+        services.end_plan_early(self.enrollment, timezone.localdate(), 'withdrawal', actor=self.owner)
+        services.set_quiz_active(self.quiz, False, actor=self.owner)
+        self.enrollment.refresh_from_db()
+        self.assertIsNone(self.enrollment.certificate_qualified_at)
+        with self.assertRaises(ValidationError):services.issue_enrollment_certificate(self.enrollment)
+
     def test_final_page_and_editor_exist(self):
         response = self.client.get(f'/dashboard/cursos/{self.course.slug}/avaliacao/')
         self.assertEqual(response.status_code, 200)

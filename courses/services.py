@@ -151,6 +151,7 @@ def save_lesson(lesson, *, materials=()):
     for material in pending:
         material.lesson = lesson
         material.save()
+    refresh_course_qualifications(lesson.module.course_id)
     return lesson
 
 
@@ -353,6 +354,7 @@ def save_module(module, *, actor, confirm_impact=False):
     module.save()
     if old and old.status != 'published' and module.status == 'published':
         module.lessons.filter(status='published').update(published_at=timezone.now())
+    refresh_course_qualifications(module.course_id)
     return module
 
 
@@ -373,7 +375,9 @@ def delete_content(content, *, actor):
         quiz = getattr(lesson, 'quiz', None)
         if quiz:
             delete_quiz_content(quiz, actor=actor)
+    course_id = content.course_id if isinstance(content, Module) else content.module.course_id
     content.delete()
+    refresh_course_qualifications(course_id)
 
 @transaction.atomic
 def record_heartbeat(student, lesson, *, position, playing):
@@ -500,6 +504,7 @@ def save_quiz_question(quiz, *, order, text, explanation, choices, correct_index
     for index, value in enumerate(choices):
         choice = QuizChoice(question=question, order=index+1, text=value, is_correct=index == correct_index)
         choice.full_clean(); choice.save()
+    if quiz.kind == 'final':refresh_course_qualifications(quiz.course_id)
     return question
 
 
@@ -508,6 +513,7 @@ def delete_quiz_content(content, *, actor):
     from .models import Quiz, QuizQuestion
     _plan_actor(actor)
     quiz = content if isinstance(content, Quiz) else content.quiz
+    course_id, kind = quiz.course_id, quiz.kind
     if quiz.attempts.exists():
         raise ValidationError('Há tentativas de alunos. Use desativar para preservar o histórico.')
     questions = list(quiz.questions.all()) if isinstance(content, Quiz) else [content]
@@ -516,6 +522,7 @@ def delete_quiz_content(content, *, actor):
         question.delete()
     if isinstance(content, Quiz):
         content.delete()
+    if kind == 'final':refresh_course_qualifications(course_id)
 
 
 @transaction.atomic
@@ -596,9 +603,12 @@ def create_lesson_quiz(lesson, *, actor):
 
 @transaction.atomic
 def set_quiz_active(content, is_active, *, actor):
+    from .models import Quiz
     _plan_actor(actor)
     content.is_active = bool(is_active)
     content.full_clean(); content.save(update_fields=['is_active'])
+    quiz = content if isinstance(content, Quiz) else content.quiz
+    if quiz.kind == 'final':refresh_course_qualifications(quiz.course_id)
     return content
 
 
@@ -619,6 +629,13 @@ def refresh_certificate_qualification(enrollment):
         Enrollment.objects.filter(pk=current.pk).update(certificate_qualified_at=timezone.now())
     elif not requirements['requirements_met'] and current.certificate_qualified_at and not Certificate.objects.filter(enrollment=current).exists():
         Enrollment.objects.filter(pk=current.pk).update(certificate_qualified_at=None)
+
+
+def refresh_course_qualifications(course_id):
+    """Record eligibility at the actual editorial change, never backdate it."""
+    from .models import Enrollment
+    for enrollment in Enrollment.objects.filter(course_id=course_id).iterator():
+        refresh_certificate_qualification(enrollment)
 
 
 @transaction.atomic
@@ -727,6 +744,7 @@ def reorder_course_content(course, module_ids, lessons, *, actor):
     for index,module_id in enumerate(module_ids,1):Module.objects.filter(pk=module_id,course=course).update(order=index)
     for module_id,ids in lessons.items():
         for index,lesson_id in enumerate(ids,1):Lesson.objects.filter(pk=lesson_id,module__course=course).update(module_id=module_id,order=index)
+    refresh_course_qualifications(course.pk)
 
 @transaction.atomic
 def save_lesson_editor(lesson, *, actor, ebook=None):
