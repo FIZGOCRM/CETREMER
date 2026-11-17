@@ -358,11 +358,14 @@ def save_module(module, *, actor, confirm_impact=False):
 
 @transaction.atomic
 def delete_content(content, *, actor):
-    from .models import Module, Progress, ActivityEvent, LessonNote, QuizAttempt
+    from .models import Module, Progress, ActivityEvent, LessonNote, QuizAttempt, LessonMaterial, MaterialOpen
+    from community.models import CommunityPost
     _plan_actor(actor)
     filters = {'lesson__module': content} if isinstance(content, Module) else {'lesson': content}
     attempt_filters = {'quiz__lesson__module': content} if isinstance(content, Module) else {'quiz__lesson': content}
     has_history = Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists() or QuizAttempt.objects.filter(**attempt_filters).exists()
+    material_ids = LessonMaterial.objects.filter(**filters).values('pk')
+    has_history = has_history or CommunityPost.objects.filter(**filters).exists() or MaterialOpen.objects.filter(material_kind='lesson', material_id__in=material_ids).exists()
     if has_history:
         raise ValidationError('Este conteúdo tem histórico de alunos. Use despublicar para preservar o histórico.')
     lessons = list(content.lessons.all()) if isinstance(content, Module) else [content]

@@ -113,6 +113,23 @@ class ContentReleaseTests(TestCase):
         self.client.post(reverse('painel:course_lessons', args=[self.course.pk]), {'action': 'delete_module', 'module_id': self.module.pk})
         self.assertTrue(Module.objects.filter(pk=self.module.pk).exists())
 
+    def test_lesson_with_community_history_cannot_be_deleted(self):
+        from community.models import CommunityPost
+        post = CommunityPost.objects.create(author=self.user, course=self.course, lesson=self.lesson,
+            title='Dúvida sobre a aula', content='Histórico da turma, sem progresso de vídeo.')
+        with self.assertRaisesMessage(ValidationError, 'despublicar'):
+            services.delete_content(self.lesson, actor=self.admin)
+        post.refresh_from_db()
+        self.assertEqual(post.lesson_id, self.lesson.pk)
+
+    def test_module_with_material_open_history_cannot_be_deleted(self):
+        from courses.models import LessonMaterial, MaterialOpen
+        material = LessonMaterial.objects.create(lesson=self.lesson, title='PDF', url='https://example.org/a.pdf')
+        MaterialOpen.objects.create(student=self.user.student_profile, material_kind='lesson', material_id=material.pk)
+        with self.assertRaisesMessage(ValidationError, 'despublicar'):
+            services.delete_content(self.module, actor=self.admin)
+        self.assertTrue(LessonMaterial.objects.filter(pk=material.pk).exists())
+
     def test_two_courses_release_by_their_own_original_start(self):
         other = Course.objects.create(title='Outro', slug='other-release', creator=self.admin.creator_profile)
         other_module = Module.objects.create(course=other, title='M2', release_month=3)
