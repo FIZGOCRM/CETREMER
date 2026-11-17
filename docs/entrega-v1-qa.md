@@ -115,10 +115,10 @@ Abra [http://127.0.0.1:8016/login/](http://127.0.0.1:8016/login/).
 
 | Perfil | E-mail | Senha |
 |---|---|---|
-| Aluno de demonstração | `aluno@gomut.example` | A senha já existente foi preservada |
-| Administrador de demonstração | `admin@gomut.example` | A senha já existente foi preservada |
+| Aluno de demonstração | `aluno@gomut.example` | Senha de QA informada na conversa |
+| Administrador de demonstração | `admin@gomut.example` | Senha de QA informada na conversa |
 
-Não foram redefinidas senhas nem criados acessos reais. Se o navegador já estiver no painel, use **Visualizar como membro** para a navegação sem gravação. Para testar conclusão, notas e quiz, entre com o aluno.
+Após a entrega, a pedido do usuário, foi definida uma senha de QA para essas duas contas fictícias, somente no banco de demonstração. Os dois logins foram conferidos. A senha foi informada na conversa e não é versionada. Se o navegador já estiver no painel, use **Visualizar como membro** para a navegação sem gravação. Para testar conclusão, notas e quiz, entre com o aluno.
 
 Se o servidor local tiver parado, na raiz do projeto:
 
