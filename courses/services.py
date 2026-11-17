@@ -302,7 +302,8 @@ def plan_status(enrollment, *, on=None):
         return {'state': 'active' if enrollment.access_policy == 'unrestricted' else 'pending', 'label': 'Sem plano definido'}
     period = max(periods, key=lambda p: p.ends_on)
     decision = access_decision(enrollment, on=on)
-    last = enrollment.access_changes.last()
+    changes = list(enrollment.access_changes.all())
+    last = changes[-1] if changes else None
     early = period.ended_early
     days = (period.ends_on-on).days
     state = 'ended'

@@ -1,19 +1,5 @@
-{% extends 'base_membros.html' %}
-{% block title %}Meu progresso · Emergensimples{% endblock %}
-{% block content %}
-<div class="page">
-  <header class="page__head"><h1 class="page__title">Meu progresso</h1></header>
-  <section class="panel">
-    <div class="panel__head"><h2>Aulas concluídas</h2><strong class="stat__value">{{ completed_count }}</strong></div>
-    <p class="muted">Seu progresso fica salvo na sua conta.</p>
-  </section>
-  <section class="member-modules" id="meus-cursos">
-    <h2 class="section-title">Meus cursos</h2>
-    <div class="grid">{% for item in progress_items %}{% include 'partials/gomut/course_card.html' %}{% empty %}<p class="muted">Nenhum curso disponível.</p>{% endfor %}</div>
-  </section>
-  <section class="member-modules">
-    <h2 class="section-title">Tempo e sequência de estudo</h2>
-    <div>{% include 'partials/gomut/backend_pending.html' %}</div>
-  </section>
-</div>
-{% endblock %}
+{% extends 'base_membros.html' %}{% block title %}Meu progresso · {{ site.school_name }}{% endblock %}
+{% block content %}<div class="page progress-page"><header class="page__head"><div><p class="eyebrow">{{ user.student_profile.full_name|default:user.email }}</p><h1 class="page__title">Meu progresso</h1></div></header>
+{% include 'partials/gomut/study_summary.html' %}
+<section class="member-modules"><h2 class="section-title">Por curso</h2>{% include 'partials/gomut/course_progress.html' %}</section>
+<section class="panel panel__body activity-list"><h2 class="section-title">Atividade recente</h2>{% for event in summary.activity %}<article><div><strong>{{ event.label }}</strong><p>{{ event.lesson.title|default:event.course.title }}</p></div><time datetime="{{ event.created_at|date:'c' }}">{{ event.created_at|date:'d/m/Y H:i' }}</time></article>{% empty %}<p class="muted">Sua atividade aparecerá aqui quando você começar.</p>{% endfor %}</section></div>{% endblock %}

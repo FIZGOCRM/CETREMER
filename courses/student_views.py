@@ -10,7 +10,7 @@ from core.http import json_error
 
 from .access import access_decision, accessible_courses, lesson_availability
 from .models import Course, Enrollment, Lesson, Module, Progress
-from .selectors import ordered_lessons, progress_info, course_modules
+from .selectors import ordered_lessons, progress_info, course_modules, member_summary
 from .services import set_lesson_progress, plan_status
 from .ui_capabilities import PENDING_SECTIONS
 
@@ -32,17 +32,11 @@ def dashboard(request):
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
     student = request.user.student_profile
-    enrollments = list(
-        Enrollment.objects.filter(student=student)
-        .select_related("course__category")
-        .prefetch_related("access_periods")
-        .order_by("-enrolled_at")
-    )
-    items = [progress_info(student, enrollment.course) for enrollment in enrollments]
+    summary = member_summary(student)
+    items = summary['items']
+    enrollments = [item['enrollment'] for item in items]
     for item, enrollment in zip(items, enrollments):
         item["enrollment"] = enrollment
-        item["access"] = access_decision(enrollment)
-        item['plan'] = plan_status(enrollment)
         key = f'plan-notice-{enrollment.pk}-{item["plan"].get("milestone", "")}'
         item['show_plan_notice'] = bool(item['plan'].get('milestone')) and not request.session.get(key)
     continuing = [
@@ -80,6 +74,7 @@ def dashboard(request):
         {
             "continue_item": continuing[0] if continuing else None,
             "my_courses": items,
+            'summary': summary,
             "hero_courses": hero_courses,
             "completed_lesson_count": sum(item["completed"] for item in items),
             "live_item": live_item,
@@ -113,16 +108,13 @@ def member_course(request, course_slug):
 def member_section(request, section):
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
-    if section not in PENDING_SECTIONS:
+    if section != 'progresso' and section not in PENDING_SECTIONS:
         raise Http404
     if section == "progresso":
-        items = []
-        for enrollment in Enrollment.objects.filter(student=request.user.student_profile).select_related("course__category").prefetch_related("access_periods"):
-            item = progress_info(request.user.student_profile, enrollment.course)
-            item["access"] = access_decision(enrollment)
-            items.append(item)
+        summary = member_summary(request.user.student_profile)
+        items = summary['items']
         return render(request, "courses/member_progress.html", {
-            "progress_items": items, "completed_count": sum(item["completed"] for item in items),
+            'summary': summary, "progress_items": items, "completed_count": summary['completed'],
         })
     return render(request, "courses/feature_pending.html", {"section_title": PENDING_SECTIONS[section]})
 

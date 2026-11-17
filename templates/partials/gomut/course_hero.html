@@ -7,7 +7,7 @@
       {% if forloop.first %}<h1 class="hero__title">{{ item.course.title }}</h1>{% else %}<h2 class="hero__title">{{ item.course.title }}</h2>{% endif %}
       <span class="badge">{{ item.plan.label }}</span><p class="hero__desc">{{ item.course.description|truncatewords:30 }}</p>
       <div class="hero__actions">
-        {% if item.next_lesson and item.access.allowed %}<a class="btn btn--light" href="{% url 'lesson_detail' item.course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.status == 'done' %}Rever{% elif item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}
+        {% if item.next_lesson and item.access.allowed %}<a class="btn btn--light" href="{% url 'lesson_detail' item.course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.status == 'done' %}Rever{% elif item.started or item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}
         <a class="btn btn--dim" href="{% url 'member_course' item.course.slug %}" data-course-dialog>{% include 'partials/gomut/icon.html' with name='info' %}Mais informações</a>
       </div>
       {% if item.next_release and not item.next_lesson %}<p>Próximo módulo libera em {{ item.next_release|date:'d/m' }}</p>{% endif %}<div class="hero__resume">

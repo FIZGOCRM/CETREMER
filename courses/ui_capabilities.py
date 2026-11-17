@@ -5,5 +5,4 @@ PENDING_SECTIONS = {
     "minha-lista": "Minha lista",
     "notificacoes": "Notificações",
     "ajuda": "Central de ajuda",
-    "progresso": "Meu progresso",
 }
