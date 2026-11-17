@@ -1,3 +1,4 @@
+from django.views.decorators.clickjacking import xframe_options_sameorigin
 from datetime import timedelta
 from django.contrib import messages
 from django.core.exceptions import ValidationError, PermissionDenied
@@ -12,6 +13,7 @@ from .common import page
 
 
 @painel_required
+@xframe_options_sameorigin
 def plan_manage(request, enrollment_id):
     if request.user.role not in ('ADMIN', 'CREATOR'):
         raise PermissionDenied
@@ -37,8 +39,9 @@ def plan_manage(request, enrollment_id):
             form.add_error(None, exc)
         else:
             messages.success(request, 'Plano atualizado. Histórico preservado.')
-            return redirect('painel:plan_manage', enrollment_id=enrollment.pk)
-    return page(request, 'plan', enrollment=enrollment, plan=plan_status(enrollment), form=form,
+            from django.urls import reverse
+            return redirect(reverse('painel:plan_manage',args=[enrollment.pk])+('?embed=1' if request.GET.get('embed')=='1' else ''))
+    return page(request, 'plan', plan_base='base_panel_embed.html' if request.GET.get('embed')=='1' else 'base_painel_gomut.html', enrollment=enrollment, plan=plan_status(enrollment), form=form,
                 changes=enrollment.access_changes.select_related('actor'))
 
 

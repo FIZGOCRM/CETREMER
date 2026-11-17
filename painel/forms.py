@@ -227,3 +227,13 @@ class LessonEditorForm(LessonForm):
         valid=(parsed.hostname in ('vimeo.com','www.vimeo.com') and parts and parts[0].isdigit()) or (parsed.hostname=='player.vimeo.com' and len(parts)>=2 and parts[0]=='video' and parts[1].isdigit())
         if not valid:raise forms.ValidationError('Use o link do vídeo do Vimeo (com o número do vídeo).')
         return url
+
+class ManualEnrollmentForm(EnrollmentForm):
+    starts_on=forms.DateField(label='Início original do plano',input_formats=['%Y-%m-%d','%d/%m/%Y'])
+    last_day=forms.DateField(label='Último dia com acesso',required=False,input_formats=['%Y-%m-%d','%d/%m/%Y'])
+    def clean(self):
+        data=super().clean()
+        start,end=data.get('starts_on'),data.get('last_day')
+        if end==date.max:self.add_error('last_day','Informe uma data anterior a 31/12/9999.')
+        if start and end and end<start:self.add_error('last_day','O fim deve ser igual ou posterior ao início.')
+        return data

@@ -1,3 +1,4 @@
+from django.core.mail import send_mail
 """Student enrollment use cases without HTTP or email delivery."""
 
 from dataclasses import dataclass
@@ -109,3 +110,31 @@ def update_member_preferences(user, *, new_lessons, live_events):
     profile=user.student_profile
     profile.email_new_lessons=new_lessons;profile.email_live_events=live_events
     profile.save(update_fields=['email_new_lessons','email_live_events'])
+
+@transaction.atomic
+def enroll_student_with_plan(*,actor,starts_on,last_day=None,**data):
+    from datetime import timedelta
+    from courses.services import create_plan
+    from django.core.exceptions import PermissionDenied
+    if actor.role not in ('ADMIN','CREATOR'):raise PermissionDenied
+    user=enroll_student(**data)
+    enrollment=Enrollment.objects.get(student=user.student_profile,course=data['course'])
+    if enrollment.access_periods.exists():raise ValidationError('Este aluno já tem plano neste curso. Use Gerenciar plano para preservar o histórico.')
+    create_plan(enrollment,starts_on,last_day+timedelta(days=1) if last_day else None,actor=actor)
+    return user
+
+
+def send_access_link(user,url):
+    """Record the outcome, but never persist a reset token or first-access code."""
+    from uuid import uuid4
+    from .models import SiteSettings,EmailLog
+    site=SiteSettings.load();sent=0;status='not_sent'
+    kind='reset_access' if user.has_usable_password() else 'first_access'
+    subject=f'Seu acesso à {site.school_name}'
+    if site.email_host and user.email and user.is_active:
+        try:
+            sent=send_mail(subject,f'Olá! Defina sua senha para acessar {site.school_name}: {url}',None,[user.email],fail_silently=False)
+            status='sent' if sent else 'failed'
+        except Exception:status='failed'
+    EmailLog.objects.create(user=user,kind=kind,reference=str(uuid4()),status=status,subject=subject,body='')
+    return sent

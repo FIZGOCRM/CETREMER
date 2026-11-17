@@ -18,13 +18,9 @@ def access_email(request, user):
     url = request.build_absolute_uri(
         reverse("password_reset_confirm", args=[uid, token])
     )
-    return send_mail(
-        "Seu acesso à CETREMER",
-        f"Olá! Defina sua senha para acessar a CETREMER: {url}",
-        None,
-        [user.email],
-        fail_silently=False,
-    )
+    from users.services import send_access_link
+    return send_access_link(user,url)
+
 
 
 def report_access_delivery(request, sent):

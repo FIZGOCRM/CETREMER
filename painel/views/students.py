@@ -16,7 +16,7 @@ from core.decorators import painel_required
 from courses.access import access_decision
 from courses.models import Course, Enrollment
 from courses.selectors import progress_info
-from painel.forms import AccessPeriodForm, EnrollmentForm, IdentifierForm
+from painel.forms import AccessPeriodForm, ManualEnrollmentForm, IdentifierForm
 from courses.services import grant_manual_period
 from courses.services import plan_status
 from sales.migration_import import parse_subscription_csv
@@ -24,7 +24,7 @@ from sales.migration_services import import_subscription_periods
 from users.first_access import issue_code
 from users.importing import parse_student_csv
 from users.models import FirstAccessCode
-from users.services import enroll_student, import_students
+from users.services import enroll_student_with_plan, import_students
 
 User = get_user_model()
 
@@ -54,7 +54,7 @@ def students(request):
             ).first()
         )
         if action == "enroll":
-            form = EnrollmentForm(request.POST)
+            form = ManualEnrollmentForm(request.POST)
             if not form.is_valid():
                 messages.error(
                     request,
@@ -66,7 +66,8 @@ def students(request):
             course = form.cleaned_data["course_id"]
             email = form.cleaned_data["email"]
             try:
-                user = enroll_student(
+                user = enroll_student_with_plan(
+                    actor=request.user, starts_on=form.cleaned_data["starts_on"],last_day=form.cleaned_data["last_day"],
                     course=course,
                     email=email,
                     full_name=form.cleaned_data["full_name"],
@@ -76,7 +77,7 @@ def students(request):
                 messages.error(request, " ".join(exc.messages))
                 return redirect("painel:students")
             if user:
-                messages.success(request, "Acesso liberado com sucesso.")
+                messages.success(request, "Cadastro e plano criados. Confira as datas antes de entregar o acesso.")
                 if (
                     not user.has_usable_password()
                     and not FirstAccessCode.objects.filter(user=user).exists()
@@ -133,6 +134,9 @@ def students(request):
             except (OSError, SMTPException):
                 sent = 0
             report_access_delivery(request, sent)
+            if not sent and not user.has_usable_password():
+                code=issue_code(user)
+                messages.info(request,f'Código de primeiro acesso: {code}. Entregue por um canal seguro; expira em 7 dias. O código anterior deixa de valer.')
         elif action == "generate_first_access" and user:
             if user.has_usable_password():
                 messages.error(
@@ -148,9 +152,11 @@ def students(request):
         return redirect(
             reverse("painel:students") + (f"?aluno={user.id}" if user else "")
         )
+    from django.db.models import Prefetch
     qs = (
         User.objects.filter(role=User.Role.STUDENT)
         .select_related("student_profile")
+        .prefetch_related(Prefetch('student_profile__enrollments',queryset=Enrollment.objects.select_related('course').prefetch_related('access_periods','access_changes')))
         .annotate(courses_count=Count("student_profile__enrollments", distinct=True))
     )
     q = request.GET.get("q", "").strip()
@@ -172,19 +178,17 @@ def students(request):
 
     students_page = Paginator(qs.order_by("id"), 25).get_page(request.GET.get("page"))
     for user in students_page:
-        user.plan_items = [{'enrollment': e, 'plan': plan_status(e)} for e in user.student_profile.enrollments.select_related('course').prefetch_related('access_periods')]
-        first = (
-            user.student_profile.enrollments.select_related("course")
-            .order_by("enrolled_at")
-            .first()
-        )
-        user.first_enrollment_source = first.get_source_display() if first else ""
+        enrollments=list(user.student_profile.enrollments.all())
+        user.plan_items=[{'enrollment':e,'plan':plan_status(e)} for e in enrollments]
+        first=min(enrollments,key=lambda e:e.enrolled_at) if enrollments else None
+        user.first_enrollment_source=first.get_source_display() if first else ''
     selected = (
         User.objects.filter(pk=ids["aluno"], role=User.Role.STUDENT).first()
         if ids["aluno"]
         else None
     )
     if selected:
+        selected.access_delivery=selected.email_logs.filter(kind__in=["first_access","reset_access"],status="sent").order_by("-created_at").first()
         selected.enrollment_items = []
         for enrollment in (
             Enrollment.objects.filter(student=selected.student_profile)

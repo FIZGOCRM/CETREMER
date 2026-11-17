@@ -30,7 +30,7 @@ class FirstAccessTests(TestCase):
         self.client.force_login(self.admin)
         response = self.client.post(reverse('painel:students'), {
             'action': 'enroll', 'email': 'aluna@example.com',
-            'full_name': 'Aluna Teste', 'course_id': self.course.id,
+            'full_name': 'Aluna Teste', 'course_id': self.course.id, 'starts_on':timezone.localdate().isoformat(),
         }, follow=True)
         self.assertEqual(response.status_code, 200)
         code = re.search(r'\b\d{10}\b', response.content.decode())
