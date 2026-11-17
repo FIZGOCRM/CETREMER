@@ -4,7 +4,7 @@ Data: 17/11/2026. Branch: `feat/area-aluno-handoff`.
 
 Fonte de decisão: [plano oficial](<handoff v1 oficial/prompt-implementacao-gomut_3.md>). Os documentos antigos não substituem esse plano. Esta entrega é local, para QA, e não uma implantação em produção.
 
-**Atualização do QA:** [avisos de prazo](ajuste-avisos-vencimento.md) agora ficam nas notificações somente nos três últimos dias efetivos de acesso. Faixas do Início e contagens nos cursos foram retiradas. A suíte atual tem **343 testes aprovados**; os números por etapa abaixo são registros históricos.
+**Atualização do QA:** [avisos de prazo](ajuste-avisos-vencimento.md) agora ficam nas notificações somente nos três últimos dias efetivos de acesso. Faixas do Início e contagens nos cursos foram retiradas. A conta fictícia também recebeu [histórico de estudo ilustrativo](qa-dados-demonstracao.md) solicitado para visualizar os gráficos. A suíte atual tem **347 testes aprovados**; os números por etapa abaixo são registros históricos.
 
 ## 1. O que foi feito
 
@@ -83,7 +83,7 @@ Nenhuma dependência adicionada; stack mantida: Django 4.2.30, templates, CSS/JS
 
 ## 4. Verificação
 
-- Suíte atual: **343 testes, zero falhas e zero erros**. Linha de base: 138.
+- Suíte atual: **347 testes, zero falhas e zero erros**. Linha de base: 138.
 - Migrações: esquema vazio nos testes e atualizações na demo; `makemigrations --check --dry-run` sem alterações pendentes.
 - `git diff --check`: sem erros.
 - Rodada geral da entrega: **72 combinações página/largura**, Chrome e Edge, 390 e 1440 px, HTTP 200, sem overflow horizontal ou `pageerror`. Após o ajuste dos avisos, mais dez combinações no Chrome e duas conferências do cartão de exemplo, sem overflow ou erro JS.
@@ -138,7 +138,7 @@ Esse lançador local usa apenas a configuração e a base de demonstração em `
 4. **Aula:** verificar a mensagem se o Vimeo recusar o vídeo. Com vídeo autorizado, assistir, pausar, sair e voltar para conferir retomada; seek não deve contar como tempo assistido.
 5. **Conclusão e quiz:** marcar uma aula manualmente, ver a etapa mudar, iniciar o quiz, responder, ler o comentário e revisar a nota. Pular quiz não deve bloquear a próxima aula.
 6. **Anotações:** salvar uma nota no minuto da aula, navegar, voltar e removê-la. Outro aluno não pode vê-la.
-7. **Progresso:** conferir aulas, próxima ação e gráficos. A conclusão manual não inventa minutos assistidos; zero minutos é esperado sem reprodução creditada.
+7. **Progresso:** conferir aulas, próxima ação e gráficos. A conta fictícia agora tem um histórico ilustrativo solicitado no QA: 1h51 na semana, quatro dias de sequência e mapa preenchido. Está identificado na tela. A conclusão manual em si não inventa minutos assistidos; contas reais usam somente o tempo registrado pelo player.
 8. **Avaliação/certificado:** no curso concluído, revisar a avaliação ilustrativa e abrir o certificado já emitido. Conferir CPF mascarado, copiar código/dados e imprimir/Salvar como PDF. A validação pública não mostra CPF.
 9. **E-books:** abrir um PDF ilustrativo, conferir o visualizador do navegador e a indicação “já abri”.
 10. **Comunidade:** criar dúvida, responder e marcar solução. No painel, encaminhar ao mentor e responder como equipe; voltar ao aluno e conferir a assinatura. Não usar dados de pacientes.

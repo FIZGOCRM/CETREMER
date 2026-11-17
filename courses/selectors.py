@@ -129,6 +129,7 @@ def member_course_items(student):
 
 
 def member_summary(student, *, on=None):
+    from django.conf import settings
     from datetime import timedelta
     from math import ceil
     from django.urls import reverse
@@ -186,6 +187,7 @@ def member_summary(student, *, on=None):
     next_steps.sort(key=lambda step: step['priority'])
     total = sum(item['total'] for item in items); completed = sum(item['completed'] for item in items)
     return {'items': items, 'total': total, 'completed': completed, 'remaining': total-completed,
+        'is_demo': settings.GOMUT_DEMO_MODE and student.user.username=='gomut-demo-student' and student.user.email=='aluno@gomut.example',
         'week_seconds': week_seconds, 'previous_seconds': previous, 'difference_seconds': week_seconds-previous, 'difference_abs_seconds': abs(week_seconds-previous), 'streak': streak,
         'week': week, 'heatmap': heatmap, 'activity': activity, 'next_steps': next_steps[:4],
         'certificates_issued': sum(bool(item['certificate']) for item in items), 'certificates_ready': sum(item['certificate_ready'] for item in items)}

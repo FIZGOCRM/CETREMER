@@ -1,4 +1,4 @@
-{% load cetremer l10n %}<div class="study-kpis">
+{% load cetremer l10n %}{% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}<div class="study-kpis">
 <article class="study-kpi"><span>Aulas concluídas</span><strong>{{ summary.completed }} <small>/ {{ summary.total }}</small></strong><small>{{ summary.remaining }} restantes</small></article>
 <article class="study-kpi"><span>Estudo nos últimos 7 dias</span><strong>{{ summary.week_seconds|duracao|default:'0 min' }}</strong><small>{% if summary.previous_seconds %}{% if summary.difference_seconds > 0 %}+{% elif summary.difference_seconds < 0 %}−{% endif %}{{ summary.difference_abs_seconds|duracao|default:'0 min' }} vs. semana anterior{% else %}Primeira semana{% endif %}</small></article>
 <article class="study-kpi"><span>Sequência</span><strong>{{ summary.streak }} <small>dia{{ summary.streak|pluralize }}</small></strong><small>Pelo menos 1 minuto por dia</small></article>

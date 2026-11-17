@@ -15,6 +15,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--password", required=True, help="Senha apenas para novas contas de demonstração.")
+        parser.add_argument('--with-study-history', action='store_true', help='Adiciona histórico ilustrativo de 12 semanas somente à conta fictícia, preservando registros existentes.')
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -108,4 +109,7 @@ class Command(BaseCommand):
         LiveEvent.objects.get_or_create(title='Gravação ilustrativa da plataforma',defaults={'course':None,'starts_at':timezone.now()-timedelta(days=2),'duration_minutes':60,'recording_url':'https://vimeo.com/76979871','description':'Vídeo público do Vimeo para demonstrar o acesso à gravação.'})
         from users.models import Notification
         Notification.objects.get_or_create(user=student,kind='demo',reference='welcome',defaults={'title':'Conheça os avisos da plataforma','body':'Aviso ilustrativo. Aqui aparecem novas aulas, respostas e encontros dos seus cursos.','url':'/dashboard/'})
+        if options['with_study_history']:
+            from courses.demo_study import prepare_study_history
+            prepare_study_history(student)
         self.stdout.write(self.style.SUCCESS("Demonstração preparada: dois cursos; aluno@gomut.example e admin@gomut.example. Senhas existentes foram preservadas."))
