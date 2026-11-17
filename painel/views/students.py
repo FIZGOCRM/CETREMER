@@ -18,6 +18,7 @@ from courses.models import Course, Enrollment
 from courses.selectors import progress_info
 from painel.forms import AccessPeriodForm, EnrollmentForm, IdentifierForm
 from courses.services import grant_manual_period
+from courses.services import plan_status
 from sales.migration_import import parse_subscription_csv
 from sales.migration_services import import_subscription_periods
 from users.first_access import issue_code
@@ -163,10 +164,15 @@ def students(request):
         )
     if course_id:
         qs = qs.filter(student_profile__enrollments__course_id=course_id)
+    if request.GET.get('expiring'):
+        from django.utils import timezone
+        from datetime import timedelta
+        qs = qs.filter(student_profile__enrollments__access_periods__ends_on__range=(timezone.localdate(), timezone.localdate()+timedelta(days=30))).distinct()
     from django.core.paginator import Paginator
 
     students_page = Paginator(qs.order_by("id"), 25).get_page(request.GET.get("page"))
     for user in students_page:
+        user.plan_items = [{'enrollment': e, 'plan': plan_status(e)} for e in user.student_profile.enrollments.select_related('course').prefetch_related('access_periods')]
         first = (
             user.student_profile.enrollments.select_related("course")
             .order_by("enrolled_at")

@@ -124,7 +124,7 @@ class AccessPeriodTests(TestCase):
         )
         self.assertTrue(Progress.objects.filter(lesson=self.lesson).exists())
         response = self.client.get(reverse("dashboard"))
-        self.assertContains(response, "Acesso suspenso")
+        self.assertContains(response, "Encerrado")
 
     def test_live_and_community_read_access_are_also_restricted(self):
         from community.models import CommunityPost

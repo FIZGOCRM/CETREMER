@@ -148,3 +148,14 @@ Cada linha vira teste ou conferência na etapa indicada.
 | C30 | O comando diário de avisos roda duas vezes no mesmo dia | Não envia o mesmo aviso duas vezes (cada envio fica registrado). | 1.14 |
 
 ---
+
+
+## Confirmações posteriores à Etapa 0
+
+- Atualizar o período corrente com auditoria AccessChange; preservar o histórico.
+- O fim contratual corrigido é o limite de reativação.
+- Datas finais apresentadas à equipe são inclusivas; o armazenamento é exclusivo. Encerramento antecipado usa primeiro dia sem acesso, explicitamente rotulado.
+- Criar support_email dedicado no SiteSettings.
+- Execução de todas as fatias autorizada sem confirmação intermediária. Entradas externas pendentes continuam pendentes.
+
+- Aprovado em 17/11/2026: encerramento antecipado no próprio dia de início permite intervalo vazio (sem acesso e sem tolerância), explicitamente marcado; criação normal exige fim posterior ao início.

@@ -13,6 +13,7 @@ from courses import student_views
 from courses import certificate_views
 
 urlpatterns = [
+    path('dashboard/planos/<int:enrollment_id>/dispensar/', student_views.dismiss_plan_notice, name='dismiss_plan_notice'),
     path('webhooks/asaas/', asaas_webhook, name='asaas_webhook'),
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),

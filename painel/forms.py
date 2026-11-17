@@ -24,7 +24,28 @@ class AccessPeriodForm(forms.Form):
         return data
 
 
+class PlanForm(forms.Form):
+    action = forms.ChoiceField(choices=[(v, v) for v in ('create', 'end', 'reactivate', 'correct', 'note')])
+    starts_on = forms.DateField(required=False)
+    last_day = forms.DateField(required=False)
+    end_date = forms.DateField(required=False)
+    reason_code = forms.ChoiceField(required=False, choices=[('', 'Escolha'), ('withdrawal', 'Desistência'), ('nonpayment', 'Inadimplência'), ('student_request', 'Pedido do aluno'), ('other', 'Outro')])
+    reason_text = forms.CharField(required=False)
+    admin_note = forms.CharField(required=False)
+
+    def clean(self):
+        data = super().clean()
+        required = {'create': ['starts_on'], 'correct': ['starts_on', 'last_day', 'reason_text'], 'end': ['end_date', 'reason_code'], 'reactivate': ['last_day']}
+        for field in required.get(data.get('action'), []):
+            if not data.get(field):
+                self.add_error(field, 'Preencha este campo.')
+        if data.get('last_day') == date.max:
+            self.add_error('last_day', 'Informe uma data anterior a 31/12/9999.')
+        return data
+
+
 class CourseForm(forms.ModelForm):
+    plan_months = forms.IntegerField(min_value=1, required=False, initial=12)
     price = forms.DecimalField(
         max_digits=10, decimal_places=2, min_value=0, required=False
     )
@@ -32,6 +53,7 @@ class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
         fields = [
+            'plan_months',
             "title",
             "description",
             "category",
@@ -64,6 +86,9 @@ class CourseForm(forms.ModelForm):
 
     def clean_price(self):
         return self.cleaned_data["price"] or 0
+
+    def clean_plan_months(self):
+        return self.cleaned_data['plan_months'] or 12
 
     def clean_live_calendar_url(self):
         url = self.cleaned_data["live_calendar_url"]

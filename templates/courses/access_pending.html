@@ -4,9 +4,9 @@
 <h1>{{ course.title }}</h1>
 </div>
 <div class="panel__body">
-<h2>{% if access.state == 'expired' %}Acesso suspenso{% else %}Acesso aguardando liberação{% endif %}</h2>
+<h2>{% if access.state == 'expired' %}Plano encerrado{% else %}Acesso aguardando liberação{% endif %}</h2>
 <p>{% if access.paid_through %}Seu período quitado terminou em {{ access.paid_through|date:'d/m/Y' }}.{% endif %} Entre em contato com a equipe para regularizar o acesso.</p>
-<p>Seu progresso e histórico foram preservados.</p>
+<p>{{ plan.reason }}</p><p>Seu progresso e histórico foram preservados.</p>{% if site.support_email %}<a href="mailto:{{ site.support_email }}">{{ site.support_email }}</a>{% endif %}<a class="btn btn--light" href="/dashboard/suporte/">Abrir chamado</a>
 <a class="btn btn--light" href="{% url 'dashboard' %}">Voltar aos meus cursos</a>{% if site.whatsapp_url %}<a class="btn btn--outline" href="{{ site.whatsapp_url }}" rel="noopener">Falar com a equipe</a>{% endif %}</div>
 </section>
 </div>{% endblock %}

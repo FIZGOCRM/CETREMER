@@ -1,8 +1,11 @@
 ﻿from django.urls import path
 from . import views
+from .views import plans
 
 app_name = 'painel'
 urlpatterns = [
+    path('planos/<int:enrollment_id>/', plans.plan_manage, name='plan_manage'),
+    path('vencimentos/', plans.expirations, name='expirations'),
     path('', views.dashboard, name='dashboard'),
     path('cursos/', views.courses, name='courses'),
     path('cursos/novo/', views.course_edit, name='course_new'),

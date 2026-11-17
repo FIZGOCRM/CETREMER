@@ -96,3 +96,7 @@
   .member-dialog-expand { display: none; }
   .member-dialog.is-expanded { width: 100%; height: 100dvh; max-height: 100dvh; }
 }
+
+/* Avisos de plano: abaixo do hero, fora da navegação fixa. */
+.plan-notice { margin: 16px var(--gutter, 24px); padding: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.plan-notice > p:first-child { flex: 1 1 300px; }

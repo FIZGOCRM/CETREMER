@@ -18,6 +18,7 @@ def settings(request):
     if request.method == "POST":
         for field in (
             "school_name",
+            "support_email",
             "whatsapp",
             "terms_url",
             "privacy_url",

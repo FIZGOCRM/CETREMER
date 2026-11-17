@@ -11,8 +11,20 @@ from core.http import json_error
 from .access import access_decision, accessible_courses
 from .models import Course, Enrollment, Lesson, Module, Progress
 from .selectors import ordered_lessons, progress_info
-from .services import set_lesson_progress
+from .services import set_lesson_progress, plan_status
 from .ui_capabilities import PENDING_SECTIONS
+
+
+@login_required
+@require_POST
+def dismiss_plan_notice(request, enrollment_id):
+    if request.user.role != 'STUDENT':
+        raise PermissionDenied
+    enrollment = get_object_or_404(Enrollment, pk=enrollment_id, student=request.user.student_profile)
+    milestone = plan_status(enrollment).get('milestone')
+    if milestone:
+        request.session[f'plan-notice-{enrollment.pk}-{milestone}'] = True
+    return redirect('dashboard')
 
 
 @login_required
@@ -30,6 +42,9 @@ def dashboard(request):
     for item, enrollment in zip(items, enrollments):
         item["enrollment"] = enrollment
         item["access"] = access_decision(enrollment)
+        item['plan'] = plan_status(enrollment)
+        key = f'plan-notice-{enrollment.pk}-{item["plan"].get("milestone", "")}'
+        item['show_plan_notice'] = bool(item['plan'].get('milestone')) and not request.session.get(key)
     continuing = [
         item
         for item in items
@@ -42,7 +57,7 @@ def dashboard(request):
         reverse=True,
     )
     hero_courses = sorted(
-        (item for item in items if item["access"].allowed),
+        items,
         key=lambda item: item["enrollment"].last_accessed_at or item["enrollment"].enrolled_at,
         reverse=True,
     )
@@ -82,7 +97,7 @@ def member_course(request, course_slug):
     enrollment = Enrollment.objects.filter(student=request.user.student_profile, course=course).first()
     decision = access_decision(enrollment)
     if not decision.allowed:
-        return render(request, "courses/access_pending.html", {"course": course, "access": decision}, status=403)
+        return render(request, "courses/access_pending.html", {"course": course, "access": decision, "plan": plan_status(enrollment) if enrollment else None}, status=403)
     lessons = ordered_lessons(course)
     info = progress_info(request.user.student_profile, course, lessons)
     modules = list(course.modules.prefetch_related("lessons__materials").order_by("order", "id"))
@@ -127,7 +142,7 @@ def lesson_detail(request, course_slug, lesson_id):
         return render(
             request,
             "courses/access_pending.html",
-            {"course": course, "access": decision},
+            {"course": course, "access": decision, "plan": plan_status(enrollment)},
             status=403,
         )
     enrollment.last_accessed_at = timezone.now()

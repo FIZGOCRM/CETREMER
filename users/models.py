@@ -70,6 +70,7 @@ class CreatorProfile(models.Model):
 
 
 class SiteSettings(models.Model):
+    support_email = models.EmailField(blank=True)
     school_name = models.CharField(max_length=80, default='CETREMER')
     logo = models.ImageField(upload_to='site/', blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)

@@ -29,6 +29,7 @@ class Category(models.Model):
 
 
 class Course(models.Model):
+    plan_months = models.PositiveSmallIntegerField(default=12)
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
@@ -256,6 +257,8 @@ class Progress(models.Model):
 
 
 class Enrollment(models.Model):
+    plan_started_on = models.DateField(null=True, blank=True)
+    admin_note = models.TextField(blank=True)
     class AccessPolicy(models.TextChoices):
         UNRESTRICTED = "unrestricted", "Liberação administrativa sem prazo"
         PERIODS = "periods", "Acesso por períodos quitados"
@@ -300,6 +303,7 @@ class AccessPeriod(models.Model):
     starts_on = models.DateField()
     ends_on = models.DateField()
     grace_days = models.PositiveSmallIntegerField(default=0)
+    ended_early = models.BooleanField(default=False)
     source = models.CharField(max_length=12, choices=Source.choices)
     reference = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -311,7 +315,7 @@ class AccessPeriod(models.Model):
         ordering = ["starts_on", "id"]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(ends_on__gt=models.F("starts_on")),
+                check=models.Q(ends_on__gt=models.F("starts_on")) | models.Q(ends_on=models.F('starts_on'), ended_early=True, grace_days=0),
                 name="access_period_dates_valid",
             ),
             models.UniqueConstraint(
@@ -322,8 +326,31 @@ class AccessPeriod(models.Model):
 
     def clean(self):
         super().clean()
-        if self.starts_on and self.ends_on and self.ends_on <= self.starts_on:
+        empty_ended = self.ends_on == self.starts_on and self.ended_early and self.grace_days == 0
+        if self.starts_on and self.ends_on and self.ends_on <= self.starts_on and not empty_ended:
             raise ValidationError("O fim do período deve ser posterior ao início.")
+
+
+class AccessChange(models.Model):
+    class Action(models.TextChoices):
+        CREATED = 'created', 'Criado'
+        ENDED = 'ended_early', 'Encerrado antecipadamente'
+        REACTIVATED = 'reactivated', 'Reativado'
+        CORRECTED = 'corrected', 'Datas corrigidas'
+
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.PROTECT, related_name='access_changes')
+    action = models.CharField(max_length=20, choices=Action.choices)
+    old_starts_on = models.DateField(null=True, blank=True)
+    old_ends_on = models.DateField(null=True, blank=True)
+    new_starts_on = models.DateField()
+    new_ends_on = models.DateField()
+    reason_code = models.CharField(max_length=30, blank=True)
+    reason_text = models.TextField(blank=True)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at', 'id']
 
 
 class Certificate(models.Model):

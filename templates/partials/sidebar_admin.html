@@ -11,7 +11,7 @@
     <a class="sidenav__link" href="{% url 'painel:orders' %}"{% if current == 'orders' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="receipt" %}Pedidos</a>
     <a class="sidenav__link" href="{% url 'painel:community' %}"{% if current == 'community' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="chat" %}Comunidade</a>
     <a class="sidenav__link" href="{% url 'painel:settings' %}"{% if current == 'settings' %} aria-current="page"{% endif %}>{% include "partials/icon.html" with name="gear" %}Configurações</a>
-  </nav>
+  <a class="nav-item" href="{% url 'painel:expirations' %}">Vencimentos</a></nav>
   <div class="sidebar__footer">
     <a class="sidebar__footer-link" href="{% url 'dashboard' %}">Ver como aluno</a>
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="sidebar__footer-link">Sair</button></form>

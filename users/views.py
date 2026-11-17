@@ -210,7 +210,15 @@ def settings_view(request):
                     success = "Dados salvos com sucesso."
                 
     return render(request, 'users/settings.html', {
+        'plans': _student_plans(request.user),
         'orders': orders,
         'error': error,
         'success': success
     })
+
+
+def _student_plans(user):
+    if user.role != 'STUDENT':
+        return []
+    from courses.services import plan_status
+    return [{'enrollment': e, 'plan': plan_status(e)} for e in user.student_profile.enrollments.select_related('course').prefetch_related('access_periods')]

@@ -86,4 +86,4 @@ class MemberRedesignTests(TestCase):
         self.enrollment.access_policy = Enrollment.AccessPolicy.PERIODS
         self.enrollment.save()
         response = self.client.get(reverse("dashboard"))
-        self.assertEqual([item["course"] for item in response.context["hero_courses"]], [self.other])
+        self.assertEqual([item["course"] for item in response.context["hero_courses"]], [self.other, self.course])
