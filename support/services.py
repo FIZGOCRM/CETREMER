@@ -36,7 +36,10 @@ def update_ticket(user,ticket,*,status,answer=None,note=''):
 
 @transaction.atomic
 def toggle_vote(user,ticket):
+    from .access import require_ticket_access, can_view_cohort
+    require_ticket_access(user,ticket)
     if user.role!='STUDENT' or ticket.is_private:raise PermissionDenied
+    if not can_view_cohort(user):raise PermissionDenied('É necessário ter acesso ativo para votar nos chamados da turma.')
     vote,created=TicketVote.objects.get_or_create(user=user,ticket=ticket)
     if not created:vote.delete()
     return created

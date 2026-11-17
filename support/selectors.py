@@ -1,11 +1,14 @@
 from django.db.models import Q,Count
 from community.access import is_team
 from .models import FaqItem,Ticket
+from .access import can_view_cohort
 
 def visible_tickets(user):
     queryset=Ticket.objects.select_related('student__user','subject').annotate(vote_count=Count('votes'))
     if is_team(user):return queryset
-    return queryset.filter(Q(is_private=False)|Q(student__user=user))
+    if user.role != 'STUDENT':return queryset.none()
+    own=Q(student__user=user)
+    return queryset.filter(own|Q(is_private=False)) if can_view_cohort(user) else queryset.filter(own)
 
 def support_search(user,params):
     faqs=FaqItem.objects.filter(is_published=True)

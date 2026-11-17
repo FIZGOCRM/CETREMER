@@ -7,6 +7,10 @@ class SupportTests(TestCase):
         self.user=User.objects.create_user(username='support-owner')
         self.other=User.objects.create_user(username='support-other')
         self.admin=User.objects.create_user(username='support-admin',role='ADMIN')
+        from courses.models import Course, Enrollment
+        course=Course.objects.create(title='Curso',slug='support-cohort',creator=User.objects.create_user(username='support-owner-admin',role='CREATOR').creator_profile,is_published=True)
+        self.enrollment=Enrollment.objects.create(student=self.user.student_profile,course=course)
+        Enrollment.objects.create(student=self.other.student_profile,course=course)
         self.client.force_login(self.user)
 
     def subject(self):
@@ -80,3 +84,26 @@ class SupportTests(TestCase):
         self.assertContains(self.client.get('/painel/ajuda/faq/'),'Como acessar?')
         self.assertEqual(self.client.get(f'/painel/ajuda/faq/?id={faq.pk}').status_code,200)
         self.assertContains(self.client.get('/painel/ajuda/subjects/'),'Acesso')
+
+    def test_unenrolled_and_ended_accounts_cannot_read_or_vote_on_cohort_tickets(self):
+        from courses.services import create_plan, end_plan_early
+        from django.utils import timezone
+        from support.models import TicketVote
+        ticket=self.ticket()
+        outsider=User.objects.create_user(username='support-outsider')
+        for account in (outsider,self.other):
+            if account==self.other:
+                enrollment=account.student_profile.enrollments.get()
+                create_plan(enrollment,timezone.localdate(),actor=self.admin)
+                end_plan_early(enrollment,timezone.localdate(),'withdrawal',actor=self.admin)
+            self.client.force_login(account)
+            self.assertNotContains(self.client.get('/suporte/?tab=public'),ticket.title)
+            self.assertEqual(self.client.get(f'/suporte/chamados/{ticket.pk}/').status_code,403)
+            self.assertEqual(self.client.post(f'/suporte/chamados/{ticket.pk}/voto/').status_code,403)
+        self.assertFalse(TicketVote.objects.exists())
+
+    def test_unenrolled_account_keeps_own_ticket_and_faq_access(self):
+        self.enrollment.delete()
+        ticket=self.ticket()
+        self.assertContains(self.client.get(f'/suporte/chamados/{ticket.pk}/'),ticket.title)
+        self.assertEqual(self.client.get('/suporte/').status_code,200)
