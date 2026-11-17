@@ -105,5 +105,7 @@ class SupportTests(TestCase):
     def test_unenrolled_account_keeps_own_ticket_and_faq_access(self):
         self.enrollment.delete()
         ticket=self.ticket()
-        self.assertContains(self.client.get(f'/suporte/chamados/{ticket.pk}/'),ticket.title)
+        response=self.client.get(f'/suporte/chamados/{ticket.pk}/')
+        self.assertContains(response,ticket.title)
+        self.assertNotContains(response,'action="/suporte/chamados/'+str(ticket.pk)+'/voto/"')
         self.assertEqual(self.client.get('/suporte/').status_code,200)

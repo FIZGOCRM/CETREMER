@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError,PermissionDenied
 from django.shortcuts import get_object_or_404,render,redirect
 from django.views.decorators.http import require_POST
-from .access import require_ticket_access
+from .access import require_ticket_access,can_view_cohort
 from .forms import TicketForm
 from .models import Ticket
 from .selectors import support_search
@@ -30,7 +30,7 @@ def new_ticket(request):
 def ticket_detail(request,ticket_id):
     ticket=get_object_or_404(Ticket.objects.select_related('student__user','subject'),pk=ticket_id)
     require_ticket_access(request.user,ticket)
-    return render(request,'support/ticket.html',{'ticket':ticket,'events':ticket.events.all()})
+    return render(request,'support/ticket.html',{'ticket':ticket,'events':ticket.events.all(),'can_vote':not ticket.is_private and can_view_cohort(request.user)})
 
 @login_required
 @require_POST
