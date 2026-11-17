@@ -1,7 +1,7 @@
 from datetime import datetime,time,timedelta
 from django.core.mail import send_mail
-from django.db import transaction
-from django.db.models import F
+from django.db.models import Q
+from uuid import uuid4
 from django.urls import reverse
 from django.utils import timezone
 from .models import EmailLog,Notification,SiteSettings
@@ -54,22 +54,30 @@ def email_is_current(log):
     return bool(release and str(release)==parts[3] and release<=timezone.localdate())
 
 
-@transaction.atomic
 def _deliver(log_id):
-    # Reserve the SQLite writer before reading delivery state, including parallel cron runs.
-    EmailLog.objects.filter(pk=log_id).update(status=F('status'))
     log=EmailLog.objects.select_related('user').get(pk=log_id)
     if not email_is_current(log):return log
-    if not SiteSettings.load().email_host or not log.user.email or not log.user.is_active:
-        log.status='not_sent'
-    else:
-        try:
-            count=send_mail(log.subject,log.body,None,[log.user.email],fail_silently=False)
-            log.status='sent' if count else 'failed'
-        except Exception:
-            # Do not expose SMTP credentials or transport error text in the interface/log record.
-            log.status='failed'
-    log.save(update_fields=['status']);return log
+    if not SiteSettings.load().email_host:return log
+    # A single conditional UPDATE claims the delivery in autocommit. No SQLite
+    # transaction is kept open during the network call. SMTP has a 15s timeout;
+    # a five-minute lease permits recovery after a crashed scheduler.
+    now=timezone.now();token=uuid4().hex
+    available=Q(delivery_token='')|Q(delivery_claimed_at__lt=now-timedelta(minutes=5))
+    claimed=EmailLog.objects.filter(pk=log_id).exclude(status='sent').filter(available).update(delivery_token=token,delivery_claimed_at=now)
+    if not claimed:return EmailLog.objects.get(pk=log_id)
+    status=log.status
+    try:
+        log=EmailLog.objects.select_related('user').get(pk=log_id)
+        if email_is_current(log):
+            try:
+                count=send_mail(log.subject,log.body,None,[log.user.email],fail_silently=False)
+                status='sent' if count else 'failed'
+            except Exception:
+                # Do not expose SMTP credentials or transport error text.
+                status='failed'
+    finally:
+        EmailLog.objects.filter(pk=log_id,delivery_token=token).update(status=status,delivery_token='',delivery_claimed_at=None)
+    return EmailLog.objects.get(pk=log_id)
 
 
 def queue_email(user,kind,reference,subject,body,*,send_before=None):

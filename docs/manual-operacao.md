@@ -82,4 +82,8 @@ Vídeo: conferir link do Vimeo, privacidade do vídeo no domínio final, conexã
 
 E-mail: conferir SMTP/remetente no SiteSettings e o recebimento real do teste. EmailLog sent indica aceite pelo backend, não garante caixa de entrada; conferir spam. not_sent indica falta de configuração/destinatário válido; failed indica falha. O comando diário retenta pendências vigentes. Lembretes passados não são disparados atrasados. Se houver queda no momento do envio, investigar antes de reenviar, pois SMTP não confirma envio e commit de banco numa transação única.
 
+Antes de cada entrega a fila confere novamente destinatário, preferência, plano, publicação/liberação da aula ou módulo e, no encontro, situação, horário e lembrete ainda existente. Avisos obsoletos permanecem no histórico, sem envio, e deixam de contar na fila vigente. Não se confunde esse registro com uma entrega confirmada.
+
+O envio automático reserva o registro por até cinco minutos, sem manter uma transação SQLite aberta durante o SMTP (timeout configurado: 15 segundos). Dois agendamentos concorrentes não enviam a mesma reserva. O painel mostra a reserva e seu horário; se o processo cair, outra execução pode retomá-la após cinco minutos. Existe uma janela inevitável de duplicação se o SMTP aceitar a mensagem e o processo cair antes de salvar `sent`; investigar os registros do provedor antes de forçar um reenvio. Os comandos de envio devem rodar fora de transações externas. Links de primeiro acesso e de recuperação não entram nessa retentativa.
+
 Agendamentos e backup: seguir [checklist de produção](producao-checklist.md) e [restauração SQLite](operacao-sqlite.md). Nada é agendado automaticamente pelo código.

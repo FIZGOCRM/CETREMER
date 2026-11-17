@@ -148,6 +148,8 @@ class Notification(models.Model):
         constraints=[models.UniqueConstraint(fields=['user','kind','reference'],name='notification_user_event_unique')]
 
 class EmailLog(models.Model):
+    delivery_token=models.CharField(max_length=32,blank=True,default='')
+    delivery_claimed_at=models.DateTimeField(null=True,blank=True)
     send_before=models.DateTimeField(null=True,blank=True)
     user=models.ForeignKey(User,on_delete=models.PROTECT,related_name='email_logs')
     kind=models.CharField(max_length=40)
