@@ -28,11 +28,19 @@
         list.querySelectorAll('[data-lesson-id]'), function (li) { return Number(li.getAttribute('data-lesson-id')); }
       );
     });
+    var status = document.querySelector('[data-order-status]');
+    if (status) status.textContent = 'Salvando ordem…';
     return fetch(root.getAttribute('data-reorder-url'), {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
       body: JSON.stringify(payload)
+    }).then(function(response) {
+      if (!response.ok) throw new Error('reorder');
+      if (status) status.textContent = 'Ordem salva.';
+      return response;
+    }).catch(function() {
+      if (status) status.textContent = 'Não foi possível salvar a ordem. Recarregue a página antes de continuar.';
     });
   }
 

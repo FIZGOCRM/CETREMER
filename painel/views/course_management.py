@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from core.decorators import painel_required
 from courses.integrations.vimeo import video_duration
 from courses.models import Category, Course, Enrollment, Lesson, Module
-from courses.services import save_course, save_lesson, save_module, delete_content
+from courses.services import create_quick_lesson, reorder_course_content, save_course, save_lesson, save_module, delete_content
 from painel.forms import CourseBasicsForm, CourseForm, IdentifierForm, LessonForm, ModuleForm
 from users.models import CreatorProfile
 
@@ -105,6 +105,13 @@ def course_lessons(request, course_id):
             if ids["module_id"]
             else None
         )
+        if action == 'quick_lesson':
+            try:
+                if not module:raise ValidationError('Módulo inválido para este curso.')
+                create_quick_lesson(module,request.POST.get('title',''),actor=request.user)
+                messages.success(request,'Aula criada em rascunho. Complete o conteúdo antes de publicar.')
+            except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+            return redirect('painel:course_lessons',course_id=course.pk)
         if action in ('new_module', 'rename_module', 'save_module'):
             candidate = module or Module(course=course, order=course.modules.count()+1)
             form = ModuleForm(request.POST, instance=candidate)
@@ -201,30 +208,8 @@ def course_reorder(request, course_id):
         payload = json.loads(request.body)
         module_ids = [int(x) for x in payload["modules"]]
         lessons = {int(k): [int(x) for x in v] for k, v in payload["lessons"].items()}
-        actual_modules = set(
-            Module.objects.filter(course=course).values_list("id", flat=True)
-        )
-        actual_lessons = set(
-            Lesson.objects.filter(module__course=course).values_list("id", flat=True)
-        )
-        if (
-            set(module_ids) != actual_modules
-            or len(module_ids) != len(actual_modules)
-            or set(lessons) != actual_modules
-        ):
-            raise ValueError("Módulos inválidos")
-        flat = [x for values in lessons.values() for x in values]
-        if set(flat) != actual_lessons or len(flat) != len(actual_lessons):
-            raise ValueError("Aulas inválidas")
-        with transaction.atomic():
-            for index, module_id in enumerate(module_ids, 1):
-                Module.objects.filter(pk=module_id).update(order=index)
-            for module_id, ids in lessons.items():
-                for index, lesson_id in enumerate(ids, 1):
-                    Lesson.objects.filter(pk=lesson_id).update(
-                        module_id=module_id, order=index
-                    )
-    except (ValueError, KeyError, TypeError, json.JSONDecodeError):
+        reorder_course_content(course,module_ids,lessons,actor=request.user)
+    except (ValidationError, ValueError, KeyError, TypeError, json.JSONDecodeError):
         return JsonResponse({"ok": False}, status=400)
     return JsonResponse({"ok": True})
 

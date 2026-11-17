@@ -700,3 +700,27 @@ def remove_course_material(material, *, actor):
     _plan_actor(actor)
     material.is_active=False
     material.save(update_fields=['is_active'])
+
+@transaction.atomic
+def create_quick_lesson(module, title, *, actor):
+    from .models import Lesson
+    from django.db.models import Max
+    _plan_actor(actor)
+    title=title.strip()
+    if not title:raise ValidationError('Informe o título da aula.')
+    order=(module.lessons.aggregate(value=Max('order'))['value'] or 0)+1
+    return save_lesson(Lesson(module=module,title=title,order=order,status='draft'))
+
+@transaction.atomic
+def reorder_course_content(course, module_ids, lessons, *, actor):
+    from .models import Module,Lesson
+    _plan_actor(actor)
+    actual_modules=set(Module.objects.filter(course=course).values_list('pk',flat=True))
+    actual_lessons=set(Lesson.objects.filter(module__course=course).values_list('pk',flat=True))
+    if set(module_ids)!=actual_modules or len(module_ids)!=len(actual_modules) or set(lessons)!=actual_modules:
+        raise ValidationError('Módulos inválidos. Recarregue a página.')
+    flat=[lesson for values in lessons.values() for lesson in values]
+    if set(flat)!=actual_lessons or len(flat)!=len(actual_lessons):raise ValidationError('Aulas inválidas. Recarregue a página.')
+    for index,module_id in enumerate(module_ids,1):Module.objects.filter(pk=module_id,course=course).update(order=index)
+    for module_id,ids in lessons.items():
+        for index,lesson_id in enumerate(ids,1):Lesson.objects.filter(pk=lesson_id,module__course=course).update(module_id=module_id,order=index)
