@@ -1,0 +1,19 @@
+{% extends 'base_membros.html' %}
+{% block title %}Meu progresso · Emergensimples{% endblock %}
+{% block content %}
+<div class="page">
+  <header class="page__head"><h1 class="page__title">Meu progresso</h1></header>
+  <section class="panel">
+    <div class="panel__head"><h2>Aulas concluídas</h2><strong class="stat__value">{{ completed_count }}</strong></div>
+    <p class="muted">Seu progresso fica salvo na sua conta.</p>
+  </section>
+  <section class="member-modules" id="meus-cursos">
+    <h2 class="section-title">Meus cursos</h2>
+    <div class="grid">{% for item in progress_items %}{% include 'partials/gomut/course_card.html' %}{% empty %}<p class="muted">Nenhum curso disponível.</p>{% endfor %}</div>
+  </section>
+  <section class="member-modules">
+    <h2 class="section-title">Tempo e sequência de estudo</h2>
+    <div>{% include 'partials/gomut/backend_pending.html' %}</div>
+  </section>
+</div>
+{% endblock %}

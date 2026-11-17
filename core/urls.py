@@ -7,11 +7,13 @@ from django.views.generic import RedirectView
 from users import views as user_views
 from courses import views as course_views
 from sales import views as sales_views
+from sales.webhook_views import asaas_webhook
 from community import views as community_views
 from courses import student_views
 from courses import certificate_views
 
 urlpatterns = [
+    path('webhooks/asaas/', asaas_webhook, name='asaas_webhook'),
     path('admin/', admin.site.urls),
     path('painel/', include('painel.urls')),
     path('ao-vivo/', student_views.live_classes, name='live_classes'),
@@ -49,9 +51,11 @@ urlpatterns = [
     
     # Student Area & Player
     path('dashboard/', student_views.dashboard, name='dashboard'),
+    path('dashboard/cursos/<slug:course_slug>/', student_views.member_course, name='member_course'),
+    path('dashboard/recursos/<slug:section>/', student_views.member_section, name='member_section'),
     path('settings/', user_views.settings_view, name='settings'),
     path('courses/<slug:course_slug>/lessons/<int:lesson_id>/', student_views.lesson_detail, name='lesson_detail'),
-    path('courses/lesson/<int:lesson_id>/toggle-progress/', course_views.toggle_progress, name='toggle_progress'),
+    path('courses/lesson/<int:lesson_id>/toggle-progress/', student_views.toggle_progress, name='toggle_progress'),
     path('courses/<slug:course_slug>/certificate/', certificate_views.issue_certificate, name='issue_certificate'),
     
     # Discussion Forums

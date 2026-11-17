@@ -98,7 +98,7 @@ class FirstAccessTests(TestCase):
     def test_explicit_email_send_reports_failure_when_backend_returns_zero(self):
         from unittest.mock import patch
         user, _ = self.create_student_in_panel()
-        with patch('painel.views.send_mail', return_value=0):
+        with patch('painel.views.common.send_mail', return_value=0):
             response = self.client.post(reverse('painel:students'), {
                 'action': 'resend_access', 'student_id': user.id,
             }, follow=True)

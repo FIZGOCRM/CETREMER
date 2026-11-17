@@ -44,7 +44,9 @@ class PanelFlowTests(TestCase):
         self.assertNotIn('supersecret1234', site.gateway_key_encrypted)
         response = self.client.get(reverse('painel:settings'))
         self.assertNotContains(response, 'supersecret1234')
-        self.assertContains(response, '1234')
+        self.assertEqual(site.gateway_key_encrypted, '')
+        self.assertTrue(site.email_password_encrypted)
+        self.assertNotContains(response, 'secretSMTP')
 
     def test_student_cannot_enter_panel(self):
         self.client.force_login(self.student)

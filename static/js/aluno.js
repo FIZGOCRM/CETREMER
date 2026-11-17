@@ -55,7 +55,7 @@
     }
 
     document.querySelectorAll('.btn-toggle-complete[data-lesson-id="' + lessonId + '"]').forEach(function (btn) {
-      btn.classList.toggle('btn--primary', !done);
+      btn.classList.toggle('btn--red', !done);
       btn.classList.toggle('btn--done', done);
       btn.setAttribute('aria-pressed', String(done));
       var label = btn.querySelector('[data-label]');
@@ -69,6 +69,11 @@
     document.querySelectorAll('[data-progress-pct]').forEach(function (el) { el.textContent = pct + '%'; });
     document.querySelectorAll('[data-progress-count]').forEach(function (el) {
       el.textContent = data.completed_count + ' de ' + data.total_count;
+    });
+
+    document.querySelectorAll('[data-member-lesson-id="' + lessonId + '"]').forEach(function (node) {
+      node.querySelector('[data-completed-mark]').hidden = !done;
+      node.querySelector('[data-lesson-number]').hidden = done;
     });
 
     updateModuleCounters();
@@ -102,7 +107,10 @@
 
   // Vimeo: concluir automaticamente ao fim do vídeo (endpoint idempotente, nunca alterna)
   var frame = document.querySelector('iframe[data-vimeo]');
-  if (frame && window.Vimeo && window.Vimeo.Player) {
+  var connected = false;
+  function connectVimeo() {
+    if (connected || !frame || !window.Vimeo || !window.Vimeo.Player) return;
+    connected = true;
     var player = new window.Vimeo.Player(frame);
     var sent = false;
     player.on('ended', function () {
@@ -113,4 +121,7 @@
         .catch(function () { sent = false; showError(true); });
     });
   }
+  connectVimeo();
+  var sdk = document.querySelector('[data-vimeo-sdk]');
+  if (sdk) sdk.addEventListener('load', connectVimeo, { once: true });
 })();

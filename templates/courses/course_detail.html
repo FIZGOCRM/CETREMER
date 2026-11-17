@@ -1,0 +1,19 @@
+{% extends 'base_membros.html' %}{% load cetremer %}{% block title %}{{ course.title }} · Emergensimples{% endblock %}{% block content %}<div class="page" data-course-detail>
+<nav class="crumbs">
+<a href="{% url 'dashboard' %}">{% include 'partials/gomut/icon.html' with name='left' %}Meus cursos</a>
+</nav>
+<header class="page__head">
+<div>
+<p class="eyebrow">{{ course.category.name|default:'Curso' }}</p>
+<h1 class="page__title">{{ course.title }}</h1>
+<p class="page__sub">{{ course.description }}</p>
+</div>
+</header>
+<div class="tagrow">
+<span class="tag">{{ item.total }} aulas · {{ total_seconds|duracao }}</span>
+<span class="tag tag--line">{{ item.pct }}% concluído</span>{% if access.paid_through %}<span class="tag tag--line">Período quitado até {{ access.paid_through|date:'d/m/Y' }}</span>{% endif %}</div>
+<div class="hero__actions">{% if item.next_lesson %}<a class="btn btn--red" href="{% url 'lesson_detail' course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}<a class="btn btn--outline" href="{% url 'community_hub' %}?curso={{ course.id }}">Comunidade</a>
+</div>
+<section class="member-modules">
+<h2 class="section-title">Aulas e módulos</h2>{% include 'partials/gomut/module_list.html' %}</section>
+</div>{% endblock %}

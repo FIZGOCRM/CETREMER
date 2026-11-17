@@ -10,10 +10,16 @@ Card de curso do aluno (Meus cursos). Recebe "item" com:
   <div class="course-card__body">
     {% if course.category %}<span class="badge {{ course.category.badge_class }}">{{ course.category.name }}</span>{% endif %}
     <h3 class="course-card__title">{{ course.title }}</h3>
+    {% if item.access.paid_through %}<p class="text-13 muted">Período quitado até {{ item.access.paid_through|date:'d/m/Y' }}.{% if item.access.state == 'grace' %} Tolerância até {{ item.access.grace_through|date:'d/m/Y' }}.{% endif %}</p>{% endif %}
     <div class="course-card__progress">
       {% include "partials/progress.html" with value=item.pct label="Progresso do curso "|add:course.title %}
       <span class="progress-label">
-        {% if item.status == "done" %}Concluído{% elif item.status == "not_started" %}Não iniciado · {{ item.total }} aula{{ item.total|pluralize }}{% else %}{{ item.pct }}% · {{ item.completed }} de {{ item.total }} aulas{% endif %}
+        {% if item.access and not item.access.allowed %}
+      <p class="error-text">Acesso suspenso ou aguardando liberação. Seu progresso foi preservado.</p>
+      <a class="btn btn--secondary btn--block" href="{% url 'course_preview' course.slug %}">Ver curso</a>
+    {% elif not item.next_lesson %}
+      <p class="muted">Aulas em preparação.</p>
+    {% elif item.status == "done" %}Concluído{% elif item.status == "not_started" %}Não iniciado · {{ item.total }} aula{{ item.total|pluralize }}{% else %}{{ item.pct }}% · {{ item.completed }} de {{ item.total }} aulas{% endif %}
       </span>
     </div>
     {% if item.status == "done" %}

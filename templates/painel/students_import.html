@@ -1,1 +1,48 @@
-{% extends 'base_admin.html' %}{% block page_title %}Importar alunos{% endblock %}{% block topbar_eyebrow %}<a class="topbar__eyebrow" href="{% url 'painel:students' %}">Alunos</a>{% endblock %}{% block page_class %}page--w980 page--gap-20{% endblock %}{% block content %}<section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">1</span><h2 class="step-title">Prepare a planilha</h2></div><p>Use as colunas nome, email e cpf. Aceitamos CSV separado por vírgula ou ponto e vírgula.</p><a class="btn btn--secondary self-start" href="/static/modelos/importar-alunos.csv" download>Baixar modelo CSV</a></section><section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">2</span><h2 class="step-title">Escolha os cursos e envie o arquivo</h2></div><form class="stack gap-16" method="post" enctype="multipart/form-data">{% csrf_token %}<fieldset class="fieldset"><legend>Liberar acesso a</legend><div class="checks-inline">{% for c in courses %}<label class="check check--inline"><input type="checkbox" name="courses" value="{{ c.id }}">{{ c.title }}</label>{% endfor %}</div></fieldset><label class="dropzone dropzone--lg" data-dropzone><input class="sr-only" type="file" name="file" accept=".csv" required><span data-dropzone-name>Arraste o CSV ou escolha no computador</span></label><button class="btn btn--primary self-start">Ler arquivo</button></form></section>{% if preview %}<section class="card card--pad stack gap-12"><div class="step-head"><span class="step-num">3</span><h2 class="step-title">Confira antes de importar</h2></div><div class="row gap-10"><span class="badge badge--lg badge--success">{{ summary.new }} novos</span><span class="badge badge--lg badge--blue">{{ summary.existing }} já cadastrados, ganham o curso</span><span class="badge badge--lg badge--danger">{{ summary.error }} com erro, serão ignorados</span></div><div class="table-wrap table-wrap--flat"><table class="table table--compact table--w560"><thead><tr><th>Nome</th><th>E-mail</th><th>Situação</th></tr></thead><tbody>{% for row in preview.rows|slice:':50' %}<tr><td>{{ row.name }}</td><td>{{ row.email }}</td><td class="fw-600">{{ row.status }}</td></tr>{% endfor %}</tbody></table></div>{% if preview.rows|length > 50 %}<p>e mais linhas</p>{% endif %}<form class="stack gap-12" method="post">{% csrf_token %}<label class="check"><input type="checkbox" name="send_email">Enviar e-mail de acesso agora</label><button class="btn btn--primary btn--lg self-start" name="action" value="confirm">Importar alunos</button></form></section>{% endif %}{% endblock %}
+{% extends 'base_admin.html' %}{% load static %}
+{% block page_title %}Importar alunos{% endblock %}
+{% block topbar_eyebrow %}<a class="topbar__eyebrow" href="{% url 'painel:students' %}">Alunos</a>{% endblock %}
+{% block page_class %}page--w980 page--gap-20{% endblock %}
+{% block content %}
+<section class="card card--pad stack gap-12">
+  <h2 class="card__title">Escolha o tipo de importação</h2>
+  <p><strong>Liberação administrativa:</strong> usa nome, email e cpf; concede acesso sem prazo aos cursos selecionados.</p>
+  <p><strong>Migração de mensalidades:</strong> uma linha por aluno e curso, com as datas efetivamente quitadas. Não cria cobranças e não encerra a assinatura anterior.</p>
+  <div class="row gap-10">
+    <a class="btn btn--secondary" href="{% static 'modelos/importar-alunos.csv' %}" download>Modelo de alunos</a>
+    <a class="btn btn--secondary" href="{% static 'modelos/migrar-mensalidades.csv' %}" download>Modelo de mensalidades</a>
+  </div>
+  <details><summary>Como preencher os períodos quitados</summary>
+    <p>Use pago_de e pago_ate para o primeiro e último dia cobertos, inclusive. proximo_vencimento deve ser o dia seguinte a pago_ate. Datas em AAAA-MM-DD ou DD/MM/AAAA; valor sem símbolo monetário, com ponto decimal.</p>
+    <p>Em plataforma use eduzz, hotmart ou other. Em renovacao_anterior use pendente, ativa ou encerrada. “Encerrada” registra uma informação da operação, sem efetuar cancelamento externo.</p>
+    <p>Use o identificador de curso abaixo na coluna curso. O mesmo e-mail pode aparecer em cursos diferentes. Matrículas já liberadas sem prazo exigem revisão antes de migração; períodos divergentes não são sobrescritos.</p>
+    <ul>{% for c in courses %}<li>{{ c.title }}: <code>{{ c.slug }}</code></li>{% endfor %}</ul>
+  </details>
+</section>
+<section class="card card--pad stack gap-12">
+  <h2 class="card__title">Enviar arquivo para conferência</h2>
+  <form class="stack gap-16" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="field"><label class="field__label" for="import-mode">Tipo de importação</label>
+      <select class="select" name="mode" id="import-mode"><option value="students">Liberação administrativa sem prazo</option><option value="subscriptions"{% if preview.mode == 'subscriptions' %} selected{% endif %}>Migração de mensalidades quitadas</option></select>
+    </div>
+    <fieldset class="fieldset"><legend>Cursos para liberação administrativa (ignorados na migração de mensalidades)</legend><div class="checks-inline">{% for c in courses %}<label class="check check--inline"><input type="checkbox" name="courses" value="{{ c.id }}">{{ c.title }}</label>{% endfor %}</div></fieldset>
+    <label class="dropzone dropzone--lg" data-dropzone><input class="sr-only" type="file" name="file" accept=".csv" required><span data-dropzone-name>Arraste o CSV ou escolha no computador</span></label>
+    <button class="btn btn--primary self-start">Ler arquivo</button>
+  </form>
+</section>
+{% if preview %}
+<section class="card card--pad stack gap-12">
+  <h2 class="card__title">Confira antes de importar</h2>
+  {% if preview.mode == 'subscriptions' %}<div class="alert alert--warning" role="status">Acesso pelo período quitado, com três dias de tolerância. Contratos ficam em migração, sem cobrança no Asaas. Confira o encerramento das renovações antigas separadamente.</div>{% endif %}
+  <div class="row gap-10"><span class="badge badge--lg badge--success">{{ summary.new }} {% if preview.mode == 'subscriptions' %}períodos válidos{% else %}novos{% endif %}</span>{% if preview.mode != 'subscriptions' %}<span class="badge badge--lg badge--blue">{{ summary.existing }} já cadastrados</span>{% endif %}<span class="badge badge--lg badge--danger">{{ summary.error }} com erro, serão ignorados</span></div>
+  <div class="table-wrap table-wrap--flat"><table class="table table--compact"><thead><tr><th>Nome</th><th>E-mail</th>{% if preview.mode == 'subscriptions' %}<th>Curso</th><th>Quitado de / até</th><th>Próximo vencimento</th><th>Mensalidade</th><th>Renovação anterior</th>{% endif %}<th>Situação</th></tr></thead><tbody>
+    {% for row in preview.rows|slice:':50' %}<tr>{% if preview.mode == 'subscriptions' %}<td>{{ row.nome }}</td><td>{{ row.email }}</td><td>{{ row.curso }}</td><td>{{ row.pago_de }} / {{ row.pago_ate }}</td><td>{{ row.proximo_vencimento }}</td><td>{{ row.mensalidade }}</td><td>{{ row.renovacao_anterior }}</td>{% else %}<td>{{ row.name }}</td><td>{{ row.email }}</td>{% endif %}<td>{{ row.status }}</td></tr>{% endfor %}
+  </tbody></table></div>
+  {% if preview.rows|length > 50 %}<p>Exibindo 50 de {{ preview.rows|length }} linhas. Confira o arquivo completo antes de confirmar.</p>{% endif %}
+  <form class="stack gap-12" method="post">{% csrf_token %}
+    {% if preview.mode == 'subscriptions' %}<label class="check"><input type="checkbox" name="confirm_periods" required>Conferi os cursos, valores e períodos efetivamente pagos no arquivo completo. A importação não transfere nem cancela cobranças antigas.</label>{% else %}<label class="check"><input type="checkbox" name="send_email">Enviar e-mail de acesso agora</label>{% endif %}
+    <button class="btn btn--primary btn--lg self-start" name="action" value="confirm">{% if preview.mode == 'subscriptions' %}Importar períodos quitados{% else %}Importar alunos{% endif %}</button>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

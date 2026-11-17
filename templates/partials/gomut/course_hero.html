@@ -1,0 +1,29 @@
+<section class="hero course-hero" data-course-carousel aria-roledescription="carrossel" aria-label="Seus cursos">
+  {% include 'partials/gomut/hero_art.html' %}
+  {% for item in hero_courses %}
+  <article class="course-hero__slide" data-hero-slide role="group" aria-roledescription="slide" aria-label="{{ forloop.counter }} de {{ hero_courses|length }}: {{ item.course.title }}"{% if not forloop.first %} hidden inert aria-hidden="true"{% endif %}>
+    <div class="hero__content">
+      <div class="hero__kicker"><span class="tag tag--red">Seu curso</span><span>{{ item.course.category.name|default:'Formação em saúde' }}</span></div>
+      {% if forloop.first %}<h1 class="hero__title">{{ item.course.title }}</h1>{% else %}<h2 class="hero__title">{{ item.course.title }}</h2>{% endif %}
+      <p class="hero__desc">{{ item.course.description|truncatewords:30 }}</p>
+      <div class="hero__actions">
+        {% if item.next_lesson %}<a class="btn btn--light" href="{% url 'lesson_detail' item.course.slug item.next_lesson.id %}">{% include 'partials/gomut/icon.html' with name='play' %}{% if item.status == 'done' %}Rever{% elif item.completed %}Continuar{% else %}Começar{% endif %}</a>{% endif %}
+        <a class="btn btn--dim" href="{% url 'member_course' item.course.slug %}" data-course-dialog>{% include 'partials/gomut/icon.html' with name='info' %}Mais informações</a>
+      </div>
+      <div class="hero__resume">
+        {% if item.next_lesson %}<span>{{ item.next_lesson.module.title }} · {{ item.next_lesson.title }}</span>{% endif %}
+        {% include 'partials/gomut/progress.html' with value=item.pct %}
+        <span class="course-hero__progress-label">{{ item.completed }} de {{ item.total }} aulas concluídas</span>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+  {% if hero_courses|length > 1 %}
+  <div class="course-hero__controls" aria-label="Controles dos cursos">
+    <button type="button" class="rbtn course-hero__arrow" data-hero-prev aria-label="Curso anterior">{% include 'partials/gomut/icon.html' with name='left' %}</button>
+    <div class="course-hero__dots" role="group" aria-label="Escolher curso">{% for item in hero_courses %}<button type="button" data-hero-index="{{ forloop.counter0 }}" aria-label="Mostrar {{ item.course.title }}"{% if forloop.first %} aria-current="true"{% endif %}><span class="sr-only">{{ forloop.counter }}</span></button>{% endfor %}</div>
+    <button type="button" class="rbtn course-hero__arrow" data-hero-next aria-label="Próximo curso">{% include 'partials/gomut/icon.html' with name='right' %}</button>
+    <button type="button" class="rbtn course-hero__arrow" data-hero-pause aria-label="Pausar rotação automática" aria-pressed="false"><span data-pause-icon>{% include 'partials/gomut/icon.html' with name='pause' %}</span><span data-play-icon hidden>{% include 'partials/gomut/icon.html' with name='play' %}</span></button>
+  </div>
+  {% endif %}
+</section>

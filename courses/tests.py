@@ -121,6 +121,7 @@ class PlatformTestCase(TestCase):
         Progress.objects.create(student=self.student_profile, lesson=self.lesson, is_completed=True)
         self.client.force_login(self.student_user)
         url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
+        self.assertEqual(self.client.post(url).status_code, 302)
         self.assertContains(self.client.get(url), 'CERTIFICADO')
         self.assertContains(self.client.get(url), 'Aluno Certificado')
         self.assertEqual(Certificate.objects.filter(enrollment=enrollment).count(), 1)
@@ -130,68 +131,12 @@ class PlatformTestCase(TestCase):
         self.assertContains(response, 'Certificado válido')
         self.assertNotContains(response, '529.982.247-25')
 
-    def test_anonymous_checkout_enrollment(self):
-        """Verifies that a guest user can checkout directly, creating their account and enrollment."""
-        # Process checkout POST without being logged in
-        checkout_url = reverse('process_checkout', kwargs={'course_slug': self.course.slug})
-        response = self.client.post(checkout_url, {
-            'payment_method': 'CREDIT_CARD',
-            'name': 'Novo Aluno',
-            'email': 'novo_aluno@test.com'
-        })
-        self.assertEqual(response.status_code, 200)  # Returns JSON response
-        
-        # Verify a new student account is generated
-        user_exists = User.objects.filter(email='novo_aluno@test.com').exists()
-        self.assertTrue(user_exists)
-        
-        new_user = User.objects.get(email='novo_aluno@test.com')
-        new_profile = new_user.student_profile
-        
-        # Verify enrollment is created for new student
-        enrolled = Enrollment.objects.filter(student=new_profile, course=self.course).exists()
-        self.assertTrue(enrolled)
-        self.assertEqual(Enrollment.objects.get(student=new_profile, course=self.course).source, 'purchase')
-
-    def test_checkout_generates_temporary_password_and_sends_email(self):
-        """Verifies that guest checkout generates a temporary password, sends it via email, and the user can log in with it."""
-        from django.core import mail
-        
-        # Setup creator SMTP configs
-        self.creator_profile.email_host = 'smtp.test.com'
-        self.creator_profile.email_port = 587
-        self.creator_profile.email_username = 'creator_sender@test.com'
-        self.creator_profile.email_password = 'secretpassword'
-        self.creator_profile.save()
-        
-        # Clear outbox
-        mail.outbox = []
-        
-        checkout_url = reverse('process_checkout', kwargs={'course_slug': self.course.slug})
-        response = self.client.post(checkout_url, {
-            'payment_method': 'CREDIT_CARD',
-            'name': 'Estudante Teste',
-            'email': 'estudante_teste@test.com'
-        })
-        self.assertEqual(response.status_code, 200)
-        
-        # Check that email was sent
-        self.assertEqual(len(mail.outbox), 1)
-        sent_email = mail.outbox[0]
-        self.assertEqual(sent_email.from_email, 'creator_sender@test.com')
-        self.assertIn('estudante_teste@test.com', sent_email.to)
-        
-        # Extract temporary password from email body
-        body = sent_email.body
-        self.assertIn("Senha Temporária:", body)
-        
-        # Find password line
-        password_line = [line for line in body.split('\n') if "Senha Temporária:" in line][0]
-        temp_password = password_line.split("Senha Temporária:")[1].strip()
-        
-        # Verify student can authenticate using this temporary password
-        login_success = self.client.login(username="estudante_teste", password=temp_password)
-        self.assertTrue(login_success)
+    def test_anonymous_checkout_is_unavailable_without_gateway(self):
+        url = reverse('process_checkout', kwargs={'course_slug': self.course.slug})
+        response = self.client.post(url, {'name': 'Novo Aluno', 'email': 'novo@test.com'})
+        self.assertEqual(response.status_code, 503)
+        self.assertFalse(User.objects.filter(email='novo@test.com').exists())
+        self.assertFalse(Order.objects.exists())
 
     def test_lesson_toggle_progress(self):
         """Verifies that completing a lesson increments student points, updates rank, and saves progress."""
@@ -357,6 +302,7 @@ class PlatformTestCase(TestCase):
         self.student_profile.save()
         
         cert_url = reverse('issue_certificate', kwargs={'course_slug': self.course.slug})
+        self.assertEqual(self.client.post(cert_url).status_code, 302)
         response = self.client.get(cert_url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "CERTIFICADO")

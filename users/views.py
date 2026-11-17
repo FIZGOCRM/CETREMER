@@ -6,6 +6,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 from django.utils.text import slugify
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
 from .first_access import verify_code
 from .models import FirstAccessCode
@@ -13,15 +14,19 @@ from .models import User
 
 
 def login_view(request):
-    next_url = request.GET.get('next') or request.POST.get('next') or 'dashboard'
+    next_url = request.GET.get('next') or request.POST.get('next') or ''
+    if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        next_url = ''
+    def destination(user):
+        return next_url or ('painel:dashboard' if user.is_staff or user.role in ('ADMIN', 'CREATOR') else 'dashboard')
     if request.user.is_authenticated:
-        return redirect(next_url)
+        return redirect(destination(request.user))
     error = None
     if request.method == 'POST':
         user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
         if user is not None:
             login(request, user)
-            return redirect(next_url)
+            return redirect(destination(user))
         error = 'E-mail ou senha incorretos. Confira e tente de novo.'
     return render(request, 'login.html', {'error': error, 'next': next_url})
 

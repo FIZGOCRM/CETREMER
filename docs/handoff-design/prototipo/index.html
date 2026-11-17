@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Emergensimples — protótipo de interface</title>
+  <meta name="description" content="Protótipo navegável da plataforma de cursos Emergensimples, com a mentoria Plantão sem GPT.">
+  <meta name="theme-color" content="#141414">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/tokens.css">
+  <link rel="stylesheet" href="assets/css/app.css">
+  <!-- tela de login da plataforma (GoMut), a mesma do acesso do coprodutor -->
+  <link rel="stylesheet" href="assets/css/login.css">
+</head>
+<body>
+  <header class="nav" id="nav"></header>
+  <main id="view">
+    <!-- Aviso de reserva: só aparece se o protótipo não carregar, por exemplo quando este arquivo é
+         aberto como pré-visualização estática, fora do endereço do protótipo. Quando carrega, some sozinho. -->
+    <div style="max-width:520px;margin:14vh auto 0;padding:28px;border-radius:12px;background:#fff;color:#141414;font:16px/1.55 system-ui,-apple-system,'Segoe UI',sans-serif;box-shadow:0 2px 18px rgba(0,0,0,.14);opacity:0;animation:ems-aviso 0s 1.5s forwards">
+      <style>@keyframes ems-aviso { to { opacity: 1; } }</style>
+      <strong style="display:block;font-size:20px;margin-bottom:8px">A área de membros não abre por este arquivo</strong>
+      Ela funciona pelo endereço do protótipo. Abra:
+      <a href="http://localhost:4173/" style="display:block;margin-top:14px;color:#e50914;font-weight:600">localhost:4173</a>
+    </div>
+  </main>
+  <footer class="footer" id="footer"></footer>
+  <nav class="tabbar" id="tabbar" aria-label="Navegação inferior"></nav>
+
+  <div id="modal-root"></div>
+  <div class="peek" id="peek" hidden></div>
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <!-- Área de membros. A área do coprodutor fica em coprodutor.html, com entrada própria. -->
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

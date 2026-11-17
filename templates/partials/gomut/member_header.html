@@ -1,0 +1,38 @@
+{% load cetremer %}<header class="nav" id="nav">
+<a class="nav__brand" href="{% url 'dashboard' %}">Emergensimples</a>
+<nav class="nav__links" aria-label="Principal">
+<a href="{% url 'dashboard' %}"{% if request.resolver_match.url_name == 'dashboard' %} class="is-active" aria-current="page"{% endif %}>Início</a>
+<a href="{% url 'dashboard' %}#meus-cursos">Cursos</a>
+<a href="{% url 'member_section' 'trilhas' %}">Trilhas</a>
+<a href="{% url 'live_classes' %}">Ao vivo</a>
+<a href="{% url 'member_section' 'minha-lista' %}">Minha lista</a>
+</nav>
+<div class="nav__tools">
+<div class="search" id="search">
+<button class="nav__icon" type="button" data-search-toggle aria-label="Buscar cursos" aria-expanded="false" aria-controls="member-search">{% include 'partials/gomut/icon.html' with name='search' %}</button>
+<input class="search__input" id="member-search" type="search" placeholder="Cursos, aulas, áreas" aria-label="Buscar nos meus cursos" tabindex="-1">
+</div>
+<a class="nav__icon" href="{% url 'member_section' 'notificacoes' %}" aria-label="Notificações — necessita de backend">{% include 'partials/gomut/icon.html' with name='bell' %}</a>
+<div class="dd">
+<button class="nav__profile" type="button" data-dropdown aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu" aria-label="Abrir menu do perfil">
+<span class="avatar">{{ user.student_profile.full_name|default:user.email|default:user.username|iniciais }}</span>
+<span class="caret" aria-hidden="true">
+</span>
+</button>
+<div class="dd__panel dd__panel--menu" id="profile-menu">
+<div class="dd__head">
+<div>
+<strong>{{ user.student_profile.full_name|default:user.username }}</strong>
+<span>Área de membros</span>
+</div>
+</div>
+<a class="dd__item" href="{% url 'member_section' 'progresso' %}">Meu progresso</a>
+<a class="dd__item" href="{% url 'certificates' %}">Certificado</a>
+<a class="dd__item" href="{% url 'member_section' 'minha-lista' %}">Minha lista</a>
+<a class="dd__item" href="{% url 'settings' %}">Conta e preferências</a>
+<a class="dd__item" href="{% url 'member_section' 'ajuda' %}">Central de ajuda</a>
+<a class="dd__item" href="{% url 'logout' %}">Sair</a>
+</div>
+</div>
+</div>
+</header>

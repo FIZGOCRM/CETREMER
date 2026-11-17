@@ -1,9 +1,20 @@
-﻿{% extends 'base_aluno.html' %}{% load cetremer %}
-{% block title %}Meus cursos · CETREMER{% endblock %}{% block page_title %}Meus cursos{% endblock %}{% block page_class %}page--gap-40{% endblock %}
-{% block topbar_actions %}<a class="user-chip" href="{% url 'settings' %}"><span class="avatar avatar--32">{{ user.student_profile.full_name|default:user.email|iniciais }}</span><span class="user-chip__name">{{ user.student_profile.full_name|default:user.email }}</span></a><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn--quiet">Sair</button></form>{% endblock %}
-{% block content %}<div class="stack gap-4"><h2 class="page-title">Olá, {{ user.student_profile.full_name|default:user.username|first_name }}</h2><p class="page-intro">{% if my_courses %}Você tem {{ my_courses|length }} cursos ativos. Continue de onde parou.{% else %}Você ainda não tem cursos. Conheça os treinamentos abaixo.{% endif %}</p></div>
-{% if continue_item %}{% with item=continue_item c=continue_item.course %}<section class="card continue" aria-labelledby="continuar"><div class="continue__cover {{ c.cover_class }}">{% if c.cover_image %}<img src="{{ c.cover_image.url }}" alt="">{% else %}<span class="continue__initials">{{ c.short_name|default:c.title }}</span>{% endif %}</div><div class="continue__body"><span class="eyebrow" id="continuar">Continue de onde parou</span><h2 class="continue__title">{{ c.title }}</h2><div class="meta-row"><span class="meta-row__item">{% include 'partials/icon.html' with name='play' size=16 %} Próxima: Aula {{ item.next_lesson.order }} · {{ item.next_lesson.title }}</span><span class="meta-row__item meta-row__item--muted">{% include 'partials/icon.html' with name='clock' size=16 %} {{ item.next_lesson.duration_seconds|duracao }}</span></div><div class="progress-block progress-block--w460">{% include 'partials/progress.html' with value=item.pct size='lg' label='Progresso do curso' %}<span class="progress-label">{{ item.pct }}% concluído · {{ item.completed }} de {{ item.total }} aulas</span></div><div class="row gap-12"><a class="btn btn--primary btn--lg" href="{% url 'lesson_detail' c.slug item.next_lesson.id %}">{% include 'partials/icon.html' with name='play' size=18 %}Continuar aula</a><a class="btn btn--secondary btn--lg" href="{% url 'course_preview' c.slug %}">Ver conteúdo do curso</a></div></div></section>{% endwith %}{% endif %}
-{% if live_item %}<section class="card live-strip"><div class="row gap-16"><span class="icon-tile">{% include 'partials/icon.html' with name='video' size=22 %}</span><div class="stack"><h2 class="live-strip__title">Aula ao vivo · {{ live_item.course.title }}</h2><span class="text-14 muted">Próximo encontro na agenda</span></div></div><div class="row gap-12"><a class="btn btn--ghost" href="{% url 'live_classes' %}">Ver agenda</a><a class="btn btn--dark" href="{{ live_item.course.live_meet_url }}" target="_blank" rel="noopener">Entrar no Google Meet</a></div></section>{% endif %}
-<section class="section"><div class="section__head"><h2 class="section__title">Meus cursos</h2><span class="text-14 muted">{{ my_courses|length }} cursos</span></div><div class="course-grid">{% for item in my_courses %}{% include 'partials/course_card_owned.html' with item=item %}{% empty %}<div class="empty">Nenhum curso adquirido ainda.</div>{% endfor %}</div></section>
-{% if other_courses %}<section class="section"><div class="stack gap-4"><h2 class="section__title">Outros treinamentos CETREMER</h2><span class="text-14 muted">Cursos que você ainda não tem. Veja o conteúdo antes de adquirir.</span></div><div class="course-grid">{% for c in other_courses %}{% include 'partials/course_card_shop.html' with course=c locked=True cta='Conhecer curso' %}{% endfor %}</div></section>{% endif %}
-{% endblock %}
+{% extends 'base_membros.html' %}{% load static %}{% block title %}Início · Emergensimples{% endblock %}{% block content %}
+{% if hero_courses %}{% include 'partials/gomut/course_hero.html' %}{% endif %}
+<div class="page member-catalog" id="meus-cursos">
+<header class="page__head">
+<div>
+<h2 class="section-title">Meus cursos</h2>
+<p class="page__sub">{{ my_courses|length }} curso{{ my_courses|length|pluralize }} · seu aprendizado, no seu ritmo.</p>
+</div>
+</header>
+<div class="grid">{% for item in my_courses %}{% include 'partials/gomut/course_card.html' %}{% empty %}<div class="empty">
+<h2>Nenhum curso disponível</h2>
+<p>A equipe precisa liberar sua matrícula para começar.</p>
+</div>{% endfor %}</div>
+<p class="muted" id="search-empty" hidden>Nenhum curso encontrado.</p>
+</div>
+{% if my_courses %}<section class="member-learning" aria-labelledby="learning-title"><div class="member-learning__heading"><h2 class="section-title" id="learning-title">Seu progresso</h2><a class="linkbtn" href="{% url 'member_section' 'progresso' %}">Ver meu progresso {% include 'partials/gomut/icon.html' with name='right' %}</a></div><div class="member-learning__stats"><div class="stat"><p class="stat__label">Aulas concluídas</p><strong class="stat__value">{{ completed_lesson_count }}</strong></div><div class="stat"><p class="stat__label">Meus cursos</p><strong class="stat__value">{{ my_courses|length }}</strong></div></div></section>{% endif %}
+<div id="modal-root">
+</div>
+<template id="dialog-close-icon">{% include "partials/gomut/icon.html" with name="close" %}</template>{% endblock %}{% block extra_js %}<script src="{% static 'js/gomut/course-carousel.js' %}" defer></script><script src="{% static 'js/gomut/course-dialog.js' %}" defer>
+</script>{% endblock %}

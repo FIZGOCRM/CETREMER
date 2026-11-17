@@ -1,0 +1,3 @@
+{% load static %}<div class="cover">{% if course.cover_image %}<img class="cover__img" src="{{ course.cover_image.url }}" alt="" loading="lazy">{% else %}{% include 'partials/gomut/motif_ecg.html' %}{% endif %}<span class="cover__kicker">{{ course.category.name|default:'Formação em saúde' }}</span>
+<strong class="cover__title">{{ course.title }}</strong>
+</div>

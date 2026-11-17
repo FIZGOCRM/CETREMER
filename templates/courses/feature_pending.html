@@ -1,0 +1,11 @@
+{% extends 'base_membros.html' %}{% block title %}{{ section_title }} · Emergensimples{% endblock %}{% block content %}<div class="page">
+<header class="page__head">
+<h1 class="page__title">{{ section_title }}</h1>
+</header>
+<div class="panel">
+<div class="panel__body">
+<h2>{{ section_title }}</h2>{% include 'partials/gomut/backend_pending.html' %}<p>Esta função ainda não está disponível nesta versão.</p>
+<a class="btn btn--light" href="{% url 'dashboard' %}">Voltar ao início</a>
+</div>
+</div>
+</div>{% endblock %}

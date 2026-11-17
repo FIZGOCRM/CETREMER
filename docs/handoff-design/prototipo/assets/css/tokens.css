@@ -1,0 +1,79 @@
+/* ==========================================================================
+   Emergensimples — tokens de design
+   Paleta base: preto / vermelho / branco (referência Netflix).
+   Tudo o que define a identidade mora aqui; o resto do CSS só consome.
+   ========================================================================== */
+
+:root {
+  /* Cor — superfícies (do mais fundo ao mais elevado) */
+  --c-black: #000000;
+  --c-bg: #141414;
+  --c-surface-1: #181818;
+  --c-surface-2: #232323;
+  --c-surface-3: #2f2f2f;
+  --c-surface-4: #414141;
+
+  /* Cor — marca */
+  --c-red: #e50914;
+  --c-red-hover: #f6121d;
+  --c-red-press: #b20710;
+
+  /* Cor — texto */
+  --c-text: #ffffff;
+  --c-text-2: #e5e5e5;
+  --c-text-3: #b3b3b3;
+  --c-text-4: #808080;
+
+  /* Cor — linhas e estados */
+  --c-line: rgba(255, 255, 255, 0.12);
+  --c-line-strong: rgba(255, 255, 255, 0.32);
+  --c-green: #46d369;   /* concluído / positivo */
+  --c-amber: #e8b339;   /* aviso / destaque secundário */
+
+  /* Tipografia */
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+
+  --fs-xs: 12px;
+  --fs-s: 14px;
+  --fs-m: 16px;
+  --fs-l: 18px;
+  --fs-xl: clamp(20px, 1.6vw, 26px);
+  --fs-page: clamp(30px, 3.6vw, 48px);
+  --fs-hero: clamp(56px, 9.4vw, 156px);
+
+  /* Forma */
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 10px;
+  --radius-pill: 999px;
+
+  /* Espaço */
+  --gutter: clamp(16px, 4vw, 60px);
+  --gap: 8px;
+  --nav-h: 68px;
+
+  /* Trilhos (quantos cartões cabem por linha) */
+  --cols: 6;
+
+  /* Movimento */
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 150ms;
+  --t-med: 260ms;
+
+  /* Elevação */
+  --shadow-pop: 0 14px 44px rgba(0, 0, 0, 0.78);
+  --shadow-card: 0 6px 20px rgba(0, 0, 0, 0.5);
+
+  /* Camadas */
+  --z-peek: 40;
+  --z-nav: 50;
+  --z-tabbar: 55;
+  --z-modal: 100;
+  --z-toast: 200;
+}
+
+@media (max-width: 1499px) { :root { --cols: 5; } }
+@media (max-width: 1199px) { :root { --cols: 4; } }
+@media (max-width: 899px)  { :root { --cols: 3; --nav-h: 56px; } }
+@media (max-width: 599px)  { :root { --cols: 2; --gap: 6px; } }

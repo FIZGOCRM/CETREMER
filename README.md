@@ -2,6 +2,15 @@
 
 Plataforma completa de cursos online, streaming de aulas em vídeo, área do aluno, portal do criador/produtor e fórum de comunidade, desenvolvida em **Python + Django**.
 
+
+## Estado do checkout e organizacao do backend
+
+O checkout simulado foi removido. Compras online permanecem indisponiveis ate a integracao real com um gateway; o endpoint de processamento retorna HTTP 503 sem criar conta, pedido ou matricula. Matriculas administrativas e acesso dos alunos continuam disponiveis.
+
+Os fluxos refatorados separam validacao (`painel/forms.py`), consultas (`courses/selectors.py`), casos de uso (`courses/services.py`, `users/services.py`), integracoes (`courses/integrations/`) e HTTP (`painel/views/`). Certificados sao emitidos por POST; GET consulta requisitos ou exibe o certificado existente.
+
+SQLite permanece como banco. O comando `python manage.py backup_sqlite CAMINHO-DE-UM-NOVO-BACKUP.sqlite3` cria um snapshot consistente sem sobrescrever arquivos. Consulte [operacao e restauracao](docs/operacao-sqlite.md) e o [guia interativo](docs/arquitetura-cetremer.html).
+
 ---
 
 ## 🚀 Como Rodar o Projeto na Nova Máquina
@@ -138,3 +147,17 @@ CETREMER/
 ├── manage.py           # Utilitário de comando do Django
 └── seed.py             # Script para resetar e popular banco de teste
 ```
+
+
+## Preparacao de mensalidades e periodos quitados
+
+A importacao possui modo especifico para mensalidades ja pagas fora da plataforma, com previa e revisao explicita. Os contratos ficam em migracao, sem gerar cobrancas. Cada curso tem acesso independente pelo periodo quitado e tres dias de tolerancia. Matriculas existentes sem prazo sao preservadas. Consulte [o roteiro e o modelo CSV](docs/migracao-mensalidades.md). As novas migrations precisam ser aplicadas no ambiente da instalacao antes de usar essa versao.
+
+
+## Infraestrutura Asaas (consultas e eventos)
+
+Cliente de consulta, configuracao unica ASAAS_* no servidor, caixa de entrada autenticada em /webhooks/asaas/ e comando reconcile_asaas_charges foram preparados. API e webhook ficam desativados por padrao. Campos antigos de gateway no banco sao preservados, mas ignorados e ocultos dos formularios. Eventos e conferencias nao aprovam pedidos nem renovam acesso; a criacao de cobrancas continua bloqueada. Consulte [o guia tecnico e os limites da etapa](docs/asaas-integracao-tecnica.md).
+
+## Demonstração da nova área do aluno
+
+Login GoMut, cursos, módulos, aula e progresso foram adaptados ao handoff. O painel oferece registro manual de períodos quitados, sem cobrar pelo gateway. A demonstração usa banco separado e dados fictícios. Consulte [acessos, roteiro, verificação e limites](docs/area-aluno-demonstracao.md).

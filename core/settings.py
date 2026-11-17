@@ -100,7 +100,7 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get('DJANGO_DATABASE_PATH') or BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -148,6 +148,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MATERIAL_MAX_MB = 20
+GOMUT_DEMO_MODE = os.environ.get('GOMUT_DEMO_MODE', 'False').lower() in ('true', '1', 'yes')
+
+# Configuração única do Asaas; campos históricos no banco não são utilizados.
+# Nesta etapa, habilitar consultas/webhook não habilita criação de cobranças.
+ASAAS_ENVIRONMENT = os.environ.get('ASAAS_ENVIRONMENT', 'sandbox')
+ASAAS_API_ENABLED = os.environ.get('ASAAS_API_ENABLED', 'False').lower() in ('true', '1', 'yes')
+ASAAS_API_KEY = os.environ.get('ASAAS_API_KEY', '')
+ASAAS_WEBHOOK_ENABLED = os.environ.get('ASAAS_WEBHOOK_ENABLED', 'False').lower() in ('true', '1', 'yes')
+ASAAS_WEBHOOK_TOKEN = os.environ.get('ASAAS_WEBHOOK_TOKEN', '')
+ASAAS_TIMEOUT = os.environ.get('ASAAS_TIMEOUT', '10')
 
 AUTH_USER_MODEL = 'users.User'
 AUTHENTICATION_BACKENDS = ['users.backends.EmailBackend', 'django.contrib.auth.backends.ModelBackend']

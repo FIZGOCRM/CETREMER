@@ -1,23 +1,41 @@
-﻿{% extends 'base_core.html' %}
-{% block title %}Entrar · CETREMER{% endblock %}
-{% block body %}
-<div class="auth">
-  <section class="auth__brand">
-    <a class="auth__brand-link" href="{% url 'landing' %}"><span class="auth__brand-name">{{ site.school_name|default:'CETREMER' }}</span><span class="auth__brand-tag">Centro de Treinamento em Emergência</span></a>
-    <div class="auth__pitch"><h1 class="auth__title">Sua área do aluno</h1><p class="auth__lead">Continue aprendendo com quem atua todos os dias na emergência.</p></div>
-    <span class="auth__foot">Aprenda fazendo, com quem faz.</span>
-  </section>
-  <main class="auth__main">
-    <form class="auth__form" method="post" action="{% url 'login' %}">
-      {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-      {% include 'partials/messages.html' %}
-      <div class="stack gap-6"><h2 class="auth__heading">Entrar</h2><p class="muted">Use o e-mail cadastrado na compra.</p></div>
-      <div class="field"><label class="field__label" for="username">E-mail</label><input class="input" type="email" name="username" id="username" autocomplete="email" value="{{ request.POST.username|default:'' }}" required></div>
-      <div class="field"><div class="field__head"><label class="field__label" for="password">Senha</label><a href="{% url 'password_reset' %}">Esqueci minha senha</a></div><input class="input" type="password" name="password" id="password" autocomplete="current-password" required></div>
-      <button class="btn btn--primary btn--xl" type="submit">Entrar</button>
-      <p class="auth__switch">Ainda não tem conta? <a href="{% url 'register' %}">Criar conta</a></p>
-      <p class="auth__note">Recebeu acesso do administrador? <a href="{% url 'first_access' %}">Primeiro acesso</a></p>
-    </form>
-  </main>
+{% extends 'base_gomut.html' %}{% load static %}{% block area %}login{% endblock %}{% block theme_color %}#142724{% endblock %}{% block title %}Entrar · GoMut{% endblock %}{% block extra_css %}<link rel="stylesheet" href="{% static 'css/gomut/login.css' %}">{% endblock %}{% block body %}
+<main class="auth gm-login">
+<header class="gm-login__barra">
+<span class="gm-login__logo">
+<img src="{% static 'gomut/marca/gomut-logo.png' %}" alt="GoMut" width="1568" height="432">
+</span>
+<div class="dd gm-login__menu">
+<button type="button" class="gm-login__link" data-dropdown aria-haspopup="true" aria-expanded="false" aria-controls="login-menu">Entrar {% include 'partials/gomut/icon.html' with name='down' %}</button>
+<div class="dd__panel dd__panel--menu" id="login-menu">
+<a class="dd__item" href="{% url 'login' %}?acesso=admin">{% include 'partials/gomut/icon.html' with name='sliders' %}Gerenciar meus negócios</a>
+<a class="dd__item" href="{% url 'login' %}">{% include 'partials/gomut/icon.html' with name='play' %}Acessar minhas compras</a>
 </div>
-{% endblock %}
+</div>
+</header>
+<div class="gm-login__palco">
+<div class="gm-login__texto">
+<h1>
+<span>Força para fazer</span> avançar.</h1>
+<p>Uma proposta de experiência com clareza, presença e ação.</p>
+</div>
+<div class="gm-login__marca">
+<div class="gm-login__arte" aria-hidden="true">
+<img src="{% static 'gomut/marca/gomut-go-mamute-vidro-4k.png' %}" alt="" width="3840" height="1965">
+</div>
+</div>
+<form class="gm-login__cartao form" method="post" action="{% url 'login' %}{% if request.GET.acesso == 'admin' %}?acesso=admin{% endif %}">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+<div>
+<h2>{% if request.GET.acesso == 'admin' %}Gerenciar meus negócios{% else %}Acessar minhas compras{% endif %}</h2>
+<p>{% if request.GET.acesso == 'admin' %}Entre e gerencie seu negócio.{% else %}Entre e acesse seus cursos.{% endif %}</p>
+</div>{% for message in messages %}<p class="tag tag--line" role="status">{{ message }}</p>{% endfor %}{% if error %}<p class="tag tag--line" role="alert">{{ error }}</p>{% endif %}<div class="field">
+<label class="sr-only" for="username">E-mail</label>
+<input class="input" id="username" name="username" type="email" placeholder="Seu e-mail" autocomplete="username" required value="{{ request.POST.username|default:'' }}">
+</div>
+<div class="field">
+<label class="sr-only" for="password">Senha</label>
+<input class="input" id="password" name="password" type="password" placeholder="Sua senha" autocomplete="current-password" required>
+</div>
+<button class="btn btn--block gm-login__entrar" type="submit">Entrar</button>
+</form>
+</div>
+</main>{% endblock %}

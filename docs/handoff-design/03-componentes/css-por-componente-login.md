@@ -1,0 +1,434 @@
+# CSS por componente — tela de login
+
+Gerado automaticamente a partir do CSS do protótipo (pasta `prototipo/assets/css/`). Cada regra aparece **inteira e sem alteração**, agrupada por componente. O comentário `/* valores: … */` depois de cada regra mostra o valor final de cada variável usada nela. Regras dentro de `@media` valem só na largura de tela indicada. Contexto das variáveis: tela de login da GoMut, a mesma nas duas áreas.
+
+## Índice
+
+- Base, foco e seleção de texto (4 regras)
+- Utilitários e textos de apoio (1 regras)
+- Menus suspensos (5 regras)
+- Tela de login (39 regras)
+- Outras peças (1 regras)
+
+## Base, foco e seleção de texto
+
+Arquivo de origem: `assets/css/login.css`
+
+```css
+.auth.gm-login .input {
+  height: 52px;
+  background: rgba(8, 20, 18, 0.55);
+  border-color: rgba(255, 255, 255, 0.26);
+  color: #fff;
+}
+
+.auth.gm-login .input:hover {
+  border-color: rgba(255, 255, 255, 0.52);
+}
+
+.auth.gm-login .input:focus {
+  outline: 2px solid var(--gm-ambar);
+  outline-offset: 2px;
+  border-color: var(--gm-ambar);
+}
+/* valores: --gm-ambar = #faad31 */
+
+.auth.gm-login .input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+```
+
+## Utilitários e textos de apoio
+
+Arquivo de origem: `assets/css/login.css`
+
+```css
+.gm-login__link .ico {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.4;
+  transition: transform var(--t-fast);
+}
+/* valores: --t-fast = 150ms */
+
+```
+
+## Menus suspensos
+
+Arquivo de origem: `assets/css/login.css`
+
+```css
+.dd.is-open .gm-login__link .ico {
+  transform: rotate(180deg);
+}
+
+.auth.gm-login .dd__panel {
+  background: #fff;
+  border: 1px solid rgba(32, 34, 33, 0.13);
+  border-top: 2px solid var(--gm-grafite);
+  box-shadow: 0 14px 44px rgba(20, 39, 36, 0.2);
+}
+/* valores: --gm-grafite = #202221 */
+
+.auth.gm-login .dd__item {
+  color: #363a38;
+}
+
+.auth.gm-login .dd__item:hover {
+  background: rgba(4, 115, 107, 0.07);
+  color: var(--gm-grafite);
+}
+/* valores: --gm-grafite = #202221 */
+
+.auth.gm-login .dd__item .ico {
+  color: #565d5a;
+}
+
+```
+
+## Tela de login
+
+Arquivo de origem: `assets/css/login.css`
+
+```css
+/* GoMut — tela de login da plataforma.
+
+   A mesma tela serve aos dois acessos:
+   - "Gerenciar meus negócios"  (coprodutor.html)
+   - "Acessar minhas compras"   (área de membros, index.html#/entrar)
+   O desenho, as cores e os textos de destaque são iguais; mudam só o título do cartão e a frase
+   logo abaixo dele. O conteúdo é montado por telaLogin(), em assets/js/app.js.
+
+   Este arquivo é carregado pelas duas páginas e traz as próprias cores (paleta da GoMut), para a
+   tela ficar idêntica nas duas, sem depender das cores de nenhuma delas. */
+/* fundo escuro da marca (verde profundo) com um brilho em Verde GO; textos e campos claros */
+.auth.gm-login {
+  --gm-go: #04736b;
+  --gm-go-escuro: #035a54;
+  --gm-grafite: #202221;
+  --gm-ambar: #faad31;
+  --gm-profundo: #142724;
+  --c-text: #ffffff;
+  --c-text-2: rgba(255, 255, 255, 0.92);
+  --c-text-3: rgba(255, 255, 255, 0.78);
+  --c-text-4: rgba(255, 255, 255, 0.6);
+  --c-line: rgba(255, 255, 255, 0.16);
+  --c-line-strong: rgba(255, 255, 255, 0.34);
+  color: #fff;
+  background: radial-gradient(46% 70% at 56% 52%, rgba(4, 115, 107, 0.9), rgba(4, 115, 107, 0) 74%), var(--gm-profundo);
+}
+/* valores: --gm-profundo = #142724 */
+
+.auth.gm-login :focus-visible {
+  outline: 2px solid var(--gm-ambar);
+  outline-offset: 2px;
+}
+/* valores: --gm-ambar = #faad31 */
+
+/* texto selecionado (nos campos e no restante da tela): âmbar da GoMut com letra grafite */
+.auth.gm-login ::selection {
+  background: var(--gm-ambar);
+  color: var(--gm-grafite);
+}
+/* valores: --gm-ambar = #faad31 · --gm-grafite = #202221 */
+
+/* ------------------------------------------------------------ barra do topo */
+/* vidro claro: branco translúcido, com desfoque e contorno fino, no mesmo espírito do cartão de
+   acesso; claro o bastante para o logotipo colorido aparecer bem */
+.gm-login__barra {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: clamp(12px, 1.6vw, 22px) clamp(12px, 3.4vw, 68px) 0;
+  padding: 10px clamp(14px, 2vw, 28px);
+  border-radius: var(--radius-l);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  color: var(--gm-grafite);
+}
+/* valores: --gm-grafite = #202221 · --radius-l = 10px */
+
+.auth.gm-login .gm-login__barra :focus-visible {
+  outline-color: var(--gm-go);
+}
+/* valores: --gm-go = #04736b */
+
+.gm-login__logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+
+.gm-login__logo img {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+/* "Entrar" com seta, à direita da barra: abre o menu para escolher o acesso */
+.gm-login__menu {
+  margin-left: auto;
+}
+
+.gm-login__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 2px;
+  font-size: var(--fs-m);
+  font-weight: 600;
+  color: var(--gm-go-escuro);
+  transition: color var(--t-fast);
+}
+/* valores: --fs-m = 16px · --gm-go-escuro = #035a54 · --t-fast = 150ms */
+
+.gm-login__link:hover {
+  color: var(--gm-grafite);
+}
+/* valores: --gm-grafite = #202221 */
+
+/* ------------------------------------------- frase, arte e cartão de acesso */
+.gm-login__palco {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(300px, 372px);
+  align-items: center;
+  gap: clamp(20px, 2.6vw, 44px);
+  padding: clamp(24px, 4vw, 56px) clamp(12px, 3.4vw, 68px);
+}
+
+.gm-login__texto h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 84%;
+  font-size: clamp(42px, 4.75vw, 82px);
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+/* valores: --font-display = "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif */
+
+.gm-login__texto h1 span {
+  display: block;
+  white-space: nowrap;
+}
+
+.gm-login__texto p {
+  margin-top: clamp(10px, 1.1vw, 16px);
+  max-width: 26em;
+  font-size: clamp(14px, 1.15vw, 17px);
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--c-text-2);
+  text-wrap: balance;
+}
+/* valores: --c-text-2 = rgba(255, 255, 255, 0.92) */
+
+/* "GO" e o mamute, translúcidos, direto sobre o brilho verde, na mesma cor do cartão de acesso:
+   o arquivo da arte já vem em rgb(9, 22, 20) e a opacidade abaixo é a mesma do cartão, 0,74.
+   A arte é 40% maior do que a coluna dela (a largura segue a da tela, pela conta abaixo) e passa
+   para a esquerda, ocupando o espaço livre depois da frase, com uma folga; o pouco que sobra cabe
+   no vão antes do cartão. Frase e cartão ficam sempre por cima da arte. */
+.gm-login__arte {
+  position: relative;
+  aspect-ratio: 3840 / 1965;
+  width: calc(54.47vw - 237px);
+  margin-left: max(calc(219px - 25.05vw), calc(67.6px - 14.47vw));
+}
+
+.gm-login__arte img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.74;
+}
+
+/* telas muito largas: a arte para de crescer e encosta no fim da coluna dela */
+@media (min-width: 1900px) {
+  .gm-login__arte {
+    width: 798px;
+    margin-left: calc(100% - 798px);
+  }
+}
+
+.gm-login__texto, .gm-login__cartao {
+  position: relative;
+  z-index: 1;
+}
+
+/* com o título maior, o fim da primeira linha passa por cima do canto da arte: o bloco de texto sobe
+   um pouco para a linha ficar acima do "G", com folga, em vez de encostar nele */
+.gm-login__texto {
+  transform: translateY(-2.2vw);
+}
+
+/* cartão em vidro escuro, só com e-mail e senha */
+.gm-login__cartao {
+  padding: clamp(22px, 2.4vw, 34px);
+  border-radius: var(--radius-l);
+  border: 1px solid var(--c-line);
+  background: rgba(9, 22, 20, 0.74);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* valores: --c-line = rgba(255, 255, 255, 0.16) · --radius-l = 10px */
+
+.gm-login__cartao h2 {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+}
+/* valores: --fs-xl = clamp(20px, 1.6vw, 26px) */
+
+.gm-login__cartao > div > p {
+  margin-top: 6px;
+  font-size: var(--fs-s);
+  color: var(--c-text-3);
+  text-wrap: balance;
+}
+/* valores: --c-text-3 = rgba(255, 255, 255, 0.78) · --fs-s = 14px */
+
+/* botão de entrar: âmbar com texto grafite, como os botões do manual sobre fundo escuro */
+.gm-login__entrar {
+  height: 52px;
+  background: var(--gm-ambar);
+  color: var(--gm-grafite);
+  font-size: var(--fs-l);
+}
+/* valores: --fs-l = 18px · --gm-ambar = #faad31 · --gm-grafite = #202221 */
+
+.gm-login__entrar:hover {
+  background: #ffbd52;
+}
+
+.gm-login__entrar:active {
+  background: #eb9d1f;
+}
+
+.auth.gm-login .auth__foot {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* --------------------------------------------------------------- responsivo */
+/* telas médias: frase e arte à esquerda, cartão de acesso à direita */
+@media (max-width: 1199px) {
+  .auth.gm-login {
+    background: radial-gradient(64% 62% at 30% 60%, rgba(4, 115, 107, 0.9), rgba(4, 115, 107, 0) 74%), var(--gm-profundo);
+  }
+}
+/* valores: --gm-profundo = #142724 */
+
+@media (max-width: 1199px) {
+  .gm-login__palco {
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 340px);
+    gap: 22px clamp(20px, 3vw, 36px);
+    padding: 28px var(--gutter);
+    align-content: center;
+  }
+}
+/* valores: --gutter = clamp(16px, 4vw, 60px) */
+
+@media (max-width: 1199px) {
+  .gm-login__texto {
+    grid-column: 1;
+    align-self: end;
+    transform: none;
+  }
+}
+
+@media (max-width: 1199px) {
+  .gm-login__marca {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+    align-self: start;
+    width: min(406px, 108%);
+  }
+}
+
+@media (max-width: 1199px) {
+  .gm-login__arte {
+    width: 100%;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 1199px) {
+  .gm-login__cartao {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
+}
+
+@media (max-width: 1199px) {
+  .gm-login__logo img {
+    height: 36px;
+  }
+}
+
+/* celular: frase, arte e cartão ficam um embaixo do outro */
+@media (max-width: 699px) {
+  .auth.gm-login {
+    background: radial-gradient(90% 44% at 50% 38%, rgba(4, 115, 107, 0.9), rgba(4, 115, 107, 0) 74%), var(--gm-profundo);
+  }
+}
+/* valores: --gm-profundo = #142724 */
+
+@media (max-width: 699px) {
+  .gm-login__palco {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 20px;
+    padding: 22px var(--gutter);
+    text-align: center;
+  }
+}
+/* valores: --gutter = clamp(16px, 4vw, 60px) */
+
+@media (max-width: 699px) {
+  .gm-login__texto, .gm-login__marca, .gm-login__cartao {
+    grid-column: 1;
+    grid-row: auto;
+    align-self: auto;
+  }
+}
+
+@media (max-width: 699px) {
+  .gm-login__marca {
+    width: min(336px, 87vw);
+  }
+}
+
+@media (max-width: 699px) {
+  .gm-login__cartao {
+    width: min(440px, 100%);
+    text-align: left;
+  }
+}
+
+@media (max-width: 699px) {
+  .gm-login__logo img {
+    height: 32px;
+  }
+}
+
+```
+
+## Outras peças
+
+Arquivo de origem: `assets/css/login.css`
+
+```css
+/* Bordas da página: o fundo que aparece em volta do conteúdo (ao rolar além do fim, nas margens do
+   navegador e nas áreas do aparelho) fica na mesma cor de fundo desta tela, e não na cor da área
+   que vem depois do login. */
+html:has(.gm-login), html:has(.gm-login) body[data-page] {
+  background: #142724;
+}
+
+```
