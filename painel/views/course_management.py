@@ -66,7 +66,7 @@ def course_edit(request, course_id=None):
         return redirect("painel:course_edit", course_id=course.id)
     return page(
         request,
-        "course_edit",
+        "course_edit" if course else "course_create",
         course=course,
         form=form,
         categories=Category.objects.all(),
