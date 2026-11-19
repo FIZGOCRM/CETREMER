@@ -1,5 +1,6 @@
 from datetime import datetime,time,timedelta
 from django.core.mail import send_mail
+from django.db import transaction
 from django.db.models import Q
 from uuid import uuid4
 from django.urls import reverse
@@ -8,8 +9,16 @@ from .models import EmailLog,Notification,SiteSettings
 
 
 def notify(user,kind,reference,title,body='',url='',*,email=False,send_before=None):
-    notice,_=Notification.objects.get_or_create(user=user,kind=kind,reference=str(reference),defaults={'title':title,'body':body,'url':url})
-    if email:queue_email(user,kind,f'{user.pk}:{reference}',title,body,send_before=send_before)
+    # Commit the bell entry and its outbox row together. A stopped scheduler can
+    # retry the pending message without generating a second publication.
+    log = None
+    with transaction.atomic():
+        notice, created = Notification.objects.get_or_create(
+            user=user, kind=kind, reference=str(reference), defaults={"title": title, "body": body, "url": url})
+        if email and created:
+            log, _ = _email_log(user, kind, f"{user.pk}:{reference}", title, body, send_before=send_before)
+    if log:
+        _deliver(log.pk)
     return notice
 
 
@@ -104,9 +113,14 @@ def _deliver(log_id):
     return EmailLog.objects.get(pk=log_id)
 
 
-def queue_email(user,kind,reference,subject,body,*,send_before=None):
+def _email_log(user,kind,reference,subject,body,*,send_before=None):
     log,created=EmailLog.objects.get_or_create(kind=kind,reference=str(reference),defaults={'user':user,'subject':subject,'body':body,'send_before':send_before})
     if log.user_id!=user.pk:raise ValueError('A referência de e-mail deve identificar seu destinatário.')
+    return log, created
+
+
+def queue_email(user,kind,reference,subject,body,*,send_before=None):
+    log, created = _email_log(user, kind, reference, subject, body, send_before=send_before)
     return _deliver(log.pk) if created else log
 
 

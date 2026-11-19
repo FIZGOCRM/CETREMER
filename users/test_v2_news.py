@@ -42,6 +42,15 @@ class CourseNewsTests(TestCase):
         self.enrollment.save()
         self.assertFalse(any(email_is_current(log) for log in EmailLog.objects.all()))
 
+    def test_interrupted_publication_retries_both_channels(self):
+        with patch("users.notifications._email_log", side_effect=RuntimeError("interrupted")):
+            with self.assertRaises(RuntimeError):
+                run_live_reminders()
+        self.assertFalse(Notification.objects.filter(kind="new_lesson").exists())
+        run_live_reminders()
+        self.assertEqual(Notification.objects.filter(kind="new_lesson").count(), 1)
+        self.assertEqual(EmailLog.objects.filter(kind="new_lesson").count(), 1)
+
     def test_unreleased_ebook_and_opt_out(self):
         self.module.release_month = 2
         self.module.save()
