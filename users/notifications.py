@@ -13,6 +13,15 @@ def notify(user,kind,reference,title,body='',url='',*,email=False,send_before=No
     return notice
 
 
+REMINDER_KINDS = {"live_reminder", "live_reminder_24h"}
+CONTENT_KINDS = {"new_lesson", "new_ebook", "new_recording"}
+
+
+def recording_available(event, now):
+    return bool(event.is_active and event.recording_url and event.recording_added_at and
+                event.starts_at + timedelta(minutes=event.duration_minutes) <= now)
+
+
 def email_is_current(log):
     """Revalidate the event, recipient and entitlement at delivery time."""
     from courses.access import access_decision, lesson_availability, module_release_date
@@ -23,16 +32,27 @@ def email_is_current(log):
     if log.status=='sent' or log.kind in ('first_access','reset_access','smtp_test'):return False
     if log.send_before and log.send_before<=timezone.now():return False
     if not log.user.is_active or not log.user.email:return False
-    if log.kind not in ('new_lesson','module_release','expiry','live_reminder'):return True
+    if log.kind not in CONTENT_KINDS | REMINDER_KINDS | {"module_release", "expiry"}:return True
     if log.user.role!='STUDENT':return False
     student=log.user.student_profile
-    if log.kind in ('new_lesson','module_release') and not student.email_new_lessons:return False
-    if log.kind=='live_reminder' and not student.email_live_events:return False
-    parts=log.reference.split(':',3 if log.kind!='live_reminder' else 2)
+    if log.kind in ('new_lesson','new_ebook','module_release') and not student.email_new_lessons:return False
+    if log.kind in REMINDER_KINDS | {'new_recording'} and not student.email_live_events:return False
+    parts=log.reference.split(':',2 if log.kind in REMINDER_KINDS else 3)
     def identifier(value):
         return value.isdecimal() and 0<int(value)<2**63
     if not parts or not identifier(parts[0]) or int(parts[0])!=log.user_id:return False
-    if log.kind=='live_reminder':
+    if log.kind == "new_recording":
+        if len(parts) != 2 or not identifier(parts[1]):
+            return False
+        event = LiveEvent.objects.filter(pk=parts[1]).first()
+        if not event or not recording_available(event, timezone.now()):
+            return False
+        try:
+            require_event_access(log.user, event)
+        except PermissionDenied:
+            return False
+        return True
+    if log.kind in REMINDER_KINDS:
         if len(parts)!=3 or not identifier(parts[1]):return False
         event=LiveEvent.objects.filter(pk=int(parts[1]),is_active=True,starts_at__gt=timezone.now()).first()
         if not event or event.starts_at.isoformat()!=parts[2] or not LiveReminder.objects.filter(student=student,event=event).exists():return False
@@ -46,9 +66,13 @@ def email_is_current(log):
         notice=plan_expiry_notice(enrollment)
         return bool(notice and str(notice['last_day'])==parts[2] and str(notice['days'])==parts[3])
     if not enrollment.course.is_published or not access_decision(enrollment).allowed or not identifier(parts[2]):return False
+    if log.kind == "new_ebook":
+        from courses.models import LessonMaterial
+        material = LessonMaterial.objects.filter(pk=parts[2], lesson__module__course=enrollment.course).select_related("lesson__module__course").first()
+        return bool(material and (material.file or material.url) and lesson_availability(enrollment, material.lesson).state == "available")
     if log.kind=='new_lesson':
         lesson=Lesson.objects.filter(pk=int(parts[2]),module__course=enrollment.course).select_related('module__course').first()
-        return bool(lesson and lesson.published_at and lesson.published_at.isoformat()==parts[3] and lesson_availability(enrollment,lesson).state=='available')
+        return bool(lesson and lesson.published_at and lesson_availability(enrollment,lesson).state=='available')
     module=Module.objects.filter(pk=int(parts[2]),course=enrollment.course,status='published').first()
     release=module_release_date(enrollment,module) if module else None
     return bool(release and str(release)==parts[3] and release<=timezone.localdate())
@@ -115,9 +139,7 @@ def run_daily_notifications(*,on=None):
         for module in Module.objects.filter(course=enrollment.course,status='published'):
             if module.release_month>1 and module_release_date(enrollment,module)==today:
                 notify(user,'module_release',f'{enrollment.pk}:{module.pk}:{today}','Módulo liberado',f'{module.title} já está disponível em {enrollment.course.title}.',reverse('member_course',args=[enrollment.course.slug]),email=enrollment.student.email_new_lessons)
-        for lesson in Lesson.objects.filter(module__course=enrollment.course,status='published',module__status='published',published_at__isnull=False,published_at__gte=enrollment.enrolled_at).select_related('module__course'):
-            if lesson_availability(enrollment,lesson,on=today).state=='available':
-                notify(user,'new_lesson',f'{enrollment.pk}:{lesson.pk}:{lesson.published_at.isoformat()}','Nova aula disponível',f'{lesson.title} foi publicada em {enrollment.course.title}.',reverse('lesson_detail',args=[enrollment.course.slug,lesson.pk]),email=enrollment.student.email_new_lessons)
+    run_content_notifications(on=today)
     for reminder in LiveReminder.objects.select_related('student__user','event').filter(event__is_active=True,event__starts_at__date=today):
         try:require_event_access(reminder.student.user,reminder.event)
         except PermissionDenied:continue
@@ -126,18 +148,72 @@ def run_daily_notifications(*,on=None):
     return Notification.objects.count()-before
 
 
+def run_content_notifications(*, on=None):
+    """Catch up on publications since enrollment, including newly unlocked modules."""
+    from courses.access import access_decision, lesson_availability
+    from courses.models import Enrollment, Lesson, LessonMaterial, LiveEvent
+
+    now = timezone.now()
+    enrollments = Enrollment.objects.filter(student__user__is_active=True, course__is_published=True
+        ).select_related("course", "student__user").prefetch_related("access_periods")
+    for enrollment in enrollments:
+        if not access_decision(enrollment, on=on).allowed:
+            continue
+        student = enrollment.student
+        scope = {"module__course": enrollment.course, "module__status": "published", "status": "published"}
+        lessons = Lesson.objects.filter(**scope).select_related("module__course")
+        # V1 references used the publication timestamp. Recognize those existing notices as delivered too.
+        seen = {reference.split(":", 2)[1] for reference in Notification.objects.filter(
+            user=student.user, kind="new_lesson", reference__startswith=f"{enrollment.pk}:"
+        ).values_list("reference", flat=True)}
+        for lesson in lessons.filter(published_at__range=(enrollment.enrolled_at, now)):
+            if str(lesson.pk) in seen or lesson_availability(enrollment, lesson, on=on).state != "available":
+                continue
+            notify(student.user, "new_lesson", f"{enrollment.pk}:{lesson.pk}:publication",
+                   "Nova aula disponível", f"{lesson.title} foi publicada em {enrollment.course.title}.",
+                   reverse("lesson_detail", args=[enrollment.course.slug, lesson.pk]), email=student.email_new_lessons)
+        materials = LessonMaterial.objects.filter(lesson__in=lessons, created_at__range=(enrollment.enrolled_at, now)
+            ).exclude(file="", url="").select_related("lesson__module__course")
+        for material in materials:
+            if lesson_availability(enrollment, material.lesson, on=on).state == "available":
+                notify(student.user, "new_ebook", f"{enrollment.pk}:{material.pk}:publication",
+                       "Novo e-book disponível", f"{material.title} · {enrollment.course.title}",
+                       reverse("material_open", args=["lesson", material.pk]), email=student.email_new_lessons)
+        recordings = LiveEvent.objects.filter(Q(course=enrollment.course) | Q(course__isnull=True),
+            is_active=True, recording_added_at__range=(enrollment.enrolled_at, now)).exclude(recording_url="")
+        for event in recordings:
+            if recording_available(event, now):
+                notify(student.user, "new_recording", event.pk, "Gravação disponível", event.title,
+                       reverse("live_link", args=[event.pk, "gravacao"]), email=student.email_live_events)
+
+
 def run_live_reminders():
-    from datetime import timedelta
     from django.core.exceptions import PermissionDenied
     from courses.models import LiveReminder
     from courses.live_services import require_event_access
-    now=timezone.now();count=0
-    for reminder in LiveReminder.objects.select_related('student__user','event').filter(event__is_active=True,event__starts_at__gt=now,event__starts_at__lte=now+timedelta(hours=1),student__email_live_events=True):
-        try:require_event_access(reminder.student.user,reminder.event)
-        except PermissionDenied:continue
-        queue_email(reminder.student.user,'live_reminder',f'{reminder.student.user_id}:{reminder.event_id}:{reminder.event.starts_at.isoformat()}',f'Em breve: {reminder.event.title}',timezone.localtime(reminder.event.starts_at).strftime('Seu encontro começa às %H:%M. Acesse Ao vivo na plataforma.'),send_before=reminder.event.starts_at)
-        count+=1
-    retry_pending_emails();return count
+
+    now = timezone.now()
+    count = 0
+    reminders = LiveReminder.objects.select_related("student__user", "event").filter(
+        student__user__is_active=True, event__is_active=True, event__starts_at__gt=now,
+        event__starts_at__lte=now+timedelta(hours=24))
+    for reminder in reminders:
+        event = reminder.event
+        try:
+            require_event_access(reminder.student.user, event)
+        except PermissionDenied:
+            continue
+        soon = event.starts_at <= now + timedelta(hours=1)
+        kind = "live_reminder" if soon else "live_reminder_24h"
+        title = ("Em breve: " if soon else "Nas próximas 24 horas: ") + event.title
+        notify(reminder.student.user, kind, f"{event.pk}:{event.starts_at.isoformat()}", title,
+               timezone.localtime(event.starts_at).strftime("Encontro em %d/%m às %H:%M. Acesse Ao vivo na plataforma."),
+               reverse("live_classes"), email=reminder.student.email_live_events,
+               send_before=event.starts_at if soon else event.starts_at-timedelta(hours=1))
+        count += 1
+    run_content_notifications()
+    retry_pending_emails()
+    return count
 
 
 def pending_email_count():
