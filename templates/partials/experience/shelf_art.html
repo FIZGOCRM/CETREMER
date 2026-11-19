@@ -1,6 +1,7 @@
 <span class="xp-shelf-art cover {{ course.cover_class }}{% if poster %} cover--poster{% endif %}" aria-hidden="true"{% if card %} style="--module-order: {{ card.lesson.module.order }}; --lesson-order: {{ card.lesson.order }}"{% endif %}>
-  {% if card.cover %}<img class="cover__img" src="{{ card.cover.url }}" alt="" loading="lazy">{% endif %}
-  {% include 'partials/gomut/motif_ecg.html' %}
+  {% if card and card.lesson.module.order|divisibleby:2 %}
+    <svg class="cover__motif" aria-hidden="true" focusable="false" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-linejoin="round"><path d="M112 25l34 20v40l-34 20-34-20V45z"/><path d="M78 85l-34 20v40l34 20 34-20v-40m34-20 34 20v40l-34 20-34-20" opacity=".65"/></svg>
+  {% else %}{% include 'partials/gomut/motif_ecg.html' %}{% endif %}
   <span class="cover__kicker">{% firstof kicker card.lesson.module.title %}</span>
   <strong class="cover__title">{% firstof art_title card.lesson.title %}</strong>
 </span>

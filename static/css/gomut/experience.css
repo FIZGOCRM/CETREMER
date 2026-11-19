@@ -52,10 +52,16 @@
 .xp-shelf { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(14rem,24vw,21rem); justify-content: start; align-items: stretch; overflow-x: auto; gap: 1rem; padding: .25rem .2rem .8rem; scroll-snap-type: x proximity; }
 .xp-shelf > * { scroll-snap-align: start; }
 .xp .xp-body section { margin: clamp(22px, 2.4vw, 42px) 0; }
-.xp .xp-body section:first-child { margin-top: 0; padding-top: 6px; }
-.xp-body h2 { font-size: var(--fs-xl); margin-bottom: 12px; color: var(--c-text-2); }
+.xp .xp-body section:first-child { margin-top: 0; padding-top: clamp(24px, 2.4vw, 42px); }
+.xp-body h2 { font-size: var(--fs-xl); margin-bottom: clamp(16px, 1.4vw, 24px); color: var(--c-text-2); }
 .xp .xp-shelf { gap: var(--gap); padding: 3px 0 10px; grid-auto-columns: clamp(220px, 23vw, 360px); }
-.xp .xp-shelf--ranking, .xp .xp-news--shelf { grid-auto-columns: clamp(165px, 16vw, 255px); }
+.xp .xp-news--shelf { grid-auto-columns: clamp(165px, 16vw, 255px); }
+.xp .xp-shelf--ranking {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, clamp(150px, 16vw, 255px)), 1fr));
+  row-gap: clamp(16px, 2vw, 28px);
+  overflow: visible;
+}
 .xp .xp-shelf--offers { grid-auto-columns: clamp(150px, 15vw, 215px); }
 .xp-body .showcase { margin-inline: calc(0px - var(--gutter)); padding-inline: var(--gutter); }
 .xp-body h2.showcase__title { font-size: clamp(30px, 3.6vw, 56px); }
@@ -70,7 +76,6 @@
 .xp-card__cover progress { position: absolute; bottom: 0; z-index: 3; }
 .xp-shelf-art.cover { --shelf-hue: calc(var(--h) + (var(--module-order, 1) - 1) * 101 - (var(--lesson-order, 1) - 1) * 28); color: white;
   background: radial-gradient(85% 110% at 96% 0%, hsl(var(--shelf-hue) 80% 43%), transparent 78%), linear-gradient(125deg, hsl(var(--shelf-hue) 50% 18%), #100c11); }
-.xp-shelf-art .cover__img { opacity: .32; mix-blend-mode: luminosity; }
 .xp-shelf-art .cover__title { right: 10%; bottom: 11%; font-size: 8.5cqw; line-height: .97; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .xp-shelf-art.cover--poster .cover__title { font-size: 14cqw; }
 .xp-card__action { position: absolute; z-index: 4; top: 5px; right: 5px; }
@@ -106,7 +111,7 @@
   .xp-hero .hero__title { font-size: clamp(42px, 12vw, 64px); }
   .xp-hero .btn--lg { padding-inline: 14px; }
   .xp .xp-shelf { grid-auto-columns: min(74vw, 18rem); }
-  .xp .xp-shelf--ranking, .xp .xp-news--shelf, .xp .xp-shelf--offers { grid-auto-columns: min(50vw, 14rem); }
+  .xp .xp-news--shelf, .xp .xp-shelf--offers { grid-auto-columns: min(50vw, 14rem); }
   .xp-shelf { grid-auto-columns: min(78vw,18rem); }
   .xp-body section { margin: 1.8rem 0; }
 }
