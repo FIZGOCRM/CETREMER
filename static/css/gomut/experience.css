@@ -22,7 +22,7 @@
 .xp-card__cover img { width: 100%; height: 100%; object-fit: cover; }
 .xp-hero__copy { max-width: min(47rem, 90%); }
 .xp-page h1 { font-family: var(--font-display); font-size: clamp(2rem, 5vw, 4.4rem); line-height: 1.02; letter-spacing: -.04em; margin: .4em 0; }
-.xp-hero .hero__title { max-width: 8.5ch; width: fit-content; font-size: clamp(52px, min(7.4vw, 13svh), 128px); text-wrap: balance; margin: 0 0 .22em; }
+.xp-hero .hero__title { max-width: 8.5ch; width: fit-content; font-size: clamp(52px, min(7.4vw, 13svh), 128px); line-height: 1; padding-top: .16em; text-wrap: balance; margin: 0 0 .22em; }
 .xp-hero .hero__title--long { max-width: 100%; font-size: clamp(36px, min(4.6vw, 9svh), 80px); }
 .xp-hero .hero__title, .xp-hero .hero__desc, .xp-hero .hero__resume p { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .xp-hero .hero__desc { max-width: 45ch; margin: 0; }
