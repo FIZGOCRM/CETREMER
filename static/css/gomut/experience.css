@@ -12,19 +12,6 @@
   background: var(--c-black);
 }
 .xp-hero__art { position: absolute; inset: var(--nav-h) 0 0; z-index: -1; overflow: hidden; }
-.xp-hero__art > img {
-  position: relative;
-  display: block;
-  margin-left: auto;
-  width: auto;
-  max-width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: right center;
-  transform: scale(1.3225);
-  transform-origin: center 25%;
-  mask-image: linear-gradient(90deg, transparent, black 18%);
-}
 .xp-hero__art::after {
   content: "";
   position: absolute;
@@ -124,7 +111,6 @@
 @media (max-width: 600px) {
   .xp-hero { --art-height: clamp(200px, 85vw, 400px); height: calc(var(--nav-h) + var(--art-height) + 20rem); grid-template-rows: var(--art-height) minmax(0, 1fr); padding: var(--nav-h) 0 0; background: #141414; }
   .xp-hero__art { position: relative; inset: auto; height: 100%; }
-  .xp-hero__art > img { width: 100%; object-position: center; mask-image: none; }
   .xp-hero__art::after { background: linear-gradient(0deg, #141414, transparent 12%); }
   .xp-hero__copy { align-self: center; max-width: 100%; padding: 1rem var(--gutter); }
   .xp-hero .hero__title { font-size: clamp(42px, 12vw, 64px); }
@@ -164,7 +150,6 @@
 .xp-lesson-art.cover--teal { --h: 177; }
 .xp-lesson-art.cover--slate { --h: 205; }
 .xp-lesson-art.cover--ink { --h: 255; }
-.xp-hero__art .xp-lesson-art { position: absolute; inset: 0 0 0 auto; height: 100%; max-width: 72%; }
 .xp-trail-link { display: flex; align-items: center; gap: .8rem; color: inherit; }
 .xp-trail-link .xp-lesson-art { width: clamp(5rem,12vw,10rem); flex-shrink: 0; }
 .xp-trail-progress progress { width: 7.5rem; height: .35rem; accent-color: var(--c-red); }
