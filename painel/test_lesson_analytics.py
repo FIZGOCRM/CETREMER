@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
@@ -94,3 +95,26 @@ class LessonAnalyticsTests(TestCase):
         self.assertEqual(WeeklySelection.objects.filter(course=self.course).count(), 2)
         self.client.post(url, {'semana': week, 'lesson_1': self.lesson.pk})
         self.assertEqual(list(selection.items.values_list('lesson_id', 'position')), [(self.lesson.pk, 1)])
+
+    def test_selection_service_enforces_permissions_and_rules_before_replacing_items(self):
+        from courses.engagement_services import save_weekly_selection
+        from courses.models import WeeklySelection
+
+        week = timezone.localdate() - timedelta(days=timezone.localdate().weekday())
+        def save(positions, monday=week, actor=self.owner):
+            return save_weekly_selection(self.course, monday, positions, actor=actor)
+
+        selection = save({1: self.lesson.pk})
+        outsiders = Module.objects.create(course=Course.objects.create(
+            title='Externo', slug='externo', creator=self.owner.creator_profile), title='Outro')
+        foreign = Lesson.objects.create(module=outsiders, title='Externa')
+        for invalid in [{0: self.unknown.pk}, {11: self.lesson.pk}, {1: foreign.pk},
+                        {1: self.unknown.pk, 2: self.unknown.pk}]:
+            with self.subTest(positions=invalid), self.assertRaises(ValidationError):
+                save(invalid)
+        with self.assertRaises(ValidationError):
+            save({}, monday=week + timedelta(days=1))
+        with self.assertRaises(PermissionDenied):
+            save({}, actor=User.objects.create_user(username='aluno'))
+        self.assertEqual(list(selection.items.values_list('position', 'lesson_id')), [(1, self.lesson.pk)])
+        self.assertEqual(WeeklySelection.objects.count(), 1)
