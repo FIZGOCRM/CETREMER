@@ -49,7 +49,9 @@ def open_material(request, kind, material_id):
     else:
         raise Http404('A equipe precisa enviar o arquivo deste material.')
     if student and not getattr(request, 'member_preview', False):
-        mark_material_open(student,kind,material.pk)
+        if mark_material_open(student,kind,material.pk) is None:
+            response.close()
+            raise Http404("Material removido.")
     response['Cache-Control'] = 'private, no-store'
     response['X-Content-Type-Options'] = 'nosniff'
     return response

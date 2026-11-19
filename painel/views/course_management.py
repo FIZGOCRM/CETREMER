@@ -79,11 +79,11 @@ def course_edit(request, course_id=None):
         status = data.get("status")
         if status not in ("published", "draft"):
             return HttpResponseBadRequest("Situação inválida.")
-        if status == "published" and not Lesson.objects.filter(module__course=course, module__status="published", status="published").exists():
-            messages.error(request, "Publique ao menos uma aula antes de publicar o curso.")
+        course.is_published = status == "published"
+        course.save(update_fields=["is_published"])
+        if course.is_published and not Lesson.objects.filter(module__course=course, module__status="published", status="published").exists():
+            messages.warning(request, "Curso publicado sem aulas. O aluno vê um curso vazio.")
         else:
-            course.is_published = status == "published"
-            course.save(update_fields=["is_published"])
             messages.success(request, "Situação do curso atualizada.")
         from django.utils.http import url_has_allowed_host_and_scheme
         target = data.get("next", "")
@@ -111,6 +111,7 @@ def course_edit(request, course_id=None):
         "course_edit" if course else "course_create",
         course=course,
         form=form,
+        category_colors=dict(Category.objects.values_list('pk', 'color')) if not course else {},
         categories=Category.objects.all(),
         objectives=request.POST.getlist("objectives")
         if request.method == "POST"

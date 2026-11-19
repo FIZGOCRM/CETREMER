@@ -379,19 +379,27 @@ def save_module(module, *, actor, confirm_impact=False):
     return module
 
 
-@transaction.atomic
-def delete_content(content, *, actor):
+def content_has_history(content):
     from .models import Module, Progress, ActivityEvent, LessonNote, QuizAttempt, LessonMaterial, MaterialOpen
     from community.models import CommunityPost
-    _plan_actor(actor)
     filters = {'lesson__module': content} if isinstance(content, Module) else {'lesson': content}
     attempt_filters = {'quiz__lesson__module': content} if isinstance(content, Module) else {'quiz__lesson': content}
     has_history = Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists() or QuizAttempt.objects.filter(**attempt_filters).exists()
     material_ids = LessonMaterial.objects.filter(**filters).values('pk')
     has_history = has_history or CommunityPost.objects.filter(**filters).exists() or MaterialOpen.objects.filter(material_kind='lesson', material_id__in=material_ids).exists()
     from .models import LessonLike, SavedLesson, WeeklySelectionItem
-    has_history = has_history or any(model.objects.filter(**filters).exists() for model in (LessonLike, SavedLesson, WeeklySelectionItem))
-    if has_history:
+    return has_history or any(model.objects.filter(**filters).exists() for model in (LessonLike, SavedLesson, WeeklySelectionItem))
+
+
+@transaction.atomic
+def delete_content(content, *, actor):
+    from .models import LessonMaterial, Module
+    _plan_actor(actor)
+    materials = (LessonMaterial.objects.filter(lesson__module=content) if isinstance(content, Module)
+                 else LessonMaterial.objects.filter(lesson=content))
+    # MaterialOpen uses a kind and id rather than a foreign key. Serialize deletion with first opens.
+    materials.update(order=F("order"))
+    if content_has_history(content):
         raise ValidationError('Este conteúdo tem histórico de alunos. Use despublicar para preservar o histórico.')
     lessons = list(content.lessons.all()) if isinstance(content, Module) else [content]
     for lesson in lessons:
@@ -751,8 +759,11 @@ def issue_certificate_with_data(enrollment, *, full_name, cpf):
     return issue_enrollment_certificate(enrollment)
 
 
+@transaction.atomic
 def mark_material_open(student, kind, material_id):
-    from .models import MaterialOpen
+    from .models import LessonMaterial, MaterialOpen
+    if kind == "lesson" and not LessonMaterial.objects.filter(pk=material_id).update(order=F("order")):
+        return None
     return MaterialOpen.objects.get_or_create(student=student,material_kind=kind,material_id=material_id)[0]
 
 

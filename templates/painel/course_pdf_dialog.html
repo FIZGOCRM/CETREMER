@@ -1,4 +1,0 @@
-<dialog class="gp-dialog" id="{% if material %}replace-{{ material.pk }}{% else %}add-pdf{% endif %}" aria-label="Enviar PDF"><form method="post" enctype="multipart/form-data">{% csrf_token %}
-<h2 class="gp-dialog__head">{% if material %}Substituir {{ material.title }}{% else %}Adicionar PDF{% endif %}</h2>
-<div class="gp-dialog__body"><label class="gp-dropzone" data-gp-dropzone>Arraste um PDF ou clique para adicionar<input type="file" name="pdf" required accept=".pdf,application/pdf"><span class="gp-dropzone__hint">Até 20 MB</span></label></div>
-{% if material %}<input type="hidden" name="material_id" value="{{ material.pk }}">{% endif %}<div class="gp-dialog__foot"><button class="btn" type="button" data-gp-close>Cancelar</button><button class="btn btn--primary" name="action" value="{% if material %}replace_material{% else %}add_material{% endif %}">Salvar PDF</button></div></form></dialog>

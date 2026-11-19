@@ -32,9 +32,6 @@
       confirmation.querySelector('[data-gp-close]').focus();
     });
   });
-  workspace.querySelectorAll('input[form="lesson-add-pdf"]').forEach(input => {
-    for (const type of ['change', 'input']) input.addEventListener(type, event => event.stopPropagation());
-  });
   const newQuestion = workspace.querySelector('[data-course-new-question]');
   newQuestion?.addEventListener('click', () => { location.search = '?nova=1'; });
   workspace.querySelectorAll('[data-gp-sortable]').forEach(list => {
@@ -49,14 +46,17 @@
   if (!form) return;
   const cover = form.querySelector('#course-preview .course-cover');
   const preview = form.querySelector('[data-preview-title]');
+  const categoryColors = JSON.parse(document.querySelector('#course-category-colors').textContent);
   let imageUrl;
   function paint() {
     const title = form.elements.title.value || 'Nome do curso';
     const category = form.elements.category.selectedOptions[0];
-    cover.querySelector('.gp-cover__title').textContent = title;
-    cover.querySelector('.gp-cover__cat').textContent = category?.value ? category.textContent : 'Formação';
-    cover.dataset.category = category?.textContent.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, '-');
-    cover.dataset.color = form.elements.cover_color.value;
+    cover.querySelector('.cover__title').textContent = title;
+    cover.querySelector('.cover__kicker').textContent = category?.value ? category.textContent : 'Formação';
+    const color = form.elements.cover_color.value || categoryColors[category?.value] || 'blue';
+    const previous = Array.from(cover.classList).find(name => name.startsWith('cover--'));
+    if (previous) cover.classList.remove(previous);
+    cover.classList.add('cover--' + color);
     preview.textContent = title;
   }
   form.addEventListener('input', paint);

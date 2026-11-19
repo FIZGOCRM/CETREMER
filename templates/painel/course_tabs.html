@@ -9,18 +9,17 @@
       <p class="gp-subtitle">{{ course.category.name|default:"Sem categoria" }} · {{ stats.lessons }} aula{{ stats.lessons|pluralize }} em {{ stats.modules }} módulo{{ stats.modules|pluralize }} · {{ stats.students }} aluno{{ stats.students|pluralize }} · acesso de {{ course.plan_months }} {{ course.plan_months|pluralize:"mês,meses" }}</p>
     </div>
     <div class="gp-pagehead__actions">
-      <a class="btn" href="{% url 'painel:preview_choose' %}?curso={{ course.pk }}"><svg class="gp-icon"><use href="#i-eye"/></svg>Ver como aluno</a>
+      <a class="btn" href="{% url 'painel:preview_choose' %}?curso={{ course.pk }}&amp;next={{ request.get_full_path|urlencode }}"><svg class="gp-icon"><use href="#i-eye"/></svg>Ver como aluno</a>
       <div><button class="btn" type="button" data-gp-menu aria-haspopup="menu" aria-expanded="false">{% if course.is_published %}Publicado{% else %}Rascunho{% endif %} ▾</button>
-        <div class="gp-menu" role="menu" hidden>{% if course.is_published %}
+        <div class="gp-menu" role="menu" hidden>{% if not stats.published %}<p class="gp-help">Sem aulas publicadas, o aluno vê um curso vazio.</p>{% endif %}{% if course.is_published %}
           <button class="gp-menu__item" role="menuitem" type="button" data-gp-open="#course-unpublish">Voltar para rascunho</button>
         {% else %}<form method="post" action="{% url 'painel:course_edit' course.pk %}">{% csrf_token %}
           <input type="hidden" name="action" value="publication"><input type="hidden" name="next" value="{{ request.get_full_path }}">
-          <button class="gp-menu__item" role="menuitem" name="status" value="published" {% if not stats.published %}disabled{% endif %}>Publicar curso</button>
-          {% if not stats.published %}<p class="gp-help">Publique ao menos uma aula antes.</p>{% endif %}</form>{% endif %}
+          <button class="gp-menu__item" role="menuitem" name="status" value="published">Publicar curso</button></form>{% endif %}
         </div>
       </div>
       <div><button class="btn btn--icon" type="button" data-gp-menu aria-expanded="false" aria-haspopup="menu" aria-label="Mais ações do curso">⋯</button>
-        <div class="gp-menu" role="menu" hidden><a class="gp-menu__item" role="menuitem" href="{% url 'painel:reports' %}?curso={{ course.pk }}">Relatório do curso</a><a class="gp-menu__item" role="menuitem" href="{% url 'painel:students' %}?curso={{ course.pk }}">Alunos deste curso</a></div>
+        <div class="gp-menu" role="menu" hidden><a class="gp-menu__item" role="menuitem" href="{% url 'painel:lesson_metrics' %}?curso={{ course.pk }}">Relatório de aulas do curso</a><a class="gp-menu__item" role="menuitem" href="{% url 'painel:students' %}?curso={{ course.pk }}">Alunos deste curso</a></div>
       </div>
     </div>
   </div>

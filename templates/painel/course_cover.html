@@ -1,6 +1,3 @@
-<div class="gp-cover course-cover" data-color="{{ course.cover_color }}" data-category="{{ course.category.name|slugify }}">
-  {% if course.cover_image %}<img class="course-cover-image" src="{{ course.cover_image.url }}" alt="" loading="lazy">{% else %}
-  {% include 'partials/gomut/motif_ecg.html' %}
-  {% if not mini %}<span class="gp-cover__cat">{{ course.category.name|default:"Formação" }}</span><strong class="gp-cover__title">{{ course.title|default:"Nome do curso" }}</strong>{% endif %}
-  {% endif %}
+<div class="gp-cover course-cover {{ course.cover_class|default:'cover--blue' }}{% if mini %} course-cover-mini{% endif %}">
+  {% include 'partials/gomut/cover.html' %}
 </div>

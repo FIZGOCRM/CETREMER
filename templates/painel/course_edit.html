@@ -5,7 +5,7 @@
 <div class="gp-rail"><section id="informacoes" class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Informações</h2>
 <label>Nome do curso{{ form.title }}</label><label>Descrição{{ form.description }}</label><label>Categoria{{ form.category }}</label></section>
 <section id="acesso" class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Acesso e certificado</h2><div class="gp-grid-2">
-<label>Duração do acesso{{ form.plan_months }}<small class="gp-help">Em meses, contados da matrícula.</small></label><label>Carga horária do certificado{{ form.workload_hours }}<small class="gp-help">Em horas. Aparece no certificado.</small></label></div></section>
+<label>Duração do acesso{{ form.plan_months }}<small class="gp-help">Em meses. Define a duração sugerida para novos planos. As datas dos períodos já criados são preservadas.</small></label><label>Carga horária do certificado{{ form.workload_hours }}<small class="gp-help">Em horas. Aparece no certificado.</small></label></div></section>
 <section id="pagina" class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Página do curso</h2><p class="gp-help">Textos apresentados ao aluno antes de começar e na seção Outros cursos.</p>
 <label>O que o aluno vai aprender{{ form.learning_objectives }}<small class="gp-help">Um tópico por linha.</small></label><label>Para quem é{{ form.target_audience }}</label></section>
 <section id="aparencia" class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Aparência</h2><div class="course-current-cover">{% include 'painel/course_cover.html' %}</div>

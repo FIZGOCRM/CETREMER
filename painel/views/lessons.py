@@ -6,43 +6,10 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect
 
 from core.decorators import painel_required
-from courses.models import Course, Lesson, LessonMaterial, MaterialOpen, Module
-from courses.services import delete_content, save_lesson_editor, save_module
+from courses.models import Course, Lesson, Module
+from courses.services import content_has_history, delete_content, save_lesson_editor, save_module
 from painel.forms import LessonEditorForm
 from .common import page
-
-
-def _has_history(lesson):
-    related = (lesson.student_progress, lesson.activityevent_set, lesson.notes,
-               lesson.communitypost_set, lesson.lessonlike_set, lesson.savedlesson_set, lesson.weeklyselectionitem_set)
-    quiz = getattr(lesson, "quiz", None)
-    return (any(manager.exists() for manager in related) or bool(quiz and quiz.attempts.exists()) or
-            MaterialOpen.objects.filter(material_kind="lesson", material_id__in=lesson.materials.values("pk")).exists())
-
-
-@transaction.atomic
-def _change_material(request, lesson, action):
-    lesson = get_object_or_404(Lesson.objects.select_for_update(), pk=lesson.pk)
-    if action == "add_material":
-        order = lesson.materials.aggregate(last=Max("order"))["last"] or 0
-        material = LessonMaterial(lesson=lesson, order=order + 1)
-    else:
-        raw_id = request.POST.get("material_id", "")
-        if not raw_id.isascii() or not raw_id.isdecimal() or len(raw_id) > 18:
-            return HttpResponseBadRequest("Material inválido.")
-        material = get_object_or_404(lesson.materials, pk=raw_id)
-    if action == "remove_material":
-        material.delete()
-        messages.success(request, "Material removido.")
-    else:
-        pdf = request.FILES.get("pdf")
-        if not pdf:
-            raise ValidationError("Escolha um PDF.")
-        material.title, material.file, material.url = pdf.name[:120], pdf, ""
-        material.full_clean()
-        material.save()
-        messages.success(request, "Material salvo.")
-    return redirect("painel:lesson_edit", lesson.pk)
 
 
 @transaction.atomic
@@ -70,14 +37,11 @@ def lesson_edit(request, lesson_id=None, course_id=None):
         lesson = Lesson(status='draft')
     previous_module_id = lesson.module_id
     action = request.POST.get("action", "")
-    material_actions = ("add_material", "replace_material", "remove_material")
-    if lesson_id and request.method == "POST" and action in material_actions:
-        try:
-            return _change_material(request, lesson, action)
-        except ValidationError as exc:
-            messages.error(request, " ".join(exc.messages))
+    if request.method == "POST" and action not in ("", "save_lesson", "delete"):
+        return HttpResponseBadRequest("Ação inválida.")
+    saving = request.method == "POST" and action != "delete"
     form = LessonEditorForm(
-        request.POST if request.method == 'POST' and action not in material_actions else None, request.FILES or None,
+        request.POST if saving else None, request.FILES if saving else None,
         instance=lesson, course=course,
     )
     form.fields['module'].label_from_instance = lambda module: module.title
@@ -94,7 +58,7 @@ def lesson_edit(request, lesson_id=None, course_id=None):
                 messages.error(request, ' '.join(exc.messages))
             else:
                 return redirect('painel:course_lessons', course_id=course.pk)
-        elif action not in material_actions and form.is_valid():
+        elif saving and form.is_valid():
             try:
                 saved = _save_editor(form, course, request.user, previous_module_id)
             except ValidationError as exc:
@@ -104,6 +68,6 @@ def lesson_edit(request, lesson_id=None, course_id=None):
                 return redirect('painel:lesson_edit', lesson_id=saved.pk)
     return page(
         request, 'lesson_edit', lesson=lesson, course=course, form=form,
-        editing=bool(lesson_id), materials=lesson.materials.all() if lesson_id else [],
-        has_history=_has_history(lesson) if lesson_id else False,
+        editing=bool(lesson_id), materials=lesson.materials.order_by("order", "pk") if lesson_id else [],
+        has_history=content_has_history(lesson) if lesson_id else False,
     )

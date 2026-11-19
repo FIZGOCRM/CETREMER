@@ -1,7 +1,7 @@
 {% extends 'painel/course_base.html' %}
 {% block page_title_text %}Criar curso{% endblock %}{% block page_title %}Criar curso{% endblock %}
-{% block subtitle %}<p class="gp-subtitle">Comece pelo básico. O curso fica em rascunho até ter ao menos uma aula publicada.</p>{% endblock %}
-{% block content %}
+{% block subtitle %}<p class="gp-subtitle">Comece pelo básico. O curso será criado como rascunho.</p>{% endblock %}
+{% block content %}{{ category_colors|json_script:'course-category-colors' }}
 <form method="post" enctype="multipart/form-data" id="new-course" class="course-form" data-gp-dirty>{% csrf_token %}
 {{ form.errors }}
 <div class="gp-split gp-split--wide-rail"><div class="gp-rail">
