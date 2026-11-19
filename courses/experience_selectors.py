@@ -12,8 +12,8 @@ from django.utils import timezone
 from users.models import SiteSettings
 from .access import lesson_availability, module_release_date
 from .live_selectors import live_agenda
-from .models import Course, Lesson, LessonMaterial, Module, Progress, SavedLesson, WeeklySelection
-from .selectors import course_publication_time, library_items
+from .models import HomeFeature, Lesson, LessonMaterial, Module, Progress, SavedLesson, WeeklySelection
+from .selectors import library_items
 
 
 def course_lessons(enrollment):
@@ -65,7 +65,7 @@ def weekly_lessons(course, cards):
     if not selection:
         return []
     items = selection.items.filter(lesson_id__in=cards).order_by("position")[:10]
-    return [dict(cards[item.lesson_id], rank=item.position) for item in items]
+    return [dict(cards[item.lesson_id], rank=item.position, artwork=item.artwork) for item in items]
 
 
 def course_events(enrollment):
@@ -77,37 +77,34 @@ def course_events(enrollment):
 
 
 def course_news(enrollment, cards, past_events):
-    now = timezone.now()
-    since = now - timedelta(days=14)
+    recordings = {event.pk: event for event in past_events if event.recording_url}
     items = []
-    for card in cards.values():
-        lesson = card["lesson"]
-        published = course_publication_time(enrollment, lesson.module, lesson.published_at)
-        if published and since <= published <= now:
-            items.append({"kind": "Aula", "title": lesson.title, "date": published,
-                          "url": card["url"], "card": card, "art_card": card})
-    materials = LessonMaterial.objects.filter(lesson_id__in=cards, created_at__isnull=False
-                                              ).exclude(Q(file="") & Q(url=""))
-    for material in materials:
-        lesson = cards[material.lesson_id]["lesson"]
-        published = course_publication_time(enrollment, lesson.module, lesson.published_at, attachment_created_at=material.created_at)
-        if not since <= published <= now:
+    features = enrollment.course.home_features.filter(
+        offer__isnull=True, created_at__gte=timezone.now() - timedelta(days=14)
+    ).select_related("material")
+    for feature in features:
+        if feature.lesson_id in cards:
+            card = cards[feature.lesson_id]
+            item = {"kind": "Aula", "title": card["lesson"].title, "url": card["url"], "card": card, "art_card": card}
+        elif feature.material_id and feature.material.lesson_id in cards and (feature.material.file or feature.material.url):
+            item = {"kind": "E-book", "title": feature.material.title, "art_card": cards[feature.material.lesson_id],
+                    "url": reverse("material_open", args=["lesson", feature.material_id])}
+        elif feature.recording_id in recordings:
+            item = {"kind": "Gravação", "title": recordings[feature.recording_id].title,
+                    "url": reverse("live_link", args=[feature.recording_id, "gravacao"])}
+        else:
             continue
-        items.append({"kind": "E-book", "title": material.title, "date": published, "art_card": cards[material.lesson_id],
-                      "url": reverse("material_open", args=["lesson", material.pk])})
-    for event in past_events:
-        if event.recording_url and event.recording_added_at and since <= event.recording_added_at <= now:
-            items.append({"kind": "Gravação", "title": event.title, "date": event.recording_added_at,
-                          "url": reverse("live_link", args=[event.pk, "gravacao"])})
-    return sorted(items, key=lambda item: item["date"], reverse=True)
+        items.append(dict(item, date=feature.created_at, artwork=feature.artwork))
+    return items
 
 
-def other_courses(student):
-    courses = Course.objects.filter(is_published=True).exclude(enrollments__student=student).select_related("category").order_by("title")
+def other_courses(enrollment):
+    features = HomeFeature.objects.filter(course=enrollment.course, offer__is_published=True).exclude(
+        offer__enrollments__student=enrollment.student).exclude(offer_id=enrollment.course_id).select_related("offer__category")
     number = "".join(c for c in SiteSettings.load().whatsapp if c.isascii() and c.isdigit())
-    return [{"course": course, "contact": f"https://wa.me/{number}?" + urlencode({
-        "text": f"Olá! Quero saber mais sobre o curso {course.title}."
-    }) if number else ""} for course in courses]
+    return [{"course": feature.offer, "artwork": feature.artwork, "contact": f"https://wa.me/{number}?" + urlencode({
+        "text": f"Olá! Quero saber mais sobre o curso {feature.offer.title}."
+    }) if number else ""} for feature in features]
 
 
 def module_library(enrollment):

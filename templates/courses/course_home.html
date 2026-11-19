@@ -20,15 +20,20 @@
       {% endif %}
       {% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}
     </div>
+    {% if hero_choices|length > 1 %}<nav class="xp-course-switch" aria-label="Cursos disponíveis">
+      <a class="rbtn" href="{% url 'course_home' hero_previous.slug %}" aria-label="Curso anterior · {{ hero_previous.title }}">‹</a>
+      {% for choice in hero_choices %}<a class="xp-course-dot" href="{% url 'course_home' choice.slug %}" aria-label="{{ choice.title }}" title="{{ choice.title }}"{% if choice.pk == course.pk %} aria-current="true"{% endif %}></a>{% endfor %}
+      <a class="rbtn" href="{% url 'course_home' hero_next.slug %}" aria-label="Próximo curso · {{ hero_next.title }}">›</a>
+    </nav>{% endif %}
   </header>
   <div class="xp-body">
     {% if interrupted %}<section><h2>Continue de onde parou, {{ user.student_profile.full_name|default:user.username|first_name }}</h2>
       <div class="xp-shelf">{% for card in interrupted %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
     </section>{% endif %}
-    {% if weekly %}<section><h2>Top 10 no Plantão desta semana</h2>
-      <div class="xp-shelf xp-shelf--ranking">{% for card in weekly %}<a class="top10" href="{{ card.url }}" aria-label="{{ card.rank }}º lugar · {{ card.lesson.title }}">
+    {% if weekly %}<section id="top-10"><h2>Top 10 no Plantão desta semana</h2>
+      <div class="xp-shelf xp-shelf--ranking" data-course-return="{% url 'course_home' course.slug %}#top-10">{% for card in weekly %}<a class="top10" href="{{ card.url }}?origem=top10" aria-label="{{ card.rank }}º lugar · {{ card.lesson.title }}">
         <span class="top10__n{% if card.rank == 10 %} top10__n--2{% endif %}" aria-hidden="true">{{ card.rank }}</span>
-        {% include 'partials/experience/shelf_art.html' with poster=True %}
+        {% include 'partials/experience/shelf_art.html' with poster=True artwork=card.artwork %}
       </a>{% endfor %}</div>
     </section>{% endif %}
     <section><div class="xp-heading"><h2>Novidades</h2><a href="{% url 'course_news' course.slug %}">Ver tudo</a></div>{% include 'partials/experience/news_list.html' with shelf=True %}</section>
@@ -56,7 +61,7 @@
           <a class="card card--poster" {% if offer.contact %}href="{{ offer.contact }}" target="_blank" rel="noopener"{% else %}href="{% url 'support' %}"{% endif %} aria-label="{{ offer.course.title }} · Bloqueado · {% if offer.contact %}Consultar pelo WhatsApp{% else %}Consultar a escola{% endif %}">
             <span class="card__media">
               <span class="cover cover--poster xp-offer-art" data-motif="{{ motif }}">
-                {% include 'partials/experience/offer_motif.html' %}
+                {% if offer.artwork %}<img class="cover__img" src="{{ offer.artwork.url }}" alt="" loading="lazy">{% else %}{% include 'partials/experience/offer_motif.html' %}{% endif %}
                 <span class="xp-offer-caption"><span class="xp-offer-category">{{ offer.course.category.name|default:"Formação em saúde" }}</span><strong class="cover__title">{{ offer.course.title }}</strong></span>
               </span>
               <span class="card__badge card__badge--lock">{% include 'partials/gomut/icon.html' with name='lock' %}Bloqueado</span>

@@ -48,16 +48,22 @@ def choose_course(request, section):
 
 
 def render_home(request, enrollment, **extra):
+    course_items = extra.get("hero_courses")
+    choices = ([item["course"] for item in course_items if item["access"].allowed] if course_items is not None
+               else list(accessible_courses(enrollment.student)))
+    choices.sort(key=lambda course: (course.title.casefold(), course.pk))
+    index = next(i for i, course in enumerate(choices) if course.pk == enrollment.course_id)
     cards = shelves.course_lessons(enrollment)
     interrupted = shelves.interrupted_lessons(cards)
     next_lesson = next((card for card in cards.values() if not card["completed"]), None)
     upcoming, past = shelves.course_events(enrollment)
     return render(request, "courses/course_home.html", {
         "course": enrollment.course, "interrupted": interrupted, "resume": interrupted[0] if interrupted else next_lesson,
+        "hero_choices": choices, "hero_previous": choices[index - 1], "hero_next": choices[(index + 1) % len(choices)],
         "started_course": bool(interrupted or any(card["completed"] for card in cards.values())),
         "weekly": shelves.weekly_lessons(enrollment.course, cards), "news": shelves.course_news(enrollment, cards, past)[:6],
         "saved": shelves.saved_lessons(enrollment, cards)[:6], "upcoming": upcoming,
-        "offers": shelves.other_courses(enrollment.student), **extra,
+        "offers": shelves.other_courses(enrollment), **extra,
     })
 
 

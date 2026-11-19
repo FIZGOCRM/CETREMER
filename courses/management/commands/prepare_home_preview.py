@@ -10,7 +10,7 @@ from django.utils.text import slugify
 
 from courses.demo_materials import demo_pdf_bytes
 from courses.models import (
-    Category, Course, Enrollment, Lesson, LessonMaterial, LiveEvent, LiveReminder,
+    Category, Course, Enrollment, HomeFeature, Lesson, LessonMaterial, LiveEvent, LiveReminder,
     Module, Progress, SavedLesson, WeeklySelection, WeeklySelectionItem,
 )
 from courses.services import create_plan
@@ -71,28 +71,34 @@ class Command(BaseCommand):
         if not course.cover_image and course.cover_image.storage.exists(cover):
             course.cover_image = cover
             course.save(update_fields=["cover_image"])
-        for lesson in lessons[::2]:
-            LessonMaterial.objects.get_or_create(lesson=lesson, title=f"Caderno · {lesson.title}", defaults={
+        for position, lesson in enumerate(lessons[::2], 1):
+            material, _ = LessonMaterial.objects.get_or_create(lesson=lesson, title=f"Caderno · {lesson.title}", defaults={
                 "file": ContentFile(demo_pdf_bytes(), name=f"caderno-demo-{lesson.pk}.pdf"),
             })
+            if position == 2:
+                HomeFeature.objects.get_or_create(course=course, material=material, defaults={"position": position})
+            else:
+                HomeFeature.objects.get_or_create(course=course, lesson=lesson, defaults={"position": position})
         selection, _ = WeeklySelection.objects.get_or_create(course=course, week_start=monday, defaults={"created_by": actor})
         used = dict(selection.items.values_list("position", "lesson_id"))
         eligible = Lesson.objects.filter(module__course=course, module__status="published",
                                          module__release_month=1, status="published").exclude(pk__in=used.values())
         for position, lesson in zip((i for i in range(1, 11) if i not in used), eligible.order_by("-published_at", "pk")):
             WeeklySelectionItem.objects.create(selection=selection, lesson=lesson, position=position)
-        for title, theme in OFFERS:
+        for position, (title, theme) in enumerate(OFFERS, 1):
             category, _ = Category.objects.get_or_create(slug=f"gomut-demo-{slugify(theme)}", defaults={"name": theme})
-            Course.objects.get_or_create(slug=f"gomut-demo-vitrine-{slugify(title)}", defaults={
+            offer, _ = Course.objects.get_or_create(slug=f"gomut-demo-vitrine-{slugify(title)}", defaults={
                 "creator": course.creator, "title": title, "category": category, "is_published": True,
                 "description": "Formação fictícia para visualização da vitrine.",
             })
+            HomeFeature.objects.get_or_create(course=course, offer=offer, defaults={"position": position})
         event, _ = LiveEvent.objects.get_or_create(course=course, title=f"Discussão de casos · semana de {monday:%d/%m/%Y}",
             defaults={"starts_at": now + timedelta(days=2), "duration_minutes": 60})
         LiveEvent.objects.get_or_create(course=course, title=f"Revisão de ECG · semana de {monday:%d/%m/%Y}",
             defaults={"starts_at": now + timedelta(days=5), "duration_minutes": 45, "kind": "aula_ao_vivo"})
-        LiveEvent.objects.get_or_create(course=course, title=f"Plantão comentado · semana de {monday:%d/%m/%Y}",
+        recording, _ = LiveEvent.objects.get_or_create(course=course, title=f"Plantão comentado · semana de {monday:%d/%m/%Y}",
             defaults={"starts_at": now - timedelta(days=1), "recording_url": video})
+        HomeFeature.objects.get_or_create(course=course, recording=recording, defaults={"position": 5})
         for username in options["student"] or ["aluno-v2"]:
             user = User.objects.filter(username=username, role=User.Role.STUDENT).first()
             if not user:

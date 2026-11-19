@@ -1,7 +1,13 @@
 from django import forms
+from django.core.validators import FileExtensionValidator
 
+from core.deploy_media import PUBLIC_IMAGE_EXTENSIONS
 from courses.models import Course
 from .reporting import LESSON_SORTS
+
+
+class CardArtworkField(forms.ImageField):
+    default_validators = [FileExtensionValidator(PUBLIC_IMAGE_EXTENSIONS)]
 
 
 class LessonMetricsForm(forms.Form):
@@ -43,6 +49,9 @@ class WeeklySelectionForm(WeekForm):
             self.fields[f'lesson_{position}'] = forms.ChoiceField(
                 label=f'{position}º lugar', required=False, choices=choices,
             )
+            self.fields[f'art_{position}'] = CardArtworkField(
+                label=f'Arte do {position}º lugar (pôster 2:3)', required=False,
+            )
 
     def clean(self):
         data = super().clean()
@@ -56,4 +65,8 @@ class WeeklySelectionForm(WeekForm):
                     self.add_error(name, 'Esta aula já ocupa outra posição.')
                 positions[position] = int(value)
         data['positions'] = positions
+        for position in range(1, 11):
+            key = f'art_{position}'
+            if key in self.files and position not in positions:
+                self.add_error(key, 'Escolha a aula desta posição.')
         return data

@@ -30,14 +30,18 @@ def weekly_selection(request, course_id):
     selection = selections.filter(week_start=week).first() if week else None
     initial = {'semana': week}
     if selection:
-        initial.update({f'lesson_{position}': lesson_id for position, lesson_id
-                        in selection.items.values_list('position', 'lesson_id')})
+        for item in selection.items.all():
+            initial[f'lesson_{item.position}'] = item.lesson_id
+            initial[f'art_{item.position}'] = item.artwork
     form = WeeklySelectionForm(
-        request.POST if request.method == 'POST' else None, initial=initial, rows=rows,
+        request.POST if request.method == 'POST' else None, request.FILES or None, initial=initial, rows=rows,
     )
     if request.method == 'POST' and form.is_valid():
         try:
-            save_weekly_selection(course, week, form.cleaned_data['positions'], actor=request.user)
+            positions = form.cleaned_data['positions']
+            artwork = {lesson: form.cleaned_data[f'art_{pos}'] for pos, lesson in positions.items()
+                       if f'art_{pos}' in request.FILES or form.cleaned_data[f'art_{pos}'] is False}
+            save_weekly_selection(course, week, positions, actor=request.user, artwork=artwork)
         except ValidationError as exc:
             form.add_error(None, exc)
         else:

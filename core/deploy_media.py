@@ -6,6 +6,8 @@ from django.conf import settings
 from django.contrib.auth.views import redirect_to_login
 from django.http import FileResponse, Http404
 
+PUBLIC_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "ico", "avif"}
+
 
 def uploaded_image(request, path):
     parts=Path(path).parts
@@ -15,7 +17,7 @@ def uploaded_image(request, path):
         return redirect_to_login(request.get_full_path())
     root=Path(settings.MEDIA_ROOT).resolve()
     target=(root/path).resolve()
-    if not target.is_relative_to(root) or target.suffix.lower() not in {'.png','.jpg','.jpeg','.gif','.webp','.ico','.avif'}:
+    if not target.is_relative_to(root) or target.suffix.lower().lstrip('.') not in PUBLIC_IMAGE_EXTENSIONS:
         raise Http404
     try:
         stream=target.open('rb')

@@ -615,6 +615,7 @@ class WeeklySelectionItem(models.Model):
     selection = models.ForeignKey(WeeklySelection, related_name="items", on_delete=models.CASCADE)
     lesson = models.ForeignKey(Lesson, on_delete=models.PROTECT)
     position = models.PositiveSmallIntegerField()
+    artwork = models.ImageField(upload_to="courses/editorial/", blank=True)
 
     class Meta:
         ordering = ["position"]
@@ -627,3 +628,30 @@ class WeeklySelectionItem(models.Model):
     def clean(self):
         if self.selection_id and self.lesson_id and self.lesson.module.course_id != self.selection.course_id:
             raise ValidationError({"lesson": "A aula precisa pertencer ao curso da seleção."})
+
+
+class HomeFeature(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="home_features")
+    lesson = models.ForeignKey(Lesson, null=True, blank=True, on_delete=models.CASCADE)
+    material = models.ForeignKey(LessonMaterial, null=True, blank=True, on_delete=models.CASCADE)
+    recording = models.ForeignKey(LiveEvent, null=True, blank=True, on_delete=models.CASCADE)
+    offer = models.ForeignKey(Course, null=True, blank=True, on_delete=models.CASCADE, related_name="+")
+    position = models.PositiveSmallIntegerField(default=1)
+    artwork = models.ImageField(upload_to="courses/editorial/", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["position", "pk"]
+        unique_together = [("course", target) for target in ("lesson", "material", "recording", "offer")]
+        constraints = [
+            models.CheckConstraint(name="home_feature_one_target", check=(
+                models.Q(lesson__isnull=False, material__isnull=True, recording__isnull=True, offer__isnull=True)
+                | models.Q(lesson__isnull=True, material__isnull=False, recording__isnull=True, offer__isnull=True)
+                | models.Q(lesson__isnull=True, material__isnull=True, recording__isnull=False, offer__isnull=True)
+                | models.Q(lesson__isnull=True, material__isnull=True, recording__isnull=True, offer__isnull=False)
+            ))
+        ]
+
+    @property
+    def target(self):
+        return self.lesson or self.material or self.recording or self.offer

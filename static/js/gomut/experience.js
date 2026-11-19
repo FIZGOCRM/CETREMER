@@ -34,6 +34,35 @@
     update();
   }
   document.querySelectorAll('.xp-body .xp-shelf').forEach(enableShelfNavigation);
+  const switcher = document.querySelector('.xp-course-switch');
+  if (switcher) {
+    const hero = switcher.closest('.xp-hero');
+    let start;
+    hero.addEventListener('touchstart', event => {
+      start = event.touches.length === 1 ? event.touches[0] : null;
+    }, {passive: true});
+    hero.addEventListener('touchcancel', () => { start = null; });
+    hero.addEventListener('touchend', event => {
+      if (!start) return;
+      const touch = event.changedTouches[0];
+      const dx = touch.clientX - start.clientX;
+      const dy = touch.clientY - start.clientY;
+      start = null;
+      if (Math.abs(dx) > 64 && Math.abs(dx) > 2 * Math.abs(dy)) {
+        (dx < 0 ? switcher.lastElementChild : switcher.firstElementChild).click();
+      }
+    }, {passive: true});
+  }
+  const ranking = document.querySelector('[data-course-return]');
+  if (ranking && location.hash === '#top-10') {
+    try { ranking.scrollLeft = Number(sessionStorage.getItem(ranking.dataset.courseReturn)) || 0; } catch {}
+  }
+  ranking?.addEventListener('click', event => {
+    if (event.target.closest('a.top10') && !event.defaultPrevented && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      history.replaceState(history.state, '', ranking.dataset.courseReturn);
+      try { sessionStorage.setItem(ranking.dataset.courseReturn, String(ranking.scrollLeft)); } catch {}
+    }
+  });
   function announce(text) {
     document.querySelector('#toasts').textContent = text;
   }

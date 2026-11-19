@@ -24,7 +24,7 @@ def set_lesson_reaction(student, lesson, kind, active):
 
 
 @transaction.atomic
-def save_weekly_selection(course, week_start, positions, *, actor):
+def save_weekly_selection(course, week_start, positions, *, actor, artwork=None):
     """Replace one course's weekly slots, preserving all other weeks."""
     _plan_actor(actor)
     if type(week_start) is not date or week_start.weekday() != 0:
@@ -45,9 +45,11 @@ def save_weekly_selection(course, week_start, positions, *, actor):
     selection, _ = WeeklySelection.objects.get_or_create(
         course=course, week_start=week_start, defaults={'created_by': actor},
     )
+    covers = dict(selection.items.values_list('lesson_id', 'artwork'))
+    covers.update(artwork or {})
     selection.items.all().delete()
     WeeklySelectionItem.objects.bulk_create([
-        WeeklySelectionItem(selection=selection, lesson_id=lesson_id, position=position)
+        WeeklySelectionItem(selection=selection, lesson_id=lesson_id, position=position, artwork=covers.get(lesson_id) or '')
         for position, lesson_id in positions.items()
     ])
     return selection

@@ -10,7 +10,7 @@
     <div class="gp-split gp-weekly gp-section">
       <section class="gp-card">
         <h2>Seleção de {{ week|date:'d/m/Y' }}</h2>
-        <form method="post" class="gp-stack gp-form">
+        <form method="post" enctype="multipart/form-data" class="gp-stack gp-form">
           {% csrf_token %}{{ form.non_field_errors }}
           <input type="hidden" name="semana" value="{{ week|date:'Y-m-d' }}">
           {% for field in form.visible_fields %}

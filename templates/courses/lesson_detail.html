@@ -3,7 +3,7 @@
 {% block content %}<div class="lesson">
 <div class="lesson__main" id="lesson-guide" data-completed="{{ is_completed|yesno:'true,false' }}" data-has-quiz="{{ has_quiz|yesno:'true,false' }}" data-quiz-pending="{{ quiz_pending|yesno:'true,false' }}" data-next-url="{% if next_lesson_nav %}{% url 'lesson_detail' course.slug next_lesson_nav.id %}{% endif %}">
 <nav class="crumbs">
-<a href="{% url 'course_home' course.slug %}">{% include 'partials/gomut/icon.html' with name='left' %}{{ course.title }}</a>
+<a href="{% url 'course_home' course.slug %}{% if request.GET.origem == 'top10' %}#top-10{% endif %}">{% include 'partials/gomut/icon.html' with name='left' %}{% if request.GET.origem == 'top10' %}Voltar ao Top 10 · {% else %}Início do curso · {% endif %}{{ course.title }}</a>
 <span>·</span>
 <span>{{ lesson.module.title }}</span>
 </nav>

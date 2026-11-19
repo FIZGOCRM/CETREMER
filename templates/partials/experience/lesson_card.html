@@ -1,6 +1,6 @@
 {% load cetremer %}<article class="xp-card" data-lesson-card="{{ card.lesson.pk }}">
   <a href="{{ card.url }}" class="xp-card__link"{% if cover_only %} aria-label="Aula {{ card.number }} · {{ card.lesson.title }}"{% endif %}>
-    <span class="xp-card__cover">{% include 'partials/experience/shelf_art.html' %}
+    <span class="xp-card__cover">{% if card.cover and card.cover != course.cover_image %}{% include 'partials/experience/shelf_art.html' with artwork=card.cover %}{% else %}{% include 'partials/experience/shelf_art.html' %}{% endif %}
       {% if card.started or card.completed %}<progress max="100" value="{{ card.percent }}" aria-label="Progresso da aula">{{ card.percent }}%</progress>{% endif %}
     </span>
     {% if not cover_only %}<span class="card__caption"><strong class="sr-only">Aula {{ card.number }} · {{ card.lesson.title }}</strong>

@@ -1,14 +1,23 @@
 from datetime import timedelta
+from io import BytesIO
+from tempfile import TemporaryDirectory
 
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
+from PIL import Image
 
-from courses.models import Course, Lesson, Module, Progress
+from courses.models import Course, HomeFeature, Lesson, Module, Progress, WeeklySelectionItem
 from users.models import User
 
 
 class LessonAnalyticsTests(TestCase):
+    def cover_upload(self):
+        stream = BytesIO()
+        Image.new('RGB', (20, 30)).save(stream, format='PNG')
+        return SimpleUploadedFile('poster.png', stream.getvalue(), content_type='image/png')
+
     def setUp(self):
         self.owner = User.objects.create_user(username='mentor', role='CREATOR')
         self.course = Course.objects.create(title='Mentoria', slug='mentoria', creator=self.owner.creator_profile)
@@ -118,3 +127,40 @@ class LessonAnalyticsTests(TestCase):
             save({}, actor=User.objects.create_user(username='aluno'))
         self.assertEqual(list(selection.items.values_list('position', 'lesson_id')), [(1, self.lesson.pk)])
         self.assertEqual(WeeklySelection.objects.count(), 1)
+
+    def test_weekly_poster_follows_lesson_on_reorder_and_can_be_cleared(self):
+        url = f'/painel/cursos/{self.course.pk}/top-10/'
+        week = timezone.localdate() - timedelta(days=timezone.localdate().weekday())
+        with TemporaryDirectory() as media, self.settings(MEDIA_ROOT=media):
+            response = self.client.post(url, {'semana': week, 'lesson_1': self.lesson.pk, 'art_1': self.cover_upload()})
+            self.assertEqual(response.status_code, 302)
+            art = WeeklySelectionItem.objects.get().artwork
+            self.assertTrue(art.storage.exists(art.name))
+            data = {'semana': week, 'lesson_2': self.lesson.pk}
+            self.assertEqual(self.client.post(url, data).status_code, 302)
+            self.assertEqual(WeeklySelectionItem.objects.get().artwork.name, art.name)
+            self.assertEqual(self.client.post(url, {**data, 'art_2-clear': 'on'}).status_code, 302)
+            self.assertFalse(WeeklySelectionItem.objects.get().artwork)
+
+    def test_producer_manages_home_cards_and_cannot_select_another_courses_lesson(self):
+        url = f'/painel/cursos/{self.course.pk}/inicio/'
+        other = Course.objects.create(title='Outro', slug='outro', creator=self.owner.creator_profile, is_published=True)
+        foreign = Lesson.objects.create(module=Module.objects.create(course=other, title='Módulo'), title='De fora')
+        self.assertContains(self.client.get(url), 'Adicionar card')
+        self.assertEqual(self.client.post(url, {'target': f'lesson:{foreign.pk}', 'position': 1}).status_code, 200)
+        self.assertFalse(HomeFeature.objects.exists())
+        data = {'target': f'lesson:{self.lesson.pk}', 'position': 1}
+        with TemporaryDirectory() as media, self.settings(MEDIA_ROOT=media):
+            self.assertRedirects(self.client.post(url, {**data, 'artwork': self.cover_upload()}), url)
+            entry = HomeFeature.objects.get()
+            self.assertTrue(entry.artwork.storage.exists(entry.artwork.name))
+            self.assertContains(self.client.post(url, data), 'já está na seção')
+            self.assertRedirects(self.client.post(url, {'item': entry.pk, 'target': f'offer:{other.pk}', 'position': 4}), url)
+            entry.refresh_from_db()
+            self.assertEqual((entry.target, entry.position, entry.lesson_id), (other, 4, None))
+            self.assertTrue(entry.artwork)
+            self.assertEqual(self.client.get(f'/painel/cursos/{other.pk}/inicio/?item={entry.pk}').status_code, 404)
+            self.assertRedirects(self.client.post(url, {'item': entry.pk, 'action': 'remove'}), url)
+            self.assertFalse(HomeFeature.objects.exists())
+        self.client.force_login(User.objects.create_user(username='aluna'))
+        self.assertEqual(self.client.post(url, data).status_code, 403)

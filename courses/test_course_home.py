@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from users.models import SiteSettings, User
 from .models import (
-    Course, Enrollment, Lesson, LessonMaterial, LiveEvent, Module, Progress,
+    Course, Enrollment, HomeFeature, Lesson, LessonMaterial, LiveEvent, Module, Progress,
     SavedLesson, WeeklySelection, WeeklySelectionItem,
 )
 
@@ -33,11 +33,16 @@ class CourseHomeTests(TestCase):
     def test_dashboard_keeps_course_home_when_another_course_is_added_or_selected(self):
         response = self.client.get(reverse("dashboard"))
         self.assertTemplateUsed(response, "courses/course_home.html")
+        self.assertNotContains(response, 'aria-label="Cursos disponíveis"')
         other = self.make_course("segundo")
         Enrollment.objects.create(student=self.student, course=other)
+        expired = self.make_course("vencido")
+        Enrollment.objects.create(student=self.student, course=expired, access_policy="periods")
         response = self.client.get(reverse("dashboard"))
         self.assertTemplateUsed(response, "courses/course_home.html")
         self.assertEqual(response.context["course"], self.course)
+        self.assertEqual(response.context["hero_choices"], [self.course, other])
+        self.assertContains(response, 'aria-label="Próximo curso · segundo"')
         self.assertContains(response, reverse("my_courses"))
         self.assertContains(self.client.get(reverse("my_courses")), reverse("course_home", args=[other.slug]))
         self.client.get(reverse("course_home", args=[other.slug]))
@@ -68,7 +73,11 @@ class CourseHomeTests(TestCase):
         for offset, lesson in ((-14, self.a), (-7, self.b), (7, self.a)):
             week = WeeklySelection.objects.create(course=self.course, week_start=monday+timedelta(days=offset))
             WeeklySelectionItem.objects.create(selection=week, lesson=lesson, position=1)
-        self.assertEqual([c["lesson"] for c in self.page("course_home").context["weekly"]], [self.b])
+        response = self.page("course_home")
+        self.assertEqual([c["lesson"] for c in response.context["weekly"]], [self.b])
+        lesson_url = reverse("lesson_detail", args=[self.course.slug, self.b.pk]) + "?origem=top10"
+        self.assertContains(response, lesson_url)
+        self.assertContains(self.client.get(lesson_url), reverse("course_home", args=[self.course.slug]) + "#top-10")
         self.b.status = "draft"
         self.b.save()
         self.assertFalse(self.page("course_home").context["weekly"])
@@ -82,7 +91,7 @@ class CourseHomeTests(TestCase):
         self.assertContains(response, "00:00 · 1 min restante")
         self.assertNotContains(response, "1 min restantes")
 
-    def test_recent_content_uses_publication_times_and_checks_access(self):
+    def test_news_requires_recent_editorial_selection_and_checks_access(self):
         self.a.published_at = self.now-timedelta(days=13)
         self.a.save()
         self.b.published_at = self.now-timedelta(days=15)
@@ -91,7 +100,14 @@ class CourseHomeTests(TestCase):
         recording = LiveEvent.objects.create(title="Gravação nova", starts_at=self.now-timedelta(days=2), recording_url="https://example.org/video")
         unrelated = self.make_course("outra")
         LiveEvent.objects.create(title="Evento particular", course=unrelated, starts_at=self.now-timedelta(days=2), recording_url="https://example.org/outro")
+        self.assertFalse(self.page("course_news").context["news"])
+        HomeFeature.objects.create(course=self.course, lesson=self.a, position=3)
+        HomeFeature.objects.create(course=self.course, material=material, position=2)
+        HomeFeature.objects.create(course=self.course, recording=recording, position=1)
+        old = HomeFeature.objects.create(course=self.course, lesson=self.b)
+        HomeFeature.objects.filter(pk=old.pk).update(created_at=self.now-timedelta(days=15))
         response = self.page("course_news")
+        self.assertEqual([i["kind"] for i in response.context["news"]], ["Gravação", "E-book", "Aula"])
         self.assertContains(response, self.a.title)
         self.assertNotContains(response, self.b.title)
         self.assertContains(response, reverse("material_open", args=["lesson", material.pk]))
@@ -121,6 +137,9 @@ class CourseHomeTests(TestCase):
         other = self.make_course("cardiologia")
         inactive = self.make_course("ja-matriculado")
         Enrollment.objects.create(course=inactive, student=self.student, access_policy="periods")
+        self.assertFalse(self.page("course_home").context["offers"])
+        for target in (other, inactive):
+            HomeFeature.objects.create(course=self.course, offer=target)
         response = self.page("course_home")
         self.assertContains(response, "À venda")
         self.assertContains(response, "https://wa.me/5567999991234?")

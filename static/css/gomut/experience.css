@@ -12,6 +12,15 @@
   background: var(--c-black);
 }
 .xp-hero__art { position: absolute; inset: var(--nav-h) 0 0; z-index: -1; overflow: hidden; }
+.xp-course-switch { position: absolute; right: var(--gutter); bottom: 2rem; display: flex; align-items: center; gap: 4px; max-width: 90%; overflow-x: auto; }
+.xp-course-switch .rbtn { flex-shrink: 0; background: #171717da; font-size: 24px; }
+.xp-course-dot { display: grid; place-items: center; width: 22px; height: 36px; flex-shrink: 0; }
+.xp-course-dot::before { content: ''; width: 14px; height: 4px; border-radius: 2px; background: #777; }
+.xp-course-dot[aria-current]::before { background: white; }
+#top-10 { scroll-margin-top: calc(var(--nav-h) + 12px); }
+@media (max-width: 900px) {
+  .xp-course-switch { top: calc(var(--nav-h) + 1rem); bottom: auto; }
+}
 .xp-hero__art::after {
   content: "";
   position: absolute;

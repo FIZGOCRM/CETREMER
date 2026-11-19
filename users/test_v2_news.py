@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from courses.models import Course, Enrollment, Lesson, LessonMaterial, LiveEvent, LiveReminder, Module
+from courses.models import Course, Enrollment, HomeFeature, Lesson, LessonMaterial, LiveEvent, LiveReminder, Module
 from users.models import EmailLog, Notification, User
 from users.notifications import email_is_current, run_daily_notifications, run_live_reminders
 
@@ -63,13 +63,16 @@ class CourseNewsTests(TestCase):
         self.assertEqual(Notification.objects.filter(kind="new_lesson").count(), 1)
         self.assertEqual(EmailLog.objects.filter(kind="new_lesson").count(), 1)
 
-    def test_attachment_prepared_before_enrollment_becomes_news_at_lesson_publication(self):
+    def test_older_attachment_triggers_notification_and_appears_in_news_when_selected(self):
         from django.urls import reverse
         self.material.created_at = timezone.now() - timedelta(days=20)
         self.material.save()
         run_live_reminders()
         self.assertTrue(Notification.objects.filter(kind="new_ebook").exists())
         self.client.force_login(self.user)
+        self.assertNotContains(self.client.get(reverse("course_news", args=[self.course.slug])),
+                               reverse("material_open", args=["lesson", self.material.pk]))
+        HomeFeature.objects.create(course=self.course, material=self.material)
         response = self.client.get(reverse("course_news", args=[self.course.slug]))
         self.assertContains(response, reverse("material_open", args=["lesson", self.material.pk]))
 
