@@ -6,7 +6,7 @@
   <header class="xp-hero">
     <div class="xp-hero__art" aria-hidden="true">{% include 'partials/gomut/hero_art.html' %}{% if resume.cover %}<img src="{{ resume.cover.url }}" alt="">{% elif course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% endif %}</div>
     <div class="xp-hero__copy">
-      <h1 class="hero__title">{{ course.title }}</h1>
+      <h1 class="hero__title{% if course.title|length > 20 %} hero__title--long{% endif %}" title="{{ course.title }}">{{ course.title }}</h1>
       {% if course.description %}<p class="hero__desc">{{ course.description|truncatewords:36 }}</p>{% endif %}
       <div class="hero__actions">
         {% if resume %}<a class="btn btn--light btn--lg" href="{{ resume.url }}">{% include 'partials/gomut/icon.html' with name='play' %}{% if started_course %}Continuar{% else %}Começar{% endif %}</a>
