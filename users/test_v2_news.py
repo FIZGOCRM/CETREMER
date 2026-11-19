@@ -51,6 +51,16 @@ class CourseNewsTests(TestCase):
         self.assertEqual(Notification.objects.filter(kind="new_lesson").count(), 1)
         self.assertEqual(EmailLog.objects.filter(kind="new_lesson").count(), 1)
 
+    def test_attachment_prepared_before_enrollment_becomes_news_at_lesson_publication(self):
+        from django.urls import reverse
+        self.material.created_at = timezone.now() - timedelta(days=20)
+        self.material.save()
+        run_live_reminders()
+        self.assertTrue(Notification.objects.filter(kind="new_ebook").exists())
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("course_news", args=[self.course.slug]))
+        self.assertContains(response, reverse("material_open", args=["lesson", self.material.pk]))
+
     def test_unreleased_ebook_and_opt_out(self):
         self.module.release_month = 2
         self.module.save()

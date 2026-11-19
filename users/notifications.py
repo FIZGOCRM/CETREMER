@@ -167,6 +167,8 @@ def run_content_notifications(*, on=None):
     from courses.access import access_decision, lesson_availability
     from courses.models import Enrollment, Lesson, LessonMaterial, LiveEvent
 
+    from courses.selectors import course_publication_time
+
     now = timezone.now()
     enrollments = Enrollment.objects.filter(student__user__is_active=True, course__is_published=True
         ).select_related("course", "student__user").prefetch_related("access_periods")
@@ -180,15 +182,26 @@ def run_content_notifications(*, on=None):
         seen = {reference.split(":", 2)[1] for reference in Notification.objects.filter(
             user=student.user, kind="new_lesson", reference__startswith=f"{enrollment.pk}:"
         ).values_list("reference", flat=True)}
-        for lesson in lessons.filter(published_at__range=(enrollment.enrolled_at, now)):
+        for lesson in lessons.filter(published_at__isnull=False):
+            published = course_publication_time(enrollment, lesson.module, lesson.published_at)
+            if not enrollment.enrolled_at <= published <= now:
+                continue
             if str(lesson.pk) in seen or lesson_availability(enrollment, lesson, on=on).state != "available":
                 continue
             notify(student.user, "new_lesson", f"{enrollment.pk}:{lesson.pk}:publication",
                    "Nova aula disponível", f"{lesson.title} foi publicada em {enrollment.course.title}.",
                    reverse("lesson_detail", args=[enrollment.course.slug, lesson.pk]), email=student.email_new_lessons)
-        materials = LessonMaterial.objects.filter(lesson__in=lessons, created_at__range=(enrollment.enrolled_at, now)
+        materials = LessonMaterial.objects.filter(lesson__in=lessons, created_at__isnull=False
             ).exclude(file="", url="").select_related("lesson__module__course")
+        announced_books = set(Notification.objects.filter(user=student.user, kind="new_ebook",
+            reference__startswith=f"{enrollment.pk}:").values_list("reference", flat=True))
         for material in materials:
+            if f"{enrollment.pk}:{material.pk}:publication" in announced_books:
+                continue
+            published = course_publication_time(enrollment, material.lesson.module, material.lesson.published_at,
+                                                attachment_created_at=material.created_at)
+            if not enrollment.enrolled_at <= published <= now:
+                continue
             if lesson_availability(enrollment, material.lesson, on=on).state == "available":
                 notify(student.user, "new_ebook", f"{enrollment.pk}:{material.pk}:publication",
                        "Novo e-book disponível", f"{material.title} · {enrollment.course.title}",

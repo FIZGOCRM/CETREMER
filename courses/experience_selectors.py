@@ -13,7 +13,7 @@ from users.models import SiteSettings
 from .access import lesson_availability, module_release_date
 from .live_selectors import live_agenda
 from .models import Course, Lesson, LessonMaterial, Module, Progress, SavedLesson, WeeklySelection
-from .selectors import library_items
+from .selectors import course_publication_time, library_items
 
 
 def course_lessons(enrollment):
@@ -82,13 +82,18 @@ def course_news(enrollment, cards, past_events):
     items = []
     for card in cards.values():
         lesson = card["lesson"]
-        if lesson.published_at and since <= lesson.published_at <= now:
-            items.append({"kind": "Aula", "title": lesson.title, "date": lesson.published_at,
+        published = course_publication_time(enrollment, lesson.module, lesson.published_at)
+        if published and since <= published <= now:
+            items.append({"kind": "Aula", "title": lesson.title, "date": published,
                           "url": card["url"], "card": card})
-    materials = LessonMaterial.objects.filter(lesson_id__in=cards, created_at__range=(since, now)
+    materials = LessonMaterial.objects.filter(lesson_id__in=cards, created_at__isnull=False
                                               ).exclude(Q(file="") & Q(url=""))
     for material in materials:
-        items.append({"kind": "E-book", "title": material.title, "date": material.created_at,
+        lesson = cards[material.lesson_id]["lesson"]
+        published = course_publication_time(enrollment, lesson.module, lesson.published_at, attachment_created_at=material.created_at)
+        if not since <= published <= now:
+            continue
+        items.append({"kind": "E-book", "title": material.title, "date": published,
                       "url": reverse("material_open", args=["lesson", material.pk])})
     for event in past_events:
         if event.recording_url and event.recording_added_at and since <= event.recording_added_at <= now:

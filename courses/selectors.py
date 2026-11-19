@@ -317,3 +317,19 @@ def search_lessons(student,term):
     completed=set(Progress.objects.filter(student=student,is_completed=True).values_list('lesson_id',flat=True))
     lessons=Lesson.objects.filter(module__course_id__in=enrollments,module__course__is_published=True,status='published',module__status='published').filter(Q(title__icontains=term)|Q(module__title__icontains=term)).select_related('module__course').order_by('module__course__title','module__order','order','pk')[:100]
     return [{'lesson':lesson,'availability':lesson_availability(enrollments[lesson.module.course_id],lesson,completed_ids=completed)} for lesson in lessons]
+
+
+def course_publication_time(enrollment, module, published_at, *, attachment_created_at=None):
+    """Earliest instant this published item could appear for this enrollment."""
+    from datetime import datetime, time
+    from django.utils import timezone
+    from .access import module_release_date
+
+    known = [stamp for stamp in (published_at, attachment_created_at) if stamp is not None]
+    if not known:
+        return None
+    if module.release_month > 1:
+        release = module_release_date(enrollment, module)
+        if release:
+            known.append(timezone.make_aware(datetime.combine(release, time.min)))
+    return max(known)
