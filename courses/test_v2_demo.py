@@ -29,4 +29,3 @@ class CourseDemoTests(TestCase):
                 else:
                     progress.last_position_seconds = 3
                     progress.save()
-

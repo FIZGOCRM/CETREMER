@@ -1,7 +1,7 @@
 from datetime import timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from courses.models import Course, Enrollment, Lesson, LessonMaterial, LiveEvent, LiveReminder, Module
@@ -42,6 +42,18 @@ class CourseNewsTests(TestCase):
         self.enrollment.save()
         self.assertFalse(any(email_is_current(log) for log in EmailLog.objects.all()))
 
+    @override_settings(DEBUG=True)
+    def test_local_preview_is_written_once_and_is_never_marked_delivered(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from users.notifications import queue_email
+        output = StringIO()
+        with redirect_stdout(output):
+            for unused in range(2):
+                queue_email(self.user, "demo", "qa-preview", "Preview local", "Conteudo ilustrativo")
+        self.assertEqual(output.getvalue().count("Subject: Preview local"), 1)
+        self.assertEqual(EmailLog.objects.get(reference="qa-preview").status, "not_sent")
+
     def test_interrupted_publication_retries_both_channels(self):
         with patch("users.notifications._email_log", side_effect=RuntimeError("interrupted")):
             with self.assertRaises(RuntimeError):
@@ -81,4 +93,3 @@ class CourseNewsTests(TestCase):
         for kind in ("live_reminder_24h", "live_reminder"):
             self.assertEqual(Notification.objects.filter(kind=kind).count(), 1)
             self.assertEqual(EmailLog.objects.filter(kind=kind).count(), 1)
-

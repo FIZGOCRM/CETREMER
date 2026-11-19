@@ -1,5 +1,6 @@
 from datetime import datetime,time,timedelta
-from django.core.mail import send_mail
+from django.conf import settings
+from django.core.mail import get_connection, send_mail
 from django.db import transaction
 from django.db.models import Q
 from uuid import uuid4
@@ -18,7 +19,7 @@ def notify(user,kind,reference,title,body='',url='',*,email=False,send_before=No
         if email and created:
             log, _ = _email_log(user, kind, f"{user.pk}:{reference}", title, body, send_before=send_before)
     if log:
-        _deliver(log.pk)
+        _deliver(log.pk, preview=True)
     return notice
 
 
@@ -87,10 +88,14 @@ def email_is_current(log):
     return bool(release and str(release)==parts[3] and release<=timezone.localdate())
 
 
-def _deliver(log_id):
+def _deliver(log_id, *, preview=False):
     log=EmailLog.objects.select_related('user').get(pk=log_id)
     if not email_is_current(log):return log
-    if not SiteSettings.load().email_host:return log
+    if not SiteSettings.load().email_host:
+        if preview and settings.DEBUG:
+            console = get_connection("django.core.mail.backends.console.EmailBackend")
+            send_mail(log.subject, log.body, None, [log.user.email], connection=console)
+        return log
     # A single conditional UPDATE claims the delivery in autocommit. No SQLite
     # transaction is kept open during the network call. SMTP has a 15s timeout;
     # a five-minute lease permits recovery after a crashed scheduler.
@@ -121,7 +126,7 @@ def _email_log(user,kind,reference,subject,body,*,send_before=None):
 
 def queue_email(user,kind,reference,subject,body,*,send_before=None):
     log, created = _email_log(user, kind, reference, subject, body, send_before=send_before)
-    return _deliver(log.pk) if created else log
+    return _deliver(log.pk, preview=True) if created else log
 
 
 def retry_pending_emails():

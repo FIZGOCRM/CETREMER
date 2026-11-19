@@ -75,4 +75,3 @@ class EngagementTests(TestCase):
         self.enrollment.access_policy = "periods"
         self.enrollment.save()
         self.assertEqual(self.client.post(url, {"active": "true"}).status_code, 403)
-

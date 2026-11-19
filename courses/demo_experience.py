@@ -91,4 +91,3 @@ def populate_experience(password, owner, original_student):
     ]:
         LiveEvent.objects.get_or_create(course=course, title=f"{title} · demo {monday}", defaults={
             "starts_at": starts, "duration_minutes": 45, "recording_url": recording})
-
