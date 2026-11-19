@@ -6,18 +6,19 @@
   <header class="xp-hero">
     <div class="xp-hero__art" aria-hidden="true">{% include 'partials/gomut/hero_art.html' %}</div>
     <div class="xp-hero__copy">
-      <h1 class="hero__title{% if course.title|length > 20 %} hero__title--long{% endif %}" title="{{ course.title }}">{{ course.title }}</h1>
+      <h1 class="hero__title{% if course.title|length > 32 %} hero__title--long{% elif course.title|length > 20 %} hero__title--wide{% endif %}" title="{{ course.title }}">{{ course.title }}</h1>
       {% if course.description %}<p class="hero__desc">{{ course.description|truncatewords:36 }}</p>{% endif %}
       <div class="hero__actions">
         {% if resume %}<a class="btn btn--light btn--lg" href="{{ resume.url }}">{% include 'partials/gomut/icon.html' with name='play' %}{% if started_course %}Continuar{% else %}Começar{% endif %}</a>
         {% else %}<a class="btn btn--light btn--lg" href="{% url 'course_trail' course.slug %}">Explorar trilha</a>{% endif %}
         <a class="btn btn--dim btn--lg" href="{% url 'member_course' course.slug %}">{% include 'partials/gomut/icon.html' with name='info' %}Mais informações</a>
       </div>
-      {% if resume %}
-        <div class="hero__resume"><p><strong>{{ resume.lesson.module.title }}</strong> · Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restante{{ resume.remaining|pluralize }}{% endif %}</p>
+      <div class="hero__resume">
+        {% if resume %}
+          <p><strong>{{ resume.lesson.module.title }}</strong> · Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restante{{ resume.remaining|pluralize }}{% endif %}</p>
           {% if resume.lesson.duration_seconds %}<progress max="100" value="{{ resume.percent }}" aria-label="Progresso da aula">{{ resume.percent }}%</progress>{% endif %}
-        </div>
-      {% endif %}
+        {% endif %}
+      </div>
       {% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}
     </div>
     {% if hero_choices|length > 1 %}<nav class="xp-course-switch" aria-label="Cursos disponíveis">
