@@ -1,12 +1,13 @@
 {% load cetremer %}<article class="xp-card" data-lesson-card="{{ card.lesson.pk }}">
-  <a href="{{ card.url }}" class="xp-card__cover" aria-label="Abrir aula {{ card.number }} · {{ card.lesson.title }}">
-    {% include 'partials/experience/lesson_art.html' %}
-    {% if card.rank %}<b class="xp-rank">{{ card.rank }}</b>{% endif %}
+  <a href="{{ card.url }}" class="xp-card__link">
+    <span class="xp-card__cover">{% include 'partials/experience/shelf_art.html' %}
+      {% if card.started or card.completed %}<progress max="100" value="{{ card.percent }}" aria-label="Progresso da aula">{{ card.percent }}%</progress>{% endif %}
+    </span>
+    <span class="card__caption"><strong>Aula {{ card.number }} · {{ card.lesson.title }}</strong>
+      {% if card.completed %}<span>Concluída</span>{% elif card.started %}<span>Retomar em {{ card.position|mmss }}{% if card.remaining != None %} · {{ card.remaining }} min restante{{ card.remaining|pluralize }} · <small>{{ card.percent }}%</small> do vídeo{% endif %}</span>{% elif card.lesson.duration_seconds %}<span>{{ card.lesson.duration_seconds|duracao }}</span>{% endif %}
+    </span>
   </a>
-  <div class="xp-card__body"><span class="eyebrow">Aula {{ card.number }}</span>
-    <h3><a href="{{ card.url }}">{{ card.lesson.title }}</a></h3>
-    {% if card.completed %}<small>Concluída</small>{% elif card.started %}<small>Em andamento · {{ card.position|mmss }}{% if card.remaining != None %} · {{ card.remaining }} min restante{{ card.remaining|pluralize }}{% endif %}</small>{% elif card.lesson.duration_seconds %}<small>{{ card.lesson.duration_seconds|duracao }}</small>{% endif %}
-    {% if card.started or card.completed %}<div class="xp-card__progress"><progress max="100" value="{{ card.percent }}" aria-label="Progresso da aula">{{ card.percent }}%</progress><small>{{ card.percent }}%</small></div>{% endif %}
+  <div class="xp-card__action">
     {% include 'partials/experience/save_button.html' %}
   </div>
 </article>

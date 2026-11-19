@@ -4,41 +4,48 @@
 {% block content %}
 <div class="xp">
   <header class="xp-hero">
-    <div class="xp-hero__art" aria-hidden="true">{% if resume.cover %}<img src="{{ resume.cover.url }}" alt="">{% elif course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% elif resume %}{% include 'partials/experience/lesson_art.html' with card=resume %}{% else %}{% include 'partials/gomut/hero_art.html' %}{% endif %}</div>
+    <div class="xp-hero__art" aria-hidden="true">{% include 'partials/gomut/hero_art.html' %}{% if resume.cover %}<img src="{{ resume.cover.url }}" alt="">{% elif course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% endif %}</div>
     <div class="xp-hero__copy">
-      <p class="eyebrow">{{ user.student_profile.full_name|default:user.username }}, seu curso</p>
-      <h1>{{ course.title }}</h1>
-      {% if course.description %}<p>{{ course.description|truncatewords:36 }}</p>{% endif %}
+      <h1 class="hero__title">{{ course.title }}</h1>
+      {% if course.description %}<p class="hero__desc">{{ course.description|truncatewords:36 }}</p>{% endif %}
+      <div class="hero__actions">
+        {% if resume %}<a class="btn btn--light btn--lg" href="{{ resume.url }}">{% include 'partials/gomut/icon.html' with name='play' %}{% if started_course %}Continuar{% else %}Começar{% endif %}</a>
+        {% else %}<a class="btn btn--light btn--lg" href="{% url 'course_trail' course.slug %}">Explorar trilha</a>{% endif %}
+        <a class="btn btn--dim btn--lg" href="{% url 'member_course' course.slug %}">{% include 'partials/gomut/icon.html' with name='info' %}Mais informações</a>
+      </div>
       {% if resume %}
-        <p>Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restante{{ resume.remaining|pluralize }}{% endif %}</p>
-        {% if resume.lesson.duration_seconds %}<progress max="100" value="{{ resume.percent }}" aria-label="Progresso da aula">{{ resume.percent }}%</progress>{% endif %}
-        <a class="btn btn--light" href="{{ resume.url }}">{% include 'partials/gomut/icon.html' with name='play' %}{% if started_course %}Continuar aula{% else %}Começar aula{% endif %}</a>
-      {% else %}<a class="btn btn--light" href="{% url 'course_trail' course.slug %}">Explorar trilha</a>{% endif %}
-      <a class="xp-hero__detail" href="{% url 'member_course' course.slug %}">Mais informações</a>
+        <div class="hero__resume"><p><strong>{{ resume.lesson.module.title }}</strong> · Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restante{{ resume.remaining|pluralize }}{% endif %}</p>
+          {% if resume.lesson.duration_seconds %}<progress max="100" value="{{ resume.percent }}" aria-label="Progresso da aula">{{ resume.percent }}%</progress>{% endif %}
+        </div>
+      {% endif %}
       {% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}
     </div>
   </header>
   <div class="xp-body">
-    {% if interrupted %}<section><h2>Continue de onde você parou, {{ user.student_profile.full_name|default:user.username|first_name }}</h2>
+    {% if interrupted %}<section><h2>Continue de onde parou, {{ user.student_profile.full_name|default:user.username|first_name }}</h2>
       <div class="xp-shelf">{% for card in interrupted %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
     </section>{% endif %}
     {% if weekly %}<section><h2>Top 10 no Plantão desta semana</h2>
-      <div class="xp-shelf">{% for card in weekly %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
+      <div class="xp-shelf xp-shelf--ranking">{% for card in weekly %}<a class="top10" href="{{ card.url }}" aria-label="{{ card.rank }}º lugar · {{ card.lesson.title }}">
+        <span class="top10__n{% if card.rank == 10 %} top10__n--2{% endif %}" aria-hidden="true">{{ card.rank }}</span>
+        {% include 'partials/experience/shelf_art.html' with poster=True %}
+      </a>{% endfor %}</div>
     </section>{% endif %}
     <section><div class="xp-heading"><h2>Novidades</h2><a href="{% url 'course_news' course.slug %}">Ver tudo</a></div>{% include 'partials/experience/news_list.html' with shelf=True %}</section>
     <section><div class="xp-heading"><h2>Próximos encontros ao vivo</h2><a href="{% url 'course_live' course.slug %}">Ver agenda</a></div>
-      <div class="xp-shelf">{% for event in upcoming %}<article class="xp-event">
-        <time datetime="{{ event.starts_at|date:'c' }}">{{ event.starts_at|date:'l, d/m' }} · {{ event.starts_at|date:'H:i' }}</time>
+      <div class="xp-shelf">{% for event in upcoming %}<article class="lcard">
+        <time class="datebox{% if event.days_until == 0 %} is-today{% endif %}" datetime="{{ event.starts_at|date:'c' }}"><b>{{ event.starts_at|date:'d' }}</b><span>{{ event.starts_at|date:'M' }}</span></time>
+        <div><p>{{ event.get_kind_display }} · {% if event.days_until > 1 %}Faltam {{ event.days_until }} dias{% elif event.days_until == 1 %}Falta 1 dia{% else %}Hoje{% endif %}</p>
         <h3><a href="{% url 'course_live' course.slug %}#evento-{{ event.pk }}">{{ event.title }}</a></h3>
-        <p>{{ event.get_kind_display }} · {{ event.duration_minutes }} min · {% if event.days_until > 1 %}Faltam {{ event.days_until }} dias{% elif event.days_until == 1 %}Falta 1 dia{% else %}Hoje{% endif %}</p>
+        <p>{{ event.starts_at|date:'l' }} · {{ event.starts_at|date:'H:i' }} · {{ event.duration_minutes }} min</p><div class="lcard__foot">
         {% if event.room_available %}<a class="btn btn--light" href="{% url 'live_link' event.pk 'sala' %}">Entrar na sala</a>{% endif %}
         {% if event.can_remind %}{% include 'partials/experience/reminder.html' %}{% endif %}
-      </article>{% empty %}<p class="xp-empty">Nenhum encontro agendado.</p>{% endfor %}</div>
+        </div></div></article>{% empty %}<p class="xp-empty">Nenhum encontro agendado.</p>{% endfor %}</div>
     </section>
     <section><div class="xp-heading"><h2><a href="{% url 'course_saved' course.slug %}">Minha lista</a></h2><a href="{% url 'course_saved' course.slug %}">Ver lista completa</a></div>
       {% include 'partials/experience/saved_list.html' with limit=6 %}
     </section>
-    {% if offers %}<section><h2>Outros cursos da {{ site.school_name }}</h2><div class="xp-shelf">
+    {% if offers %}<section class="showcase"><h2 class="showcase__title">Outros cursos da {{ site.school_name }}</h2><div class="xp-shelf xp-shelf--offers">
       {% for offer in offers %}<article class="xp-offer">
         {% include 'partials/gomut/cover.html' with course=offer.course %}
         <span class="xp-offer__label">À venda</span>

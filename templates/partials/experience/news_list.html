@@ -1,4 +1,8 @@
 <ul class="xp-news{% if shelf %} xp-shelf xp-news--shelf{% endif %}">{% for item in news %}<li>
+  {% if shelf %}<a class="xp-news__cover" href="{{ item.url }}" aria-label="{{ item.kind }} · {{ item.title }}">
+    {% include 'partials/experience/shelf_art.html' with card=item.card kicker=item.kind art_title=item.title %}
+    <span class="xp-new">Novo</span>
+  </a>{% endif %}
   <div><p class="eyebrow">{{ item.kind }} · <time datetime="{{ item.date|date:'c' }}">{{ item.date|date:'d/m' }}</time></p>
     <a href="{{ item.url }}">{{ item.title }}</a></div>
   {% if item.card %}{% include 'partials/experience/save_button.html' with card=item.card %}{% endif %}

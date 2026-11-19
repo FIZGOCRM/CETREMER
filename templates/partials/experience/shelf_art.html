@@ -1,0 +1,6 @@
+<span class="xp-shelf-art cover {{ course.cover_class }}{% if poster %} cover--poster{% endif %}" aria-hidden="true"{% if card %} style="--module-order: {{ card.lesson.module.order }}; --lesson-order: {{ card.lesson.order }}"{% endif %}>
+  {% if card.cover %}<img class="cover__img" src="{{ card.cover.url }}" alt="" loading="lazy">{% endif %}
+  {% include 'partials/gomut/motif_ecg.html' %}
+  <span class="cover__kicker">{% firstof kicker card.lesson.module.title %}</span>
+  <strong class="cover__title">{% firstof art_title card.lesson.title %}</strong>
+</span>
