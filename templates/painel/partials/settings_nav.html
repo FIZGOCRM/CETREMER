@@ -1,0 +1,7 @@
+<nav class="gp-subnav" aria-label="Configurações"><a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=membros" {% if tab == 'membros' %}aria-current="page"{% endif %}>Área de membros</a>
+<a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=mentoria" {% if tab == 'mentoria' %}aria-current="page"{% endif %}>Mentoria e equipe</a>
+<a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=plano" {% if tab == 'plano' %}aria-current="page"{% endif %}>Plano do aluno</a>
+<a class="gp-subnav__item" href="{% url 'painel:support_settings' 'faq' %}" {% if tab == 'ajuda' or kind %}aria-current="page"{% endif %}>Central de ajuda</a>
+<a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=certificado" {% if tab == 'certificado' %}aria-current="page"{% endif %}>Certificado</a>
+<a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=email" {% if tab == 'email' %}aria-current="page"{% endif %}>Envio de e-mails</a>
+<a class="gp-subnav__item" href="{% url 'painel:settings' %}?aba=avisos" {% if tab == 'avisos' %}aria-current="page"{% endif %}>Avisos</a></nav>

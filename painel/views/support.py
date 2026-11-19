@@ -21,10 +21,26 @@ def tickets(request):
         except ValidationError as exc:messages.error(request,' '.join(exc.messages))
         return redirect(request.get_full_path())
     tickets=visible_tickets(request.user).prefetch_related('events')
-    if request.GET.get('q'):tickets=tickets.filter(Q(title__icontains=request.GET['q'])|Q(body__icontains=request.GET['q']))
+    from courses.models import Course
+    q = request.GET.get("q", "").strip()
+    if q:
+        matches = (Q(title__icontains=q) | Q(body__icontains=q) | Q(student__full_name__icontains=q)
+                   | Q(student__user__email__icontains=q) | Q(student__user__username__icontains=q))
+        number = q.lstrip("#")
+        if number.isascii() and number.isdecimal() and len(number) <= 10:
+            matches |= Q(number=int(number))
+        tickets = tickets.filter(matches)
+    for key, field in (("assunto", "subject_id"), ("curso", "student__enrollments__course_id")):
+        value = request.GET.get(key, "")
+        if value.isascii() and value.isdecimal() and len(value) <= 18:
+            tickets = tickets.filter(**{field: int(value)})
+
     status=request.GET.get('status','active')
     tickets=tickets.filter(status='resolved') if status=='resolved' else tickets.exclude(status='resolved')
-    return page(request,'tickets',tickets=tickets,tab=status)
+    items = list(tickets)
+    selected_id = request.GET.get('chamado')
+    selected = next((t for t in items if str(t.pk) == selected_id), None) if selected_id else next(iter(items), None)
+    return page(request,'tickets',tickets=items,selected=selected,tab=status,subjects=SupportSubject.objects.all(),courses=Course.objects.order_by('title'))
 
 @painel_required
 def support_settings(request,kind):

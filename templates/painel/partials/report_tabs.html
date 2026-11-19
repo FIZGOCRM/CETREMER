@@ -1,0 +1,1 @@
+<nav class="gp-tabs" aria-label="Relatórios"><a class="gp-tab" href="{% url 'painel:reports' %}"{% if request.resolver_match.url_name == 'reports' %} aria-current="page"{% endif %}>Por curso</a><a class="gp-tab" href="{% url 'painel:lesson_metrics' %}"{% if request.resolver_match.url_name == 'lesson_metrics' %} aria-current="page"{% endif %}>Por aula</a></nav>

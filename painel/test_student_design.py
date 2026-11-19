@@ -13,7 +13,8 @@ class StudentPanelDesignTests(TestCase):
   AccessPeriod.objects.create(enrollment=self.enrollment,starts_on=timezone.localdate(),ends_on=timezone.localdate()+timedelta(days=20))
   self.client.force_login(self.owner)
  def test_table_and_expirations_use_new_base_and_plan_modal(self):
-  r=self.client.get('/painel/alunos/');self.assertTemplateUsed(r,'base_painel_gomut.html');self.assertContains(r,'data-plan-open')
+  r=self.client.get('/painel/alunos/');self.assertTemplateUsed(r,'base_painel_gomut.html')
+  self.assertContains(self.client.get(f'/painel/alunos/?aluno={self.student.pk}'), 'data-gp-drawer')
   self.assertNotContains(r,'Período quitado')
   self.assertTemplateUsed(self.client.get('/painel/vencimentos/'),'base_painel_gomut.html')
   r=self.client.get(f'/painel/planos/{self.enrollment.pk}/?embed=1');self.assertTemplateUsed(r,'base_panel_embed.html')

@@ -1,6 +1,7 @@
 """Management HTTP adapters: students."""
 
 import csv
+from datetime import timedelta
 from uuid import uuid4
 from smtplib import SMTPException
 
@@ -11,11 +12,13 @@ from django.db.models import Count, Q
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
+from core.portal_routing import user_access_url
 
 from core.decorators import painel_required
 from core.csv_export import safe_csv_cell
 from courses.access import access_decision
-from courses.models import Course, Enrollment
+from courses.models import Course, Enrollment, Lesson, Progress
 from courses.selectors import progress_info
 from painel.forms import AccessPeriodForm, ManualEnrollmentForm, IdentifierForm
 from courses.services import grant_manual_period
@@ -30,6 +33,10 @@ from users.services import enroll_student_with_plan, import_students
 User = get_user_model()
 
 from .common import access_email, page, report_access_delivery
+
+
+def deliver_code(request, user):
+    request.session["panel_access_code"] = {"user": user.pk, "code": issue_code(user)}
 
 
 @painel_required
@@ -57,13 +64,7 @@ def students(request):
         if action == "enroll":
             form = ManualEnrollmentForm(request.POST)
             if not form.is_valid():
-                messages.error(
-                    request,
-                    " ".join(
-                        error for errors in form.errors.values() for error in errors
-                    ),
-                )
-                return redirect("painel:students")
+                return _students_page(request, ids, creation_form=form)
             course = form.cleaned_data["course_id"]
             email = form.cleaned_data["email"]
             try:
@@ -75,19 +76,15 @@ def students(request):
                     student_id=form.cleaned_data["student_id"],
                 )
             except ValidationError as exc:
-                messages.error(request, " ".join(exc.messages))
-                return redirect("painel:students")
+                form.add_error(None, exc)
+                return _students_page(request, ids, creation_form=form)
             if user:
                 messages.success(request, "Cadastro e plano criados. Confira as datas antes de entregar o acesso.")
                 if (
                     not user.has_usable_password()
                     and not FirstAccessCode.objects.filter(user=user).exists()
                 ):
-                    code = issue_code(user)
-                    messages.info(
-                        request,
-                        f"Código de primeiro acesso: {code}. Entregue este código ao aluno por um canal seguro. Ele expira em 7 dias e aparece apenas agora.",
-                    )
+                    deliver_code(request, user)
                 if request.POST.get("send_email"):
                     try:
                         sent = access_email(request, user)
@@ -136,8 +133,7 @@ def students(request):
                 sent = 0
             report_access_delivery(request, sent)
             if not sent and not user.has_usable_password():
-                code=issue_code(user)
-                messages.info(request,f'Código de primeiro acesso: {code}. Entregue por um canal seguro; expira em 7 dias. O código anterior deixa de valer.')
+                deliver_code(request, user)
         elif action == "generate_first_access" and user:
             if user.has_usable_password():
                 messages.error(
@@ -145,14 +141,14 @@ def students(request):
                     "Este aluno já tem senha. Use a recuperação de senha se necessário.",
                 )
             else:
-                code = issue_code(user)
-                messages.info(
-                    request,
-                    f"Código de primeiro acesso: {code}. Entregue este código ao aluno por um canal seguro. Ele expira em 7 dias e aparece apenas agora.",
-                )
+                deliver_code(request, user)
         return redirect(
             reverse("painel:students") + (f"?aluno={user.id}" if user else "")
         )
+    return _students_page(request, ids)
+
+
+def _students_page(request, ids, *, creation_form=None):
     from django.db.models import Prefetch
     qs = (
         User.objects.filter(role=User.Role.STUDENT)
@@ -171,24 +167,57 @@ def students(request):
         )
     if course_id:
         qs = qs.filter(student_profile__enrollments__course_id=course_id)
-    if request.GET.get('expiring'):
-        from django.utils import timezone
-        from datetime import timedelta
-        qs = qs.filter(student_profile__enrollments__access_periods__ends_on__range=(timezone.localdate(), timezone.localdate()+timedelta(days=30))).distinct()
+    students_list = list(qs.distinct().order_by("-date_joined", "-pk"))
+    from users.models import StudentVisit
+    today = timezone.localdate()
+    visitors = set(StudentVisit.objects.filter(date__gte=today-timedelta(days=6)).values_list("student_id",flat=True))
+    totals = dict(Lesson.objects.filter(status="published", module__status="published").values("module__course_id")
+                  .annotate(n=Count("pk")).values_list("module__course_id","n"))
+    done = {(student, course): n for student, course, n in Progress.objects.filter(
+        is_completed=True, lesson__status="published", lesson__module__status="published",
+        student__user__in=qs).values("student_id","lesson__module__course_id").annotate(n=Count("pk"))
+            .values_list("student_id","lesson__module__course_id","n")}
+    views = {"todos": "Todos", "terminam": "Terminam em 30 dias", "pendentes": "Primeiro acesso pendente",
+             "inativos": "Sem acesso há 7 dias", "encerrados": "Encerrados"}
+    counts = dict.fromkeys(views, 0)
+    view = request.GET.get("visao", "terminam" if request.GET.get("expiring") else "todos")
+    if view not in views:
+        view = "todos"
+    filtered = []
+    active_count = 0
+    new_since = timezone.now() - timedelta(days=1)
+    for user in students_list:
+        enrollments = list(user.student_profile.enrollments.all())
+        user.plan_items = []
+        user.newly_registered = user.date_joined >= new_since
+        for enrollment in enrollments:
+            total = totals.get(enrollment.course_id, 0)
+            progress = done.get((enrollment.student_id, enrollment.course_id), 0)
+            user.plan_items.append({"enrollment": enrollment, "plan": plan_status(enrollment),
+                                    "pct": round(100 * progress / total) if total else 0})
+            active_count += int(access_decision(enrollment).allowed)
+        states = {item["plan"]["state"] for item in user.plan_items}
+        pending = not user.has_usable_password()
+        modes = {"todos": True, "pendentes": pending, "encerrados": "ended" in states,
+                 "terminam": "ending_soon" in states, "inativos": user.student_profile.pk not in visitors}
+        if request.GET.get("acesso") == "pendente" and not pending or request.GET.get("acesso") == "liberado" and pending:
+            continue
+        for key, matches in modes.items():
+            counts[key] += int(matches)
+        if modes[view]:
+            filtered.append(user)
+        first = min(enrollments, key=lambda e:e.enrolled_at) if enrollments else None
+        user.first_enrollment_source = first.get_source_display() if first else ""
     from django.core.paginator import Paginator
 
-    students_page = Paginator(qs.order_by("id"), 25).get_page(request.GET.get("page"))
-    for user in students_page:
-        enrollments=list(user.student_profile.enrollments.all())
-        user.plan_items=[{'enrollment':e,'plan':plan_status(e)} for e in enrollments]
-        first=min(enrollments,key=lambda e:e.enrolled_at) if enrollments else None
-        user.first_enrollment_source=first.get_source_display() if first else ''
+    students_page = Paginator(filtered, 25).get_page(request.GET.get("page"))
     selected = (
-        User.objects.filter(pk=ids["aluno"], role=User.Role.STUDENT).first()
-        if ids["aluno"]
+        User.objects.filter(pk=ids["aluno"] or ids["student_id"], role=User.Role.STUDENT).first()
+        if ids["aluno"] or ids["student_id"]
         else None
     )
     if selected:
+        selected.certificate_count = selected.student_profile.enrollments.filter(certificate__isnull=False).count()
         selected.access_delivery=selected.email_logs.filter(kind__in=["first_access","reset_access"],status="sent").order_by("-created_at").first()
         selected.enrollment_items = []
         for enrollment in (
@@ -199,20 +228,47 @@ def students(request):
             info = progress_info(selected.student_profile, enrollment.course)
             info["access"] = access_decision(enrollment)
             info["enrollment"] = enrollment
+            info["plan"] = plan_status(enrollment)
+            if not info["plan"].get("period"):
+                info["actions"] = [("create", "Criar plano")]
+            else:
+                info["actions"] = [("correct", "Corrigir datas")]
+                if info["plan"]["state"] == "ended":
+                    info["actions"].append(("reactivate", "Reativar plano"))
+                elif info["access"].allowed:
+                    info["actions"].extend([("extend","Estender acesso"), ("end","Encerrar plano")])
+            retry = request.session.get("panel_plan_retry")
+            if retry and retry["enrollment"] == enrollment.pk:
+                info["retry"] = request.session.pop("panel_plan_retry")
             info["subscription"] = getattr(enrollment, "subscription", None)
             info["manual_reference"] = uuid4()
             selected.enrollment_items.append(info)
         selected.available_courses = Course.objects.exclude(
             enrollments__student=selected.student_profile
         )
-    return page(
+    delivery = request.session.get("panel_access_code")
+    if selected and delivery and delivery["user"] == selected.pk:
+        delivery = request.session.pop("panel_access_code")
+        destination = user_access_url(request, selected, reverse("first_access"))
+        delivery["message"] = f"Acesse {destination} com o e-mail {selected.email} e o código {delivery['code']}. Ele vale por 7 dias."
+    else:
+        delivery = None
+    response = page(
         request,
         "students",
         students=students_page,
         selected=selected,
         courses=Course.objects.all(),
-        q=q,
+        q=q, view=view, views=[(key, label, counts[key]) for key,label in views.items()],
+        student_count=counts["todos"], active_count=active_count, delivery=delivery, today=today,
+        creation_form=creation_form,
+        drawer_tab=request.GET.get("aba", "cursos"),
+        student_tabs=(("cursos","Cursos e planos"), ("acesso","Acesso"), ("historico","Histórico"), ("observacoes","Observações")),
     )
+    if delivery:
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @painel_required

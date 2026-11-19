@@ -9,12 +9,12 @@ from .common import page
 
 
 def _period(request):
-    raw=request.GET.get('dias','7')
+    raw=request.GET.get('periodo', request.GET.get('dias','7'))
     return int(raw) if raw in ('7','30','90') else 7
 
 @painel_required
 def reports(request):
-    return page(request,'reports',report=report_data(days=_period(request)))
+    return page(request, 'reports', report=report_data(days=_period(request)), periods=(7, 30, 90))
 
 
 @painel_required
@@ -39,6 +39,8 @@ def export_reports(request):
     row('Tipo','Curso','Aluno','Data','Indicador','Valor')
     row('Resumo','','',report['today'],'Alunos com acesso registrado em 7 dias',report['active_7'])
     row('Resumo','','',report['today'],f'Segundos de estudo em {report["days"]} dias',report['study_seconds'])
+    row('Resumo','','',report['today'],f'Alunos com acesso em {report["days"]} dias',report['visiting_students'])
+    row('Resumo','','',report['today'],f'Alunos ativos sem acesso em {report["days"]} dias',report['inactive_current'])
     for item in report['visits']:row('Acessos','','',item['date'],'Alunos distintos',item['count'])
     for item in report['courses']:
         row('Curso',item['course'].title,'','','Progresso médio (%)',item['progress_pct'])

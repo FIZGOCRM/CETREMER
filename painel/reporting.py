@@ -5,6 +5,7 @@ from django.db.models import Avg, Count, F, FilteredRelation, FloatField, Max, Q
 from django.db.models.functions import Greatest, Least, NullIf
 from django.utils import timezone
 from courses.models import Course,Enrollment,Lesson,Progress,Quiz,QuizAttempt,StudyDay
+from courses.access import access_decision
 from courses.services import plan_status
 from users.models import StudentProfile,StudentVisit
 
@@ -85,4 +86,9 @@ def report_data(*,days=7,on=None):
         if plan['state']=='ending_soon':expiring.append({'enrollment':enrollment,'plan':plan,'pct':progress[enrollment.pk]})
     expiring.sort(key=lambda row:row['plan']['ends_on'])
     top=list(Lesson.objects.select_related('module__course').annotate(completions=Count('student_progress',filter=Q(student_progress__is_completed=True),distinct=True)).filter(completions__gt=0).order_by('-completions','pk')[:5])
-    return {'days':days,'since':since,'today':today,'visits':visits,'active_7':StudentVisit.objects.filter(date__range=(today-timedelta(days=6),today)).values('student_id').distinct().count(),'study_seconds':study_seconds,'study_hours':study_seconds/3600,'courses':courses,'top_lessons':top,'inactive':inactive,'expiring':expiring}
+    visitors = set(StudentVisit.objects.filter(date__range=(since, today)).values_list('student_id', flat=True).distinct())
+    current_students = {e.student_id for e in enrollments if access_decision(e, on=today).allowed}
+    courses.sort(key=lambda row: -row['students'])
+    return {'visiting_students': len(visitors), 'inactive_current': len(current_students - visitors),
+            'first_visit': StudentVisit.objects.order_by('date').values_list('date', flat=True).first(),
+            'days':days,'since':since,'today':today,'visits':visits,'active_7':StudentVisit.objects.filter(date__range=(today-timedelta(days=6),today)).values('student_id').distinct().count(),'study_seconds':study_seconds,'study_hours':study_seconds/3600,'courses':courses,'top_lessons':top,'inactive':inactive,'expiring':expiring}

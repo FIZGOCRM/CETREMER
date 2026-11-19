@@ -1,0 +1,4 @@
+{% extends 'base_membros.html' %}{% block title %}Acesso ao painel do produtor{% endblock %}
+{% block content %}<section class="page xp-page"><h1>Este é o painel do produtor</h1><p>Você está usando uma conta de aluno. Para editar o curso, entre com sua conta de produtor.</p>
+<div class="hero__actions"><a class="btn btn--dim" href="{% url 'dashboard' %}">Voltar à área do aluno</a>
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<input type="hidden" name="trocar" value="produtor"><input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn--light">Trocar para conta de produtor</button></form></div></section>{% endblock %}

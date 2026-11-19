@@ -78,6 +78,6 @@ class Qa105209Tests(TestCase):
             with self.subTest(day=day), patch('django.utils.timezone.now', return_value=now):
                 self.assertEqual(services.plan_status(self.enrollment)['label'], expected)
                 self.client.force_login(self.owner)
-                response = self.client.get(f'/painel/planos/{self.enrollment.pk}/')
+                response = self.client.get(f'/painel/planos/{self.enrollment.pk}/', follow=True)
                 self.assertIn(expected, text(response))
                 self.assertNotIn('1 dias', text(response))

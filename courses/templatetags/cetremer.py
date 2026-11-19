@@ -110,3 +110,11 @@ def brand_lead(name):
 def brand_tail(name):
     name=str(name or '')
     return name[-7:] if name.lower().endswith('simples') else ''
+
+
+@register.simple_tag(takes_context=True)
+def panel_query(context, **changes):
+    params = context["request"].GET.copy()
+    for key, value in changes.items():
+        params[key] = value
+    return "?" + params.urlencode()

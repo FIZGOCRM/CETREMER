@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.urls import reverse
 from core.decorators import painel_required
 from courses.models import Enrollment
 from courses.selectors import progress_info
@@ -18,6 +19,12 @@ def plan_manage(request, enrollment_id):
     if request.user.role not in ('ADMIN', 'CREATOR'):
         raise PermissionDenied
     enrollment = get_object_or_404(Enrollment.objects.select_related('student__user', 'course'), pk=enrollment_id)
+    target = reverse('painel:students') + f'?aluno={enrollment.student.user_id}&plano={enrollment.pk}'
+    if request.GET.get('aba') == 'observacoes':
+        target += '&aba=observacoes'
+    target += f'#plano-{enrollment.pk}'
+    if request.method == 'GET' and request.GET.get('embed') != '1':
+        return redirect(target)
     form = PlanForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         data = form.cleaned_data
@@ -39,8 +46,15 @@ def plan_manage(request, enrollment_id):
             form.add_error(None, exc)
         else:
             messages.success(request, 'Plano atualizado. Histórico preservado.')
-            from django.urls import reverse
-            return redirect(reverse('painel:plan_manage',args=[enrollment.pk])+('?embed=1' if request.GET.get('embed')=='1' else ''))
+            return redirect(reverse('painel:plan_manage',args=[enrollment.pk])+'?embed=1' if request.GET.get('embed')=='1' else target)
+    mode = request.POST.get('drawer_mode')
+    if request.method == 'POST' and form.errors and mode in ('create', 'end', 'extend', 'correct', 'reactivate'):
+        request.session['panel_plan_retry'] = {
+            'enrollment': enrollment.pk, 'mode': mode,
+            'values': {name: request.POST.get(name, '') for name in ('starts_on', 'end_date', 'last_day', 'reason_code', 'reason_text')},
+            'errors': [str(error) for errors in form.errors.values() for error in errors],
+        }
+        return redirect(target)
     return page(request, 'plan', plan_base='base_panel_embed.html' if request.GET.get('embed')=='1' else 'base_painel_gomut.html', enrollment=enrollment, plan=plan_status(enrollment), form=form,
                 changes=enrollment.access_changes.select_related('actor'))
 

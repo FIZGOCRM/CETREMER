@@ -40,7 +40,7 @@ def reply_label(reply, site=None):
 
 def panel_posts(params):
     posts=CommunityPost.objects.select_related('author','course','lesson','solution').prefetch_related('comments__author')
-    tab=params.get('aba','new')
+    tab=params.get('status') or params.get('aba','new')
     aliases={'pendentes':'new','respondidos':'answered','ocultos':'hidden'};tab=aliases.get(tab,tab)
     if tab=='hidden':posts=posts.filter(is_hidden=True)
     elif tab=='solved':posts=posts.filter(is_hidden=False,solution__isnull=False)

@@ -1,0 +1,9 @@
+<header class="gp-topbar">
+  {% if panel_parent %}<nav class="gp-crumbs" aria-label="Você está em">{% if panel_parent %}<a href="{{ panel_parent.url }}">{{ panel_parent.label }}</a> › {% endif %}{% if course and panel_parent.label == 'Cursos' %}<a href="{% url 'painel:course_overview' course.pk %}">{{ course.title }}</a> › {% endif %}<span aria-current="page">{{ panel_location }}</span></nav>{% endif %}
+  <div class="gp-topbar__spacer"></div>
+  <form class="gp-quicksearch" role="search" action="{% url 'painel:students' %}">
+    {% include 'painel/partials/icon.html' with icon='search' %}
+    <label class="gp-sr-only" for="gp-quick">Buscar aluno</label><input class="gp-input" id="gp-quick" name="q" placeholder="Buscar aluno" data-gp-quicksearch autocomplete="off"><span class="gp-kbd" aria-hidden="true">Ctrl K</span>
+  </form>
+  <a class="btn btn--sm" href="{% url 'painel:preview_choose' %}?next={{ request.get_full_path|urlencode }}">{% include 'painel/partials/icon.html' with icon='eye' %}Ver como aluno</a>
+</header>

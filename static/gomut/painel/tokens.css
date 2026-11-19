@@ -1,0 +1,95 @@
+/* ==========================================================================
+   GoMut · Painel do produtor · Design tokens
+   Fonte da verdade para cores, tipografia, espaços, raios, sombras e tamanhos.
+   Mantém os nomes que o painel já usa (--gp-ink, --gp-muted, --gp-line, --gp-soft)
+   e acrescenta os novos. Use SEMPRE as variáveis, nunca o hex solto no template.
+   ========================================================================== */
+
+:root {
+  /* ---------- Marca ---------- */
+  --gp-brand: #04736B;          /* ação principal, links, item ativo */
+  --gp-brand-hover: #035E57;    /* hover/pressed da ação principal */
+  --gp-brand-ink: #03574F;      /* texto sobre --gp-brand-soft */
+  --gp-brand-soft: #E6F2F0;     /* fundo de item ativo, badge ok, avatar */
+  --gp-brand-tint: #F4FAF9;     /* linha selecionada / recém-criada */
+  --gp-brand-border: #CFE3DF;   /* borda de bloco de destaque (código de acesso) */
+  --gp-accent: #F5A524;         /* âmbar da marca: ponto de "não salvo", notificação, prévia */
+
+  /* ---------- Neutros ---------- */
+  --gp-ink: #1D2422;            /* texto principal, títulos */
+  --gp-ink-2: #3B4643;          /* texto de menu, corpo secundário */
+  --gp-muted: #5E6966;          /* texto de apoio (era #6C7774: reprovava contraste no fundo cinza) */
+  --gp-subtle: #9AA4A1;         /* só ícones decorativos e alças de arrastar, nunca texto */
+  --gp-line: #E3E8E6;           /* bordas de card, divisórias */
+  --gp-line-strong: #D5DDDA;    /* borda de input e botão secundário */
+  --gp-line-soft: #EEF2F1;      /* divisória entre linhas de tabela/lista */
+  --gp-dashed: #C9D4D1;         /* borda tracejada de dropzone e "adicionar" */
+  --gp-soft: #F5F8F7;           /* fundo da aplicação */
+  --gp-surface: #FFFFFF;        /* cards, sidebar, topbar */
+  --gp-surface-2: #FAFBFB;      /* cabeçalho de tabela, rodapé de card/modal */
+
+  /* ---------- Situações (sempre texto + cor, nunca só cor) ---------- */
+  --gp-ok-bg: #E6F2F0;      --gp-ok-fg: #03574F;
+  --gp-warn-bg: #FDF1DC;    --gp-warn-fg: #7A4E00;   --gp-warn-icon: #B26B00;
+  --gp-warn-callout-bg: #FDF6E8; --gp-warn-callout-border: #F5DDAE; --gp-warn-callout-fg: #5C3B00;
+  --gp-danger-bg: #FEF0EE;  --gp-danger-fg: #A1271B; --gp-danger-solid: #B42318; --gp-danger-border: #F1C4BE;
+  --gp-danger-callout-bg: #FEF5F4; --gp-danger-callout-border: #F4CFCA; --gp-danger-callout-fg: #7A1C13;
+  --gp-neutral-bg: #EEF2F1; --gp-neutral-fg: #46514E;
+  --gp-info-bg: #EAF1FB;    --gp-info-fg: #1F4E8C;
+  --gp-info-callout-bg: #F1F6F5; --gp-info-callout-border: #D6E6E3;
+
+  /* ---------- Tipografia ---------- */
+  --gp-font-display: "Archivo", "Arial Narrow", "Helvetica Neue", Arial, sans-serif; /* só títulos de página, números de KPI, capas */
+  --gp-font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --gp-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;          /* códigos de acesso e de certificado */
+
+  --gp-fs-page: 34px;     /* título de página · Archivo 800 · lh 1.05 · ls -0.025em */
+  --gp-fs-course: 30px;   /* título do curso no cabeçalho do curso */
+  --gp-fs-dialog: 24px;   /* título de modal, gaveta, tópico */
+  --gp-fs-kpi: 32px;      /* número de KPI · Archivo 800 */
+  --gp-fs-section: 16px;  /* título de seção/card · Inter 700 · ls -0.01em */
+  --gp-fs-body: 14px;     /* corpo · Inter 400 · lh 1.5 */
+  --gp-fs-small: 13px;
+  --gp-fs-xs: 12px;
+  --gp-fs-group: 11px;    /* rótulo de grupo do menu · Inter 600 · caixa alta · ls .08em */
+
+  /* ---------- Espaços (base 4) ---------- */
+  --gp-space-1: 4px;  --gp-space-2: 8px;  --gp-space-3: 12px; --gp-space-4: 16px;
+  --gp-space-5: 20px; --gp-space-6: 24px; --gp-space-7: 28px; --gp-space-8: 32px;
+  --gp-space-10: 40px; --gp-space-12: 48px; --gp-space-14: 56px;
+
+  /* ---------- Raios ---------- */
+  --gp-radius-xs: 5px;    /* kbd */
+  --gp-radius-sm: 6px;    /* miniaturas */
+  --gp-radius-md: 8px;    /* botões, inputs, itens de menu */
+  --gp-radius-lg: 10px;   /* callouts, dropzones, cards internos, segmentado */
+  --gp-radius-xl: 12px;   /* cards */
+  --gp-radius-pill: 999px;/* badges, contadores */
+
+  /* ---------- Sombras ---------- */
+  --gp-shadow-sm: 0 1px 2px rgba(16, 24, 22, .08);
+  --gp-shadow-md: 0 12px 32px rgba(16, 24, 22, .14);   /* barra de salvar, popover, toast */
+  --gp-shadow-lg: 0 24px 80px rgba(16, 24, 22, .25);   /* modal */
+  --gp-shadow-drawer: -24px 0 60px rgba(16, 24, 22, .18);
+  --gp-overlay: rgba(20, 28, 26, .48);
+
+  /* ---------- Tamanhos ---------- */
+  --gp-sidebar-w: 256px;
+  --gp-topbar-h: 64px;
+  --gp-content-max: 1280px;
+  --gp-control-h: 40px;   /* botão e input padrão */
+  --gp-control-h-sm: 32px;
+  --gp-nav-item-h: 38px;
+  --gp-drawer-w: 600px;
+  --gp-dialog-w: 560px;
+
+  /* ---------- Movimento ---------- */
+  --gp-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --gp-t-fast: 150ms;
+  --gp-t-panel: 200ms;
+  --gp-focus: 0 0 0 3px rgba(4, 115, 107, .28);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --gp-t-fast: 0ms; --gp-t-panel: 0ms; }
+}

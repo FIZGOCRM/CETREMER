@@ -1,0 +1,15 @@
+{% load static cetremer %}
+<nav class="gp-sidebar" id="producer-sidebar" aria-label="Painel do produtor">
+  <a class="gp-brand" href="{% url 'painel:dashboard' %}"><img src="{% static 'gomut/marca/gomut-logo.png' %}" alt="GoMut" height="28"></a>
+  <div class="gp-school"><span class="gp-school-id">{{ site.school_name|iniciais }}</span><span>{{ site.school_name }}<small>Escola</small></span></div>
+  {% for label, items in panel_nav %}
+  <div class="gp-nav">{% if label %}<p class="gp-nav__group">{{ label }}</p>{% endif %}
+    {% for row in items %}<a class="gp-nav__item" href="{{ row.url }}"{% if row.active %} aria-current="page"{% endif %}>
+      {% include 'painel/partials/icon.html' with icon=row.icon %}{{ row.label }}{% if row.count %}<span class="gp-count">{{ row.count }}</span>{% endif %}
+    </a>{% endfor %}
+  </div>{% endfor %}
+  <div class="gp-sidebar__user"><span class="gp-avatar">{{ user.username|iniciais }}</span>
+    <div><strong>{{ user.get_full_name|default:user.username }}</strong><small>{{ user.email }}</small></div>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="btn btn--ghost btn--icon" aria-label="Sair">{% include 'painel/partials/icon.html' with icon='logout' %}</button></form>
+  </div>
+</nav>

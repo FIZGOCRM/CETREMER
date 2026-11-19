@@ -2,6 +2,7 @@
 
 from django.conf import settings as django_settings
 from django.contrib import messages
+from django import forms
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import render
@@ -26,7 +27,7 @@ def report_access_delivery(request, sent):
     if not sent:
         messages.error(
             request,
-            "O e-mail de acesso não foi enviado. Confira as configurações de SMTP.",
+            "O e-mail de acesso não foi enviado. Confira as configurações de envio de e-mails.",
         )
     elif django_settings.DEBUG and not SiteSettings.load().email_host:
         messages.info(
@@ -38,4 +39,13 @@ def report_access_delivery(request, sent):
 
 
 def page(request, template, **context):
+    for form in context.values():
+        if not isinstance(form, forms.BaseForm):
+            continue
+        form.label_suffix = ""
+        for field in form.fields.values():
+            if isinstance(field.widget, forms.ClearableFileInput):
+                field.widget.template_name = "painel/widgets/upload.html"
+            if isinstance(field, forms.ModelChoiceField) and field.empty_label == "---------":
+                field.empty_label = "Escolha…"
     return render(request, "painel/" + template + ".html", context)

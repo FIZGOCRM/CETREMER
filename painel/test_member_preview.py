@@ -20,7 +20,8 @@ class MemberPreviewTests(TestCase):
   self.assertEqual(self.start().status_code,302)
   response=self.client.get('/dashboard/')
   self.assertEqual(response.context['user'].pk,self.student.pk)
-  self.assertContains(response,'Vendo como membro');self.assertContains(response,'Aluno escolhido')
+  self.assertContains(response,'Vendo como <strong>Aluno escolhido</strong> · somente leitura')
+  self.assertContains(response,'Voltar ao painel')
   self.assertEqual(self.client.session['_auth_user_id'],str(self.admin.pk))
  def test_preview_gets_do_not_change_access_dates_visits_or_position(self):
   self.assertEqual(self.start().status_code,302);self.client.get(f'/courses/{self.course.slug}/lessons/{self.lesson.pk}/')

@@ -20,7 +20,7 @@ class PanelShellTests(TestCase):
   r=self.client.get('/painel/')
   self.assertTemplateUsed(r,'base_painel_gomut.html')
   self.assertNotContains(r,'css/cetremer.css')
-  self.assertContains(r,'Visualizar como membro')
+  self.assertContains(r,'Ver como aluno')
   self.assertEqual(r.context['panel_counts'],{'community':1,'tickets':1,'expiring':1})
   self.assertNotContains(r,'Vendas no mês')
   self.assertNotContains(r,'href="/painel/pedidos/"')

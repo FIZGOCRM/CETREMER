@@ -1,7 +1,7 @@
 {% extends 'base_painel_gomut.html' %}
 {% block page_title %}Métricas por aula{% endblock %}
 {% block topbar_actions %}<a class="btn btn--outline" href="{% url 'painel:reports' %}">Voltar aos relatórios</a>{% endblock %}
-{% block content %}
+{% block content %}{% include 'painel/partials/report_tabs.html' %}
   <form method="get" class="gp-toolbar gp-form">
     {% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}
     <button class="btn btn--outline">Aplicar filtros</button>

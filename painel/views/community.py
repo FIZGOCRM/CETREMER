@@ -24,4 +24,6 @@ def community(request):
         except ValidationError as exc:messages.error(request,' '.join(exc.messages))
         return redirect(request.get_full_path())
     posts,tab=panel_posts(request.GET)
-    return page(request,'community',posts=posts,tab=tab,courses=owned_courses(request.user),pending_count=CommunityPost.objects.filter(is_hidden=False,team_status__in=['new','forwarded']).count())
+    selected_id = request.GET.get('topico')
+    selected = next((p for p in posts if str(p.pk) == selected_id), None) if selected_id else next(iter(posts), None)
+    return page(request,'community',posts=posts,selected=selected,tab=tab,courses=owned_courses(request.user),pending_count=CommunityPost.objects.filter(is_hidden=False,team_status__in=['new','forwarded']).count())

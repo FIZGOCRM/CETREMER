@@ -47,6 +47,13 @@ def login_view(request):
 def logout_view(request):
     producer_access = request.user.is_authenticated and request.user.role in ('ADMIN', 'CREATOR')
     logout(request)
+    if request.method == 'POST' and request.POST.get('trocar') == 'produtor':
+        from urllib.parse import urlencode
+        from django.urls import reverse
+        target = request.POST.get('next', '')
+        if not target.startswith('/painel/') or not url_has_allowed_host_and_scheme(target, {request.get_host()}):
+            target = reverse('painel:dashboard')
+        return redirect(reverse('login') + '?' + urlencode({'acesso': 'admin', 'next': target}))
     if producer_access:
         from django.urls import reverse
         return redirect(reverse('login')+'?acesso=admin')
