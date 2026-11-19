@@ -4,6 +4,8 @@ import sqlite3
 from contextlib import closing
 from pathlib import Path
 
+from django.db.backends.sqlite3._functions import register as register_django_functions
+
 
 def backup_database(source, destination):
     source = Path(source).resolve()
@@ -19,6 +21,8 @@ def backup_database(source, destination):
         ) as database:
             with closing(sqlite3.connect(destination)) as snapshot:
                 database.backup(snapshot)
+                # The integrity check evaluates constraints created by Django's SQLite backend.
+                register_django_functions(snapshot)
                 if snapshot.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
                     raise ValueError("A verificação de integridade do backup falhou.")
     except Exception:
