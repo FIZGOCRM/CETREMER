@@ -22,7 +22,7 @@
 .xp-card { overflow: hidden; }
 .xp-card__cover { position: relative; display: block; aspect-ratio: 16/9; overflow: hidden; background: linear-gradient(120deg,#172f38,#155454); color: #a9d2cc; }
 .xp-card__cover .cover__motif { width: 100%; height: 100%; opacity: .36; }
-.xp-card__tag, .xp-offer__label { position: absolute; left: .75rem; top: .65rem; padding: .25rem .55rem; color: white; background: #131818e8; border-radius: .35rem; font-size: .8rem; }
+.xp-offer__label { position: absolute; left: .75rem; top: .65rem; padding: .25rem .55rem; color: white; background: #131818e8; border-radius: .35rem; font-size: .8rem; }
 .xp-rank { position: absolute; bottom: -.1em; left: .15em; font: 800 4.5rem/.95 Archivo,sans-serif; color: white; text-shadow: 0 2px 10px #101010; }
 .xp-card h3, .xp-event h3 { font-size: 1.15rem; line-height: 1.25; margin: .4rem 0; }
 .xp-card__body, .xp-event { padding: 1rem; }
@@ -34,10 +34,53 @@
 .xp-news { list-style: none; padding: 0; margin: 0; }
 .xp-news li { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .65rem; padding: .85rem 0; border-bottom: 1px solid var(--c-surface-4); }
 .xp-news p { margin: 0 0 .35rem; }
+.xp-news--shelf { padding: .25rem .2rem .8rem; }
+.xp-news--shelf li:not(.xp-empty) { align-content: space-between; align-items: start; flex-direction: column; padding: 1rem; background: var(--c-surface-1); border: 1px solid var(--c-surface-4); border-radius: .7rem; }
+.xp-news--shelf li > div > a { font-size: 1.15rem; font-weight: 650; }
 .xp :focus-visible, .xp-page :focus-visible { outline: 3px solid #f7cb68; outline-offset: 2px; }
 @media (max-width: 600px) {
   .xp-hero { min-height: 355px; padding-bottom: 1.8rem; }
   .xp-hero__copy { max-width: 100%; }
   .xp-shelf { grid-auto-columns: min(78vw,18rem); }
   .xp-body section { margin: 1.8rem 0; }
+}
+.xp-themes { display: flex; gap: .55rem; overflow-x: auto; padding: .6rem .2rem 1rem; }
+.xp-themes > * { flex: none; border-radius: 2rem; padding: .55rem 1rem; border: 1px solid var(--c-surface-4); }
+.xp-themes [aria-current] { color: #141414; background: #f1f1ee; font-weight: 650; }
+.xp-themes .ico { width: 1em; height: 1em; }
+.xp-locked, .xp-module--locked { color: var(--c-text-3); }
+.xp-modules { display: grid; gap: .9rem; }
+.xp-module summary, .xp-module--locked { display: flex; gap: 1rem; align-items: center; padding: 1.2rem; }
+.xp-module summary { cursor: pointer; }
+.xp-module summary::-webkit-details-marker { display: none; }
+.xp-module summary strong { display: block; font-size: 1.35rem; }
+.xp-module summary small, .xp-books small, .xp-trail-lessons small { display: block; color: var(--c-text-3); }
+.xp-module summary img { width: 4rem; height: 3rem; border-radius: .3rem; object-fit: cover; }
+.xp-module summary .ico { margin-left: auto; flex: none; }
+.xp-module[open] summary .ico { transform: rotate(180deg); }
+.xp-module__body { padding: 0 1.2rem 1.2rem; }
+.xp-module--locked h2, .xp-module--locked p { margin: .2rem 0; }
+.xp-books, .xp-trail-lessons { list-style: none; margin: 0; padding: 0; }
+.xp-books > li, .xp-trail-lessons > li { border-top: 1px solid var(--c-surface-4); padding: .85rem 0; }
+.xp-books p, .xp-book h3 { margin: .2rem 0; }
+.xp-book, .xp-trail-lessons > li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .7rem 1rem; }
+.xp-book { padding: .4rem 0; }
+.xp-trail-lessons a { margin-right: auto; }
+.xp-trail-lessons form { margin: 0; }
+.xp-count { font-size: 1rem; color: var(--c-text-3); }
+.xp-lesson-art.cover--blue { --h: 216; }
+.xp-lesson-art.cover--blue-2 { --h: 232; }
+.xp-lesson-art.cover--teal { --h: 177; }
+.xp-lesson-art.cover--slate { --h: 205; }
+.xp-lesson-art.cover--ink { --h: 255; }
+.xp-hero__art .xp-lesson-art { position: absolute; inset: 0 0 0 auto; height: 100%; max-width: 72%; }
+.xp-trail-link { display: flex; align-items: center; gap: .8rem; color: inherit; }
+.xp-trail-link .xp-lesson-art { width: clamp(5rem,12vw,10rem); flex-shrink: 0; }
+.xp-trail-progress progress { width: 7.5rem; height: .35rem; accent-color: var(--c-red); }
+.xp-rank { z-index: 3; left: auto; right: .1em; }
+.xp-card__progress { display: flex; align-items: center; gap: .55rem; }
+.xp-card__progress progress { min-width: 0; margin: .7rem 0; accent-color: var(--c-red); }
+@media (min-width: 900px) and (max-width: 1279px) {
+  .nav .nav__links { display: flex; }
+  .nav .nav__links a { padding-inline: 7px; }
 }

@@ -22,18 +22,6 @@ def dashboard(request):
     student = request.user.student_profile
     summary = member_summary(student)
     items = summary['items']
-    enrollments = [item['enrollment'] for item in items]
-    continuing = [
-        item
-        for item in items
-        if item["access"].allowed and item["status"] != "done" and item["next_lesson"]
-    ]
-    continuing.sort(
-        key=lambda item: (
-            item["enrollment"].last_accessed_at or item["enrollment"].enrolled_at
-        ),
-        reverse=True,
-    )
     hero_courses = sorted(
         items,
         key=lambda item: item["enrollment"].last_accessed_at or item["enrollment"].enrolled_at,
@@ -45,35 +33,10 @@ def dashboard(request):
         enrollment = active[0]["enrollment"]
         request.session["active_course_slug"] = enrollment.course.slug
         return render_home(request, enrollment, hero_courses=hero_courses, summary=summary)
-    live_item = next(
-        (
-            item
-            for item in items
-            if item["access"].allowed and item["course"].live_meet_url
-        ),
-        None,
-    )
-    other_courses = (
-        Course.objects.filter(is_published=True)
-        .exclude(id__in=[e.course_id for e in enrollments])
-        .select_related("category")
-    )
-    return render(
-        request,
-        "courses/dashboard.html",
-        {
-            "continue_item": continuing[0] if continuing else None,
-            "my_courses": items,
-            "choosing_course": True,
-            'summary': summary,
-            "hero_courses": hero_courses,
-            "community_posts": visible_posts(request.user).filter(course__in=[e.course_id for e in enrollments]).order_by("-created_at")[:4],
-            "completed_lesson_count": sum(item["completed"] for item in items),
-            "live_item": live_item,
-            "other_courses": other_courses,
-            "featured": continuing[0] if continuing else next((item for item in items if item["access"].allowed), None),
-        },
-    )
+    return render(request, "courses/dashboard.html", {
+        "my_courses": items, "choosing_course": True, "summary": summary, "hero_courses": hero_courses,
+    })
+
 
 
 @login_required

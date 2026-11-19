@@ -4,31 +4,33 @@
 {% block content %}
 <div class="xp">
   <header class="xp-hero">
-    <div class="xp-hero__art" aria-hidden="true">{% if resume.cover %}<img src="{{ resume.cover.url }}" alt="">{% elif course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% else %}{% include 'partials/gomut/hero_art.html' %}{% endif %}</div>
+    <div class="xp-hero__art" aria-hidden="true">{% if resume.cover %}<img src="{{ resume.cover.url }}" alt="">{% elif course.cover_image %}<img src="{{ course.cover_image.url }}" alt="">{% elif resume %}{% include 'partials/experience/lesson_art.html' with card=resume %}{% else %}{% include 'partials/gomut/hero_art.html' %}{% endif %}</div>
     <div class="xp-hero__copy">
       <p class="eyebrow">{{ user.student_profile.full_name|default:user.username }}, seu curso</p>
       <h1>{{ course.title }}</h1>
+      {% if course.description %}<p>{{ course.description|truncatewords:36 }}</p>{% endif %}
       {% if resume %}
-        <p>Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restantes{% endif %}</p>
+        <p>Aula {{ resume.number }} · {{ resume.lesson.title }}{% if resume.remaining != None %} · {{ resume.remaining }} min restante{{ resume.remaining|pluralize }}{% endif %}</p>
         {% if resume.lesson.duration_seconds %}<progress max="100" value="{{ resume.percent }}" aria-label="Progresso da aula">{{ resume.percent }}%</progress>{% endif %}
         <a class="btn btn--light" href="{{ resume.url }}">{% include 'partials/gomut/icon.html' with name='play' %}{% if started_course %}Continuar aula{% else %}Começar aula{% endif %}</a>
       {% else %}<a class="btn btn--light" href="{% url 'course_trail' course.slug %}">Explorar trilha</a>{% endif %}
-      <a class="xp-hero__detail" href="{% url 'member_course' course.slug %}">Sobre o curso</a>
+      <a class="xp-hero__detail" href="{% url 'member_course' course.slug %}">Mais informações</a>
       {% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}
     </div>
   </header>
   <div class="xp-body">
-    <section><h2>Continue de onde você parou</h2>
-      <div class="xp-shelf">{% for card in interrupted %}{% include 'partials/experience/lesson_card.html' %}{% empty %}<p class="xp-empty">Suas aulas em andamento aparecem aqui.</p>{% endfor %}</div>
-    </section>
+    {% if interrupted %}<section><h2>Continue de onde você parou, {{ user.student_profile.full_name|default:user.username|first_name }}</h2>
+      <div class="xp-shelf">{% for card in interrupted %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
+    </section>{% endif %}
     {% if weekly %}<section><h2>Top 10 no Plantão desta semana</h2>
       <div class="xp-shelf">{% for card in weekly %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
     </section>{% endif %}
-    <section><div class="xp-heading"><h2>Novidades</h2><a href="{% url 'course_news' course.slug %}">Ver tudo</a></div>{% include 'partials/experience/news_list.html' %}</section>
+    <section><div class="xp-heading"><h2>Novidades</h2><a href="{% url 'course_news' course.slug %}">Ver tudo</a></div>{% include 'partials/experience/news_list.html' with shelf=True %}</section>
     <section><div class="xp-heading"><h2>Próximos encontros ao vivo</h2><a href="{% url 'course_live' course.slug %}">Ver agenda</a></div>
       <div class="xp-shelf">{% for event in upcoming %}<article class="xp-event">
-        <time datetime="{{ event.starts_at|date:'c' }}">{{ event.starts_at|date:'d/m' }} · {{ event.starts_at|date:'H:i' }}</time>
+        <time datetime="{{ event.starts_at|date:'c' }}">{{ event.starts_at|date:'l, d/m' }} · {{ event.starts_at|date:'H:i' }}</time>
         <h3><a href="{% url 'course_live' course.slug %}#evento-{{ event.pk }}">{{ event.title }}</a></h3>
+        <p>{{ event.get_kind_display }} · {{ event.duration_minutes }} min · {% if event.days_until > 1 %}Faltam {{ event.days_until }} dias{% elif event.days_until == 1 %}Falta 1 dia{% else %}Hoje{% endif %}</p>
         {% if event.room_available %}<a class="btn btn--light" href="{% url 'live_link' event.pk 'sala' %}">Entrar na sala</a>{% endif %}
         {% if event.can_remind %}{% include 'partials/experience/reminder.html' %}{% endif %}
       </article>{% empty %}<p class="xp-empty">Nenhum encontro agendado.</p>{% endfor %}</div>

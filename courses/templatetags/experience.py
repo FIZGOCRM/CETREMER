@@ -8,7 +8,7 @@ register = template.Library()
 def course_navigation(context):
     course = context.get("course")
     request = context["request"]
-    current = request.resolver_match.url_name
+    current = getattr(request.resolver_match, "url_name", None)
     links = []
     for title, icon, route, section in (
         ("Início", "home", "course_home", None),
@@ -21,6 +21,8 @@ def course_navigation(context):
             url = reverse(route, args=[course.slug])
         elif section:
             url = reverse("choose_course", args=[section])
+        elif request.session.get("active_course_slug"):
+            url = reverse("choose_course", args=["inicio"])
         else:
             url = reverse("dashboard")
         active = current == route or (route == "course_home" and current == "dashboard")

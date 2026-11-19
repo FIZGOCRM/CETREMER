@@ -36,7 +36,8 @@ def enrolled_page(view):
 def choose_course(request, section):
     if request.user.role != "STUDENT":
         return redirect("painel:dashboard")
-    target = {"trilha": "course_trail", "minha-lista": "course_saved", "ebooks": "course_ebooks", "ao-vivo": "course_live"}.get(section)
+    target = {"inicio": "course_home", "trilha": "course_trail", "minha-lista": "course_saved",
+              "ebooks": "course_ebooks", "ao-vivo": "course_live"}.get(section)
     if not target:
         raise Http404
     courses = list(accessible_courses(request.user.student_profile).order_by("title"))
@@ -86,3 +87,21 @@ def saved(request, enrollment):
 def live(request, enrollment):
     upcoming, past = shelves.course_events(enrollment)
     return render(request, "courses/live_classes.html", {"course": enrollment.course, "upcoming": upcoming, "past": past})
+
+
+@enrolled_page
+def trail(request, enrollment):
+    library = shelves.module_library(enrollment)
+    modules = library["modules"]
+    selected = request.GET.get("tema", "")
+    groups = [g for g in modules if str(g["module"].pk) == selected] if selected else modules
+    if selected and not groups:
+        raise Http404
+    return render(request, "courses/course_trail.html", {
+        "course": enrollment.course, "themes": modules, "groups": groups, "selected": selected,
+    })
+
+
+@enrolled_page
+def ebooks(request, enrollment):
+    return render(request, "courses/ebooks.html", {"course": enrollment.course, **shelves.module_library(enrollment)})

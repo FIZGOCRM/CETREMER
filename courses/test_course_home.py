@@ -60,6 +60,15 @@ class CourseHomeTests(TestCase):
         self.b.save()
         self.assertFalse(self.page("course_home").context["weekly"])
 
+    def test_zero_position_with_history_shows_visible_progress_and_singular_minutes(self):
+        self.b.duration_seconds = 60
+        self.b.save()
+        Progress.objects.create(lesson=self.b, student=self.student, started_at=self.now, last_position_seconds=0)
+        response = self.page("course_home")
+        self.assertContains(response, "<small>0%</small>", html=True)
+        self.assertContains(response, "00:00 · 1 min restante")
+        self.assertNotContains(response, "1 min restantes")
+
     def test_recent_content_uses_publication_times_and_checks_access(self):
         self.a.published_at = self.now-timedelta(days=13)
         self.a.save()

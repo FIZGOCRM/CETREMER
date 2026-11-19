@@ -1,0 +1,5 @@
+<div class="xp-lesson-art cover {{ course.cover_class }}" aria-hidden="true">
+  {% if card.cover %}<img class="cover__img" src="{{ card.cover.url }}" alt="" loading="lazy">
+  {% else %}{% include 'partials/gomut/motif_ecg.html' %}<strong class="cover__title">{{ card.lesson.title }}</strong>{% endif %}
+  <span class="cover__kicker">{{ card.lesson.module.title }}</span>
+</div>

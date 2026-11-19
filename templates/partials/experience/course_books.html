@@ -1,0 +1,7 @@
+<header><p class="eyebrow">{{ course.title }}</p><h1>E-books</h1>
+  <h2>Um e-book para cada aula</h2><p>Os próximos chegam junto com as aulas de cada semana</p>
+  <p class="xp-count"><strong>{{ available_books }} de {{ total_books }}</strong> e-books liberados</p>
+</header>
+{% for group in modules %}{% if group.books %}<section><h2>{{ group.module.title }}</h2>{% include 'partials/experience/module_books.html' %}</section>{% endif %}{% endfor %}
+{% if not available_books %}<p class="xp-empty">Nenhum e-book de aula liberado neste curso.</p>{% endif %}
+{% if general_books %}<section><h2>Materiais do curso</h2><ul class="xp-books">{% for item in general_books %}<li class="xp-book"><h3>{{ item.material.title }}</h3><a class="btn btn--outline btn--sm" href="{{ item.url }}?download=1">Baixar PDF</a></li>{% endfor %}</ul></section>{% endif %}

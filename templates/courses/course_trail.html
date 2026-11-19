@@ -1,0 +1,40 @@
+{% extends 'base_membros.html' %}{% load cetremer %}
+{% block title %}Trilha · {{ course.title }}{% endblock %}
+{% block content %}
+<div class="page xp-page">
+  <header><p class="eyebrow">{{ course.title }}</p><h1>Trilha</h1></header>
+  <nav class="xp-themes" aria-label="Filtrar por tema">
+    <a href="{% url 'course_trail' course.slug %}" {% if not selected %}aria-current="page"{% endif %}>Todas as áreas</a>
+    {% for group in themes %}
+      {% if group.locked %}<span class="xp-locked">{% include 'partials/gomut/icon.html' with name='lock' %} {{ group.module.title }}</span>
+      {% else %}<a href="?tema={{ group.module.pk }}" {% if selected == group.module.pk|stringformat:'s' %}aria-current="page"{% endif %}>{{ group.module.title }}</a>{% endif %}
+    {% endfor %}
+  </nav>
+  <div class="xp-modules">
+    {% for group in groups %}
+      {% if group.locked %}<article class="xp-module xp-module--locked">
+        {% include 'partials/gomut/icon.html' with name='lock' %}<div><h2>{{ group.module.title }}</h2>
+        <p>{% if group.release %}Libera em {{ group.release|date:'d/m/Y' }}{% else %}Liberação no mês {{ group.module.release_month }} do plano{% endif %}</p></div>
+      </article>{% else %}
+      <details class="xp-module"{% if selected %} open{% endif %}>
+        <summary>{% if group.module.cover %}<img src="{{ group.module.cover.url }}" alt="" loading="lazy">{% endif %}
+          <span><strong>{{ group.module.title }}</strong><small>{{ group.lessons|length }} aula{{ group.lessons|pluralize }}</small></span>
+          {% include 'partials/gomut/icon.html' with name='down' %}
+        </summary>
+        <div class="xp-module__body">
+          {% if group.module.description %}<p>{{ group.module.description }}</p>{% endif %}
+          <ul class="xp-trail-lessons">{% for card in group.lessons %}<li>
+            <a href="{{ card.url }}" class="xp-trail-link">
+              {% include 'partials/experience/lesson_art.html' %}
+              <span><small>Aula {{ card.number }}{% if card.lesson.duration_seconds %} · {{ card.lesson.duration_seconds|duracao }}{% endif %}</small><strong>{{ card.lesson.title }}</strong></span>
+            </a>
+            <div class="xp-trail-progress"><small>{% if card.completed %}Concluída{% elif card.started %}Em andamento{% else %}Não iniciada{% endif %} · {{ card.percent }}%</small><progress value="{{ card.percent }}" max="100" aria-label="Progresso da aula {{ card.number }}">{{ card.percent }}%</progress></div>
+            {% include 'partials/experience/save_button.html' %}
+          </li>{% empty %}<li class="xp-empty">Nenhuma aula disponível neste tema.</li>{% endfor %}</ul>
+          {% if group.books %}<h3>E-books do módulo</h3>{% include 'partials/experience/module_books.html' %}{% endif %}
+        </div>
+      </details>{% endif %}
+    {% empty %}<p>Nenhum módulo publicado neste curso.</p>{% endfor %}
+  </div>
+</div>
+{% endblock %}

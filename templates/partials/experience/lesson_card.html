@@ -1,13 +1,12 @@
 {% load cetremer %}<article class="xp-card" data-lesson-card="{{ card.lesson.pk }}">
   <a href="{{ card.url }}" class="xp-card__cover" aria-label="Abrir aula {{ card.number }} · {{ card.lesson.title }}">
-    {% if card.cover %}<img src="{{ card.cover.url }}" alt="" loading="lazy">{% else %}{% include 'partials/gomut/motif_ecg.html' %}{% endif %}
+    {% include 'partials/experience/lesson_art.html' %}
     {% if card.rank %}<b class="xp-rank">{{ card.rank }}</b>{% endif %}
-    <span class="xp-card__tag">{{ card.lesson.module.title }}</span>
   </a>
   <div class="xp-card__body"><span class="eyebrow">Aula {{ card.number }}</span>
     <h3><a href="{{ card.url }}">{{ card.lesson.title }}</a></h3>
-    {% if card.completed %}<small>Concluída</small>{% elif card.started %}<small>Em andamento · {{ card.position|mmss }}{% if card.remaining != None %} · {{ card.remaining }} min restantes{% endif %}</small>{% elif card.lesson.duration_seconds %}<small>{{ card.lesson.duration_seconds|duracao }}</small>{% endif %}
-    {% if card.started or card.completed %}<progress max="100" value="{{ card.percent }}" aria-label="Progresso da aula">{{ card.percent }}%</progress>{% endif %}
+    {% if card.completed %}<small>Concluída</small>{% elif card.started %}<small>Em andamento · {{ card.position|mmss }}{% if card.remaining != None %} · {{ card.remaining }} min restante{{ card.remaining|pluralize }}{% endif %}</small>{% elif card.lesson.duration_seconds %}<small>{{ card.lesson.duration_seconds|duracao }}</small>{% endif %}
+    {% if card.started or card.completed %}<div class="xp-card__progress"><progress max="100" value="{{ card.percent }}" aria-label="Progresso da aula">{{ card.percent }}%</progress><small>{{ card.percent }}%</small></div>{% endif %}
     {% include 'partials/experience/save_button.html' %}
   </div>
 </article>

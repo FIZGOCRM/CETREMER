@@ -1,4 +1,4 @@
-<ul class="xp-news">{% for item in news %}<li>
+<ul class="xp-news{% if shelf %} xp-shelf xp-news--shelf{% endif %}">{% for item in news %}<li>
   <div><p class="eyebrow">{{ item.kind }} · <time datetime="{{ item.date|date:'c' }}">{{ item.date|date:'d/m' }}</time></p>
     <a href="{{ item.url }}">{{ item.title }}</a></div>
   {% if item.card %}{% include 'partials/experience/save_button.html' with card=item.card %}{% endif %}

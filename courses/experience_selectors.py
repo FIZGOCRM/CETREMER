@@ -70,6 +70,9 @@ def weekly_lessons(course, cards):
 
 def course_events(enrollment):
     upcoming, past = live_agenda(enrollment.student, course=enrollment.course)
+    today = timezone.localdate()
+    for event in upcoming:
+        event.days_until = (timezone.localdate(event.starts_at) - today).days
     return upcoming, past
 
 
@@ -100,3 +103,33 @@ def other_courses(student):
     return [{"course": course, "contact": f"https://wa.me/{number}?" + urlencode({
         "text": f"Olá! Quero saber mais sobre o curso {course.title}."
     }) if number else ""} for course in courses]
+
+
+def module_library(enrollment):
+    course = enrollment.course
+    cards = course_lessons(enrollment)
+    library = library_items(enrollment.student, course=course.pk)
+    books_by_lesson = defaultdict(list)
+    general = []
+    for item in library:
+        if item["kind"] == "course":
+            general.append(item)
+        else:
+            books_by_lesson[item["lesson"].pk].append(item)
+    by_module = defaultdict(list)
+    for card in cards.values():
+        card["books"] = books_by_lesson[card["lesson"].pk]
+        by_module[card["lesson"].module_id].append(card)
+    groups = []
+    available = 0
+    today = timezone.localdate()
+    for module in Module.objects.filter(course=course, status="published").order_by("order", "pk"):
+        release = module_release_date(enrollment, module)
+        locked = release > today if release else module.release_month > 1
+        lessons = [] if locked else by_module[module.pk]
+        books = [card for card in lessons if card["books"]]
+        available += sum(len(card["books"]) for card in books)
+        groups.append({"module": module, "locked": locked, "release": release, "lessons": lessons, "books": books})
+    total = LessonMaterial.objects.filter(lesson__module__course=course, lesson__module__status="published",
+                                          lesson__status="published").exclude(Q(file="") & Q(url="")).count()
+    return {"modules": groups, "general_books": general, "available_books": available, "total_books": total}

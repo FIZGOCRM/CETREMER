@@ -3,8 +3,8 @@
 <div class="page member-catalog" id="meus-cursos">
 <header class="page__head">
 <div>
-<h2 class="section-title">Meus cursos</h2>
-<p class="page__sub">{{ my_courses|length }} curso{{ my_courses|length|pluralize }} · seu aprendizado, no seu ritmo.</p>
+<h2 class="section-title">Escolha seu curso</h2>
+<p class="page__sub">{{ my_courses|length }} curso{{ my_courses|length|pluralize }}</p>
 </div>
 </header>
 <div class="grid">{% for item in my_courses %}{% include 'partials/gomut/course_card.html' %}{% empty %}<div class="empty">
@@ -13,8 +13,7 @@
 </div>{% endfor %}</div>
 <p class="muted" id="search-empty" hidden>Nenhum curso encontrado.</p>
 </div>
-{% if my_courses %}<section class="member-learning" aria-labelledby="learning-title"><div class="member-learning__heading"><h2 class="section-title" id="learning-title">Seu progresso</h2><a class="linkbtn" href="{% url 'member_section' 'progresso' %}">Ver progresso completo</a></div>{% include 'partials/gomut/study_summary.html' %}{% include 'partials/gomut/course_progress.html' %}</section>{% endif %}
-<section class="page"><h2 class="section-title">Na comunidade</h2><div class="community-list">{% for post in community_posts %}{% include "community/post_card.html" %}{% empty %}<p class="muted">As conversas dos seus cursos aparecem aqui.</p>{% endfor %}</div><a class="linkbtn" href="{% url 'community_hub' %}">Ver comunidade</a></section><div id="modal-root">
+{% if summary.is_demo %}<p class="muted">Dados ilustrativos de demonstração</p>{% endif %}<div id="modal-root">
 </div>
 <template id="dialog-close-icon">{% include "partials/gomut/icon.html" with name="close" %}</template>{% endblock %}{% block extra_js %}<script src="{% static 'js/gomut/course-carousel.js' %}" defer></script><script src="{% static 'js/gomut/course-dialog.js' %}" defer>
 </script>{% endblock %}
