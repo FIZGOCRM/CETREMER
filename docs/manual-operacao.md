@@ -1,5 +1,7 @@
 # Manual de operação — equipe GoMut
 
+A implantação atual na KVM4 usa **Docker Compose**, sem cadastro na interface do Coolify. Acesso por túnel, comandos, persistência, backup, atualização e reversão estão no [manual da KVM4](operacao-kvm4.md). Produção e homologação têm contas e bases próprias; não usar as credenciais da demo local como referência para o servidor.
+
 Use o painel com uma conta de administração autorizada. Os usuários aluno@gomut.example e admin@gomut.example são exclusivos da demonstração. Nenhum curso, vídeo ou CPF ilustrativo deve ser apresentado como cadastro real.
 
 ## Cursos, módulos e aulas
@@ -92,4 +94,4 @@ Os avisos ao aluno começam somente nos três últimos dias efetivos de acesso, 
 
 O Início, o hero, os cartões de cursos e o progresso não mostram faixas nem contagem regressiva. As datas permanecem em Minha conta; “Acesso até” informa o último dia efetivo, incluindo tolerância. O link “Ver meu plano” na notificação leva diretamente a essa seção. O painel da equipe mantém os indicadores antecipados de gestão. Notificações antigas permanecem no histórico; e-mails pendentes cuja condição mudou não são enviados.
 
-Agendamentos e backup: seguir [checklist de produção](producao-checklist.md) e [restauração SQLite](operacao-sqlite.md). Nada é agendado automaticamente pelo código.
+Na KVM4, o container `gomut-scheduler` já executa avisos, lembretes e backups. Não duplicar essas rotinas em cron ou Coolify. O aluno acessa <https://emergensimples.gomut.com.br> e a equipe <https://painel.emergensimples.gomut.com.br>; cada endereço tem sua sessão. A produção começou sem cursos e alunos reais; as contas fictícias locais não são contas de produção. Outros ambientes precisam de agendamento próprio. Seguir a [operação HTTPS](publicacao-https.md), o [manual da KVM4](operacao-kvm4.md), o [checklist de produção](producao-checklist.md) e a [restauração SQLite](operacao-sqlite.md).

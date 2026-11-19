@@ -1,5 +1,7 @@
 # Operação com SQLite
 
+**KVM4 atual:** banco e media ficam em diretórios persistentes próprios de cada ambiente; o agendador já cria conjuntos privados com SQLite, media e chaves. A operação Docker Compose e o procedimento de atualização/reversão estão no [manual da KVM4](operacao-kvm4.md). A cópia externa dos backups continua pendente. O procedimento genérico abaixo não substitui esses comandos do ambiente implantado.
+
 SQLite permanece como banco da aplicação. Use um servidor com disco local persistente; não coloque o arquivo em armazenamento temporário ou compartilhamento de rede. O banco não contém os vídeos externos, mas contém contas, matrículas, progresso e pedidos.
 
 ## Backup

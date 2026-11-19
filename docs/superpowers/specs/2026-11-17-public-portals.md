@@ -1,0 +1,9 @@
+# HTTPS e portais separados — escopo aprovado
+
+O usuário aprovou aluno em `emergensimples.gomut.com.br` e produtor em `painel.emergensimples.gomut.com.br`, confirmou os registros DNS e autorizou prosseguir com a publicação. Os registros A foram conferidos em 17/11/2026 e apontam para 72.60.151.178.
+
+Uma aplicação e um banco de produção continuam atendendo os dois endereços. O host determina o login e as rotas disponíveis; o papel do usuário continua obrigatório. Cookies host-only e Secure isolam as sessões. Alunos não recebem rotas administrativas; o host administrativo oferece aprendizagem somente na prévia validada e somente leitura já existente. Materiais administrativos e recuperação de acesso precisam continuar funcionando. A homologação continua privada por túnel.
+
+Usar o Docker Compose atual e o Traefik existente, com roteadores exclusivos para os dois hosts e certificados Let’s Encrypt; não cadastrar no Coolify nem alterar seu proxy global. Manter dados/chaves e configurações de negócio, D01–D04 e serviços alheios. Preparar settings públicos novos sem tornar inseguro o módulo de túnel. Asaas e cadastro público continuam desligados. SMTP, backup externo, configurações da escola e dados reais não entram nesta alteração.
+
+Implementação escolhida: middleware de portal após validação da prévia; login/recuperação com escopo de papel; configuração HTTPS própria, endpoint de saúde mínimo, override Compose de produção ligado à rede `coolify`. Segurança HTTPS e cabeçalhos só são confiados atrás do Traefik; Gunicorn permanece sem porta pública direta. Preparar imagem fora da VPS, validar primeiro em ambiente temporário com dados de homologação, depois fazer backup com escritores parados e trocar somente serviços GoMut. Reversão preserva o release anterior, sem migração de esquema prevista.

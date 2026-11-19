@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 from .first_access import verify_code
 from .models import FirstAccessCode
 from .models import User
+from .forms import PortalPasswordResetForm
 
 
 def login_view(request):
@@ -19,7 +20,12 @@ def login_view(request):
     if not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
         next_url = ''
     next_path = urlsplit(next_url).path
-    producer_access = request.GET.get('acesso') == 'admin' or next_path == '/painel' or next_path.startswith('/painel/')
+    portal = getattr(request, 'portal', None)
+    if portal:
+        from core.portal_routing import allows_next
+        if not allows_next(portal, next_path):
+            next_url = ''
+    producer_access = portal == 'producer' if portal else request.GET.get('acesso') == 'admin' or next_path == '/painel' or next_path.startswith('/painel/')
     def destination(user):
         return next_url or ('painel:dashboard' if user.role in ('ADMIN', 'CREATOR') else 'dashboard')
     if request.user.is_authenticated:
@@ -27,6 +33,10 @@ def login_view(request):
     error = None
     if request.method == 'POST':
         user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
+        if user is not None and portal:
+            from core.portal_routing import allows_user
+            if not allows_user(portal, user):
+                user = None
         if user is not None:
             login(request, user)
             return redirect(destination(user))
@@ -82,10 +92,16 @@ def register_view(request):
 
 
 class PasswordResetView(auth_views.PasswordResetView):
+    form_class = PortalPasswordResetForm
     template_name = 'registration/password_reset_form.html'
     email_template_name = 'registration/password_reset_email.txt'
     subject_template_name = 'registration/password_reset_subject.txt'
     success_url = reverse_lazy('password_reset_done')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['portal'] = getattr(self.request, 'portal', None)
+        return kwargs
 
     def form_valid(self, form):
         from .models import SiteSettings
@@ -100,6 +116,14 @@ class PasswordResetDoneView(auth_views.PasswordResetDoneView):
 class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     template_name = 'registration/password_reset_confirm.html'
     success_url = reverse_lazy('password_reset_complete')
+
+    def get_user(self, uidb64):
+        user = super().get_user(uidb64)
+        if user is not None:
+            from core.portal_routing import allows_user
+            if not allows_user(getattr(self.request, 'portal', None), user):
+                return None
+        return user
 
 
 class PasswordResetCompleteView(auth_views.PasswordResetCompleteView):

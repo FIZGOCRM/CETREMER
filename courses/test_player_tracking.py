@@ -48,12 +48,25 @@ class PlayerTrackingTests(TestCase):
         self.assertEqual(sum(Progress.objects.filter(student=self.student).values_list('watched_seconds', flat=True)), 30)
         self.assertEqual(StudyDay.objects.get(student=self.student).seconds, 30)
 
-    def test_paused_interval_does_not_credit_on_resume(self):
+    def test_pause_credits_last_playing_interval_but_idle_time_does_not_credit_on_resume(self):
         self.pulse(0, 0)
         self.pulse(15, 15, False)
-        self.assertEqual(Progress.objects.get(student=self.student, lesson=self.lesson).watched_seconds, 0)
+        self.assertEqual(Progress.objects.get(student=self.student, lesson=self.lesson).watched_seconds, 15)
         self.pulse(200, 15, True)
-        self.assertEqual(Progress.objects.get(student=self.student, lesson=self.lesson).watched_seconds, 0)
+        self.assertEqual(Progress.objects.get(student=self.student, lesson=self.lesson).watched_seconds, 15)
+        self.pulse(210, 25, False)
+        self.assertEqual(Progress.objects.get(student=self.student, lesson=self.lesson).watched_seconds, 25)
+
+    def test_ninety_percent_across_pause_and_resume_ignores_paused_wall_time(self):
+        self.pulse(0, 0)
+        self.pulse(15, 15)
+        self.pulse(23, 23, False)
+        self.pulse(200, 23, True)
+        for second, position in ((215, 38), (230, 53), (245, 68), (260, 83)):
+            self.assertFalse(self.pulse(second, position)['completed'])
+        result = self.pulse(267, 90, False)
+        self.assertTrue(result['completed'])
+        self.assertEqual(result['watched_seconds'], 90)
 
     def test_ninety_percent_completes_once_and_logs_activity(self):
         for second in range(0, 91, 15):
@@ -130,6 +143,26 @@ class PlayerTrackingTests(TestCase):
         self.pulse(0, 18.5)
         response = self.client.get(reverse('lesson_detail', args=[self.course.slug, self.lesson.pk]))
         self.assertContains(response, 'data-position="18.5"')
+
+    def test_vimeo_embed_grants_encrypted_media_before_sdk_initialization(self):
+        # Missing permission makes Vimeo reload its iframe for DRM, losing the
+        # SDK event subscriptions used for time, notes and resume tracking.
+        from html.parser import HTMLParser
+
+        class Frames(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.permissions = []
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == 'iframe' and 'data-vimeo' in attrs:
+                    self.permissions.append(attrs.get('allow', ''))
+
+        response = self.client.get(reverse('lesson_detail', args=[self.course.slug, self.lesson.pk]))
+        parser = Frames(); parser.feed(response.content.decode())
+        self.assertEqual(len(parser.permissions), 1)
+        self.assertIn('encrypted-media', parser.permissions[0].split('; '))
 
     def test_cross_midnight_splits_credit_by_local_day(self):
         from datetime import datetime

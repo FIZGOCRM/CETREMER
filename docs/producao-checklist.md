@@ -2,6 +2,8 @@
 
 Este documento não publica o sistema. Preencha com quem opera o servidor. A demo local e seus usuários não são dados de produção. Pagamento/checkout permanecem fora da V1.
 
+**Estado da KVM4 em 17/11/2026:** implantação por **Docker Compose**, sem cadastro na interface Coolify, já acessível por túnel SSH. Os caminhos, limites, rotinas e comandos confirmados estão em [operação KVM4](operacao-kvm4.md), com a [verificação de incorporação](integracao-deploy-kvm4.md). A tabela geral abaixo também cobre a futura publicação pública; domínio/DNS continuam fora desta etapa. O módulo `core.settings_deploy` é exclusivo da fase de túnel, com Django 5.2.19 e hosts de loopback explícitos.
+
 | Item | Definição / evidência |
 |---|---|
 | Responsável pela operação | ____________________ |
@@ -53,7 +55,7 @@ SMTP fica no SiteSettings, com senha criptografada; nenhum valor deve ir para do
 | python manage.py run_live_reminders | A cada15min | ____________________ |
 | python manage.py backup_sqlite CAMINHO-NOVO.sqlite3 | Conforme política, ao menos diário proposto | ____________________ |
 
-Nomes de backup devem ser novos (ex.: data/hora), fora de diretórios públicos. O comando não sobrescreve arquivos. Não foram criados agendamentos automaticamente. Inspecionar execução/saída e EmailLog, não presumir que um cron agendado executou.
+Nomes de backup devem ser novos (ex.: data/hora), fora de diretórios públicos. O comando não sobrescreve arquivos. Na KVM4, avisos, lembretes e conjuntos de backup são executados por `gomut-scheduler`; não duplicar com cron/Coolify. Os comandos da tabela permanecem referência para outros ambientes. Inspecionar execução/saída e EmailLog, não presumir que agendamento significa execução ou entrega de e-mail.
 
 ## Backup e restauração
 

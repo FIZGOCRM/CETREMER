@@ -1,6 +1,8 @@
 asgiref==3.11.1
-Django==4.2.30
+Django==5.2.19
 cryptography==46.0.3
 pillow==11.3.0
 sqlparse==0.5.5
 typing_extensions==4.16.0
+gunicorn==27.0.1
+whitenoise==6.12.0

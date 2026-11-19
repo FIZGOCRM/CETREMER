@@ -15,9 +15,8 @@ from users.models import SiteSettings
 def access_email(request, user):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    url = request.build_absolute_uri(
-        reverse("password_reset_confirm", args=[uid, token])
-    )
+    from core.portal_routing import user_access_url
+    url = user_access_url(request, user, reverse("password_reset_confirm", args=[uid, token]))
     from users.services import send_access_link
     return send_access_link(user,url)
 

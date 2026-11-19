@@ -87,7 +87,7 @@ def member_course(request, course_slug):
         "course": course, "modules": modules, "item": info,
         "community_posts": visible_posts(request.user).filter(course=course)[:8], "completed_ids": done,
         "total_seconds": sum(lesson.duration_seconds for lesson in lessons),
-        "access": decision,
+        "access": decision, "plan": plan_status(enrollment),
     })
 
 

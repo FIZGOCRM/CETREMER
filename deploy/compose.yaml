@@ -1,0 +1,59 @@
+name: gomut-kvm4
+x-runtime: &runtime
+  image: ${GOMUT_IMAGE:?Set GOMUT_IMAGE}
+  user: "10001:10001"
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:size=64m,mode=1777
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  pids_limit: 100
+  mem_limit: 512m
+  cpus: 0.50
+  logging:
+    driver: json-file
+    options: {max-size: "10m", max-file: "3"}
+services:
+  web:
+    <<: *runtime
+    container_name: gomut-web
+    env_file: [/srv/gomut/private/production.env]
+    ports: ["127.0.0.1:18080:8000"]
+    volumes:
+      - /srv/gomut/production/db:/data/db
+      - /srv/gomut/production/media:/data/media
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login/',timeout=10)"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+  scheduler:
+    <<: *runtime
+    container_name: gomut-scheduler
+    cpus: 0.20
+    mem_limit: 256m
+    env_file: [/srv/gomut/private/production.env]
+    command: [python, -B, -m, deploy.jobs]
+    volumes:
+      - /srv/gomut/production/db:/data/db
+      - /srv/gomut/production/media:/data/media:ro
+      - /srv/gomut/production/backups:/data/backups
+      - /srv/gomut/production/run:/data/run
+  homolog:
+    <<: *runtime
+    container_name: gomut-homolog
+    env_file: [/srv/gomut/private/homolog.env]
+    ports: ["127.0.0.1:18081:8000"]
+    volumes:
+      - /srv/gomut/homolog/db:/data/db
+      - /srv/gomut/homolog/media:/data/media
+      - /srv/gomut/homolog/backups:/data/backups
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/login/',timeout=10)"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s

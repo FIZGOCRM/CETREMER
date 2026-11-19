@@ -1,0 +1,31 @@
+# Production-only override. Homologation and scheduler stay private.
+services:
+  web:
+    environment:
+      DJANGO_SETTINGS_MODULE: core.settings_public
+      GOMUT_STUDENT_HOST: emergensimples.gomut.com.br
+      GOMUT_PRODUCER_HOST: painel.emergensimples.gomut.com.br
+    networks:
+      - default
+      - proxy
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz/',timeout=10)"]
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: coolify
+      traefik.http.services.gomut-public.loadbalancer.server.port: "8000"
+      traefik.http.routers.gomut-public-http.rule: Host(`emergensimples.gomut.com.br`) || Host(`painel.emergensimples.gomut.com.br`)
+      traefik.http.routers.gomut-public-http.entrypoints: http
+      traefik.http.routers.gomut-public-http.service: gomut-public
+      traefik.http.routers.gomut-public-http.middlewares: gomut-public-https
+      traefik.http.middlewares.gomut-public-https.redirectscheme.scheme: https
+      traefik.http.middlewares.gomut-public-https.redirectscheme.permanent: "true"
+      traefik.http.routers.gomut-public.rule: Host(`emergensimples.gomut.com.br`) || Host(`painel.emergensimples.gomut.com.br`)
+      traefik.http.routers.gomut-public.entrypoints: https
+      traefik.http.routers.gomut-public.service: gomut-public
+      traefik.http.routers.gomut-public.tls: "true"
+      traefik.http.routers.gomut-public.tls.certresolver: letsencrypt
+networks:
+  proxy:
+    external: true
+    name: coolify

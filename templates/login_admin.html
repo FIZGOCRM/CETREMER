@@ -4,13 +4,13 @@
 <span class="gm-login__logo">
 <img src="{% static 'gomut/marca/gomut-logo.png' %}" alt="GoMut" width="1568" height="432">
 </span>
-<div class="dd gm-login__menu">
+{% if not request.portal %}<div class="dd gm-login__menu">
 <button type="button" class="gm-login__link" data-dropdown aria-haspopup="true" aria-expanded="false" aria-controls="login-menu">Entrar {% include 'partials/gomut/icon.html' with name='down' %}</button>
 <div class="dd__panel dd__panel--menu" id="login-menu">
 <a class="dd__item" href="{% url 'login' %}?acesso=admin">{% include 'partials/gomut/icon.html' with name='sliders' %}Gerenciar meus negócios</a>
 <a class="dd__item" href="{% url 'login' %}">{% include 'partials/gomut/icon.html' with name='play' %}Acessar minhas compras</a>
 </div>
-</div>
+</div>{% endif %}
 </header>
 <div class="gm-login__palco">
 <div class="gm-login__texto">

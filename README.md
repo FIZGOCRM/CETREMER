@@ -3,6 +3,10 @@
 Plataforma completa de cursos online, streaming de aulas em vídeo, área do aluno, portal do criador/produtor e fórum de comunidade, desenvolvida em **Python + Django**.
 
 
+## Deploy atual — GoMut / Emergensimples
+
+O runtime versionado usa Django **5.2.19 LTS**. A aplicação está na KVM4 em **Docker Compose**, com SQLite/uploads persistentes. A área do aluno está em <https://emergensimples.gomut.com.br> e o painel do produtor em <https://painel.emergensimples.gomut.com.br>, com logins, permissões e cookies separados por host. A homologação continua privada por túnel SSH. A GoMut não está cadastrada na interface do Coolify. Consulte o [resultado da publicação e validação](docs/relatorio-publicacao-https.md), a [operação HTTPS](docs/publicacao-https.md) e o [manual da KVM4](docs/operacao-kvm4.md). A suíte da versão pública passou com **392 testes**. SMTP, backup externo, configuração completa da escola e conteúdo real continuam pendentes.
+
 ## Estado do checkout e organizacao do backend
 
 O checkout simulado foi removido. Compras online permanecem indisponiveis ate a integracao real com um gateway; o endpoint de processamento retorna HTTP 503 sem criar conta, pedido ou matricula. Matriculas administrativas e acesso dos alunos continuam disponiveis.
@@ -18,7 +22,7 @@ SQLite permanece como banco. O comando `python manage.py backup_sqlite CAMINHO-D
 Siga o passo a passo abaixo para configurar e executar o projeto em uma nova máquina (macOS, Linux ou Windows).
 
 ### 1. Pré-requisitos
-* **Python 3.9+** instalado ([python.org](https://www.python.org/downloads/))
+* **Python 3.13** instalado, correspondente ao runtime validado na imagem Linux ([python.org](https://www.python.org/downloads/))
 * **Git** instalado
 
 ---

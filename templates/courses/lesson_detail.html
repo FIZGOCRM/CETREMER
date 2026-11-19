@@ -7,7 +7,7 @@
 <span>·</span>
 <span>{{ lesson.module.title }}</span>
 </nav>
-<div class="vimeo-player">{% if lesson.vimeo_id %}<iframe src="{{ lesson.player_url }}" data-vimeo data-position="{{ progress.last_position_seconds|default:0|unlocalize }}" data-duration="{{ lesson.duration_seconds|unlocalize }}" data-completed="{{ is_completed|yesno:'true,false' }}" data-heartbeat-url="{% url 'lesson_heartbeat' lesson.id %}" data-ended-url="{% url 'lesson_ended' lesson.id %}" data-lesson-id="{{ lesson.id }}" data-complete-url="{% url 'complete_lesson' lesson.id %}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
+<div class="vimeo-player">{% if lesson.vimeo_id %}<iframe src="{{ lesson.player_url }}" data-vimeo data-position="{{ progress.last_position_seconds|default:0|unlocalize }}" data-duration="{{ lesson.duration_seconds|unlocalize }}" data-completed="{{ is_completed|yesno:'true,false' }}" data-heartbeat-url="{% url 'lesson_heartbeat' lesson.id %}" data-ended-url="{% url 'lesson_ended' lesson.id %}" data-lesson-id="{{ lesson.id }}" data-complete-url="{% url 'complete_lesson' lesson.id %}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
 </iframe>{% elif lesson.youtube_embed_url %}<iframe src="{{ lesson.youtube_embed_url }}" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="Vídeo da aula: {{ lesson.title }}">
 </iframe>{% else %}<div class="empty">
 <h2>Vídeo ainda não disponível</h2>
