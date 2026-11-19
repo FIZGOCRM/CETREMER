@@ -27,15 +27,15 @@ def dashboard(request):
         key=lambda item: item["enrollment"].last_accessed_at or item["enrollment"].enrolled_at,
         reverse=True,
     )
-    active = [item for item in items if item["access"].allowed]
-    if len(active) == 1:
-        from .experience_views import render_home
-        enrollment = active[0]["enrollment"]
-        request.session["active_course_slug"] = enrollment.course.slug
-        return render_home(request, enrollment, hero_courses=hero_courses, summary=summary)
-    return render(request, "courses/dashboard.html", {
-        "my_courses": items, "choosing_course": True, "summary": summary, "hero_courses": hero_courses,
-    })
+    active = [item["enrollment"] for item in hero_courses if item["access"].allowed]
+    if not active:
+        request.session.pop("active_course_slug", None)
+        return render(request, "courses/my_courses.html", {"my_courses": items})
+    from .experience_views import render_home
+    selected_slug = request.session.get("active_course_slug")
+    enrollment = next((item for item in active if item.course.slug == selected_slug), active[0])
+    request.session["active_course_slug"] = enrollment.course.slug
+    return render_home(request, enrollment, hero_courses=hero_courses, summary=summary)
 
 
 

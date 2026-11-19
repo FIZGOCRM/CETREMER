@@ -30,14 +30,27 @@ class CourseHomeTests(TestCase):
     def page(self, name):
         return self.client.get(reverse(name, args=[self.course.slug]))
 
-    def test_dashboard_opens_only_active_course_and_many_offer_a_choice(self):
+    def test_dashboard_keeps_course_home_when_another_course_is_added_or_selected(self):
         response = self.client.get(reverse("dashboard"))
         self.assertTemplateUsed(response, "courses/course_home.html")
         other = self.make_course("segundo")
         Enrollment.objects.create(student=self.student, course=other)
         response = self.client.get(reverse("dashboard"))
-        self.assertTemplateUsed(response, "courses/dashboard.html")
-        self.assertContains(response, reverse("course_home", args=[other.slug]))
+        self.assertTemplateUsed(response, "courses/course_home.html")
+        self.assertEqual(response.context["course"], self.course)
+        self.assertContains(response, reverse("my_courses"))
+        self.assertContains(self.client.get(reverse("my_courses")), reverse("course_home", args=[other.slug]))
+        self.client.get(reverse("course_home", args=[other.slug]))
+        self.assertEqual(self.client.get(reverse("dashboard")).context["course"], other)
+
+    def test_dashboard_drops_a_selected_course_when_it_is_unpublished(self):
+        self.page("course_home")
+        self.course.is_published = False
+        self.course.save(update_fields=["is_published"])
+        response = self.client.get(reverse("dashboard"))
+        self.assertTemplateUsed(response, "courses/my_courses.html")
+        self.assertNotContains(response, self.a.title)
+        self.assertNotIn("active_course_slug", self.client.session)
 
     def test_all_interrupted_sorted_with_resume_and_completed_omitted(self):
         Progress.objects.create(lesson=self.a, student=self.student, last_position_seconds=92, started_at=self.now-timedelta(days=1))

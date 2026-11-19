@@ -37,12 +37,19 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--student", action="append", help="Conta de aluno da base de demonstração.")
+        parser.add_argument("--course", default="gomut-demo-plantao", help="Slug do curso fictício Plantão ou QA E2E.")
 
     @transaction.atomic
     def handle(self, *args, **options):
         if not settings.GOMUT_DEMO_MODE:
             raise CommandError("Este comando exige uma base de demonstração com GOMUT_DEMO_MODE.")
-        course = Course.objects.filter(slug="gomut-demo-plantao", creator__user__username="gomut-demo-admin").first()
+        slug = options["course"]
+        if slug != "gomut-demo-plantao" and not slug.startswith("qa-e2e-"):
+            raise CommandError("Escolha o Plantão de demonstração ou um curso fictício QA E2E.")
+        courses = Course.objects.filter(is_published=True)
+        if slug == "gomut-demo-plantao":
+            courses = courses.filter(creator__user__username="gomut-demo-admin")
+        course = courses.filter(slug=slug).first()
         if not course:
             raise CommandError("Prepare primeiro os dados com prepare_demo --with-course-experience.")
         actor = course.creator.user

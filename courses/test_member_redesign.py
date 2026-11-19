@@ -82,9 +82,11 @@ class MemberRedesignTests(TestCase):
         Enrollment.objects.create(student=self.student.student_profile, course=self.other)
         response = self.client.get(reverse("dashboard"))
         self.assertEqual(len(response.context["hero_courses"]), 2)
-        self.assertContains(response, "Começar")
-        self.assertContains(response, 'aria-label="Próximo curso"')
+        self.assertContains(response, "Continuar")
+        self.assertTemplateUsed(response, "courses/course_home.html")
         self.enrollment.access_policy = Enrollment.AccessPolicy.PERIODS
         self.enrollment.save()
         response = self.client.get(reverse("dashboard"))
         self.assertEqual([item["course"] for item in response.context["hero_courses"]], [self.other, self.course])
+        self.assertEqual(response.context["course"], self.other)
+        self.assertContains(response, "Começar")
