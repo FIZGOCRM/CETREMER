@@ -123,3 +123,22 @@ class AccessPeriodAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+from .models import LessonLike, SavedLesson, WeeklySelection, WeeklySelectionItem
+
+
+class WeeklyItemInline(admin.TabularInline):
+    model = WeeklySelectionItem
+    extra = 0
+    max_num = 10
+
+
+@admin.register(WeeklySelection)
+class WeeklySelectionAdmin(admin.ModelAdmin):
+    list_display = ("course", "week_start", "created_by")
+    inlines = [WeeklyItemInline]
+
+
+admin.site.register(LessonLike)
+admin.site.register(SavedLesson)

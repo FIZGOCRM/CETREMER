@@ -26,7 +26,7 @@ def profile_data_ok(profile):
 
 
 @transaction.atomic
-def set_lesson_progress(student, lesson, *, completed=None):
+def set_lesson_progress(student, lesson, *, completed=None, automatic=False):
     """Set completion, or toggle when omitted, updating points atomically.
 
     SQLite serializes writes; select_for_update is not a lock on SQLite.
@@ -40,6 +40,9 @@ def set_lesson_progress(student, lesson, *, completed=None):
         raise PermissionDenied('Esta aula ainda não está liberada.')
     progress, _ = Progress.objects.get_or_create(student=student, lesson=lesson)
     desired = not progress.is_completed if completed is None else completed
+    if desired and automatic is not None:
+        origin = "auto_completed_at" if automatic else "manual_completed_at"
+        Progress.objects.filter(pk=progress.pk, **{origin + "__isnull": True}).update(**{origin: timezone.now()})
     if desired != progress.is_completed:
         Progress.objects.filter(pk=progress.pk).update(
             is_completed=desired, completed_at=timezone.now() if desired else None
@@ -386,6 +389,8 @@ def delete_content(content, *, actor):
     has_history = Progress.objects.filter(**filters).exists() or ActivityEvent.objects.filter(**filters).exists() or LessonNote.objects.filter(**filters).exists() or QuizAttempt.objects.filter(**attempt_filters).exists()
     material_ids = LessonMaterial.objects.filter(**filters).values('pk')
     has_history = has_history or CommunityPost.objects.filter(**filters).exists() or MaterialOpen.objects.filter(material_kind='lesson', material_id__in=material_ids).exists()
+    from .models import LessonLike, SavedLesson, WeeklySelectionItem
+    has_history = has_history or any(model.objects.filter(**filters).exists() for model in (LessonLike, SavedLesson, WeeklySelectionItem))
     if has_history:
         raise ValidationError('Este conteúdo tem histórico de alunos. Use despublicar para preservar o histórico.')
     lessons = list(content.lessons.all()) if isinstance(content, Module) else [content]
@@ -419,10 +424,13 @@ def record_heartbeat(student, lesson, *, position, playing):
     progress, _ = Progress.objects.get_or_create(student=student, lesson=lesson)
     previous_watched = progress.watched_seconds
     position = min(position, lesson.duration_seconds) if lesson.duration_seconds else position
+    if not progress.started_at and (position > 0 or credit > 0) and not (progress.max_position_seconds or progress.watched_seconds):
+        progress.started_at = now
+    progress.max_position_seconds = max(progress.max_position_seconds, position)
     progress.last_position_seconds = position
     progress.last_heartbeat_at = now
     progress.watched_seconds += credit
-    progress.save(update_fields=['last_position_seconds', 'last_heartbeat_at', 'watched_seconds'])
+    progress.save(update_fields=['last_position_seconds', 'max_position_seconds', 'started_at', 'last_heartbeat_at', 'watched_seconds'])
     StudentProfile.objects.filter(pk=student.pk).update(last_heartbeat_at=now, heartbeat_playing=playing)
     if credit:
         # Dividir pulsos que atravessam meia-noite no fuso do projeto.
@@ -432,8 +440,8 @@ def record_heartbeat(student, lesson, *, position, playing):
         for day, seconds in by_day.items():
             study_day, _ = StudyDay.objects.get_or_create(student=student, date=day)
             StudyDay.objects.filter(pk=study_day.pk).update(seconds=F('seconds')+seconds)
-    if lesson.duration_seconds and previous_watched < lesson.duration_seconds*.9 <= progress.watched_seconds and not progress.is_completed:
-        set_lesson_progress(student, lesson, completed=True)
+    if lesson.duration_seconds and previous_watched < lesson.duration_seconds*.9 <= progress.watched_seconds:
+        set_lesson_progress(student, lesson, completed=True, automatic=True)
         progress.refresh_from_db()
     from .models import Lesson
     lesson_filters = {'module__course': lesson.module.course, 'module__status': 'published', 'status': 'published'}
@@ -456,7 +464,10 @@ def finish_video(student, lesson):
         raise PermissionDenied('Esta aula ainda não está liberada.')
     progress = Progress.objects.filter(student=student, lesson=lesson).first()
     if progress and progress.is_completed:
-        return set_lesson_progress(student, lesson, completed=True)
+        # An ended callback alone cannot turn a manual mark into observed playback.
+        if not progress.auto_completed_at and (not lesson.duration_seconds or progress.watched_seconds < lesson.duration_seconds * .5):
+            return set_lesson_progress(student, lesson, completed=True, automatic=None)
+        return set_lesson_progress(student, lesson, completed=True, automatic=True)
     duration = lesson.duration_seconds
     if not duration:
         # Referência de duração obtida no servidor; nunca aceitar o valor do cliente.
@@ -466,7 +477,7 @@ def finish_video(student, lesson):
         raise ValidationError('Não foi possível confirmar a duração. Use Marcar como concluída.')
     if not progress or progress.watched_seconds < duration*.5:
         raise ValidationError('Assista ao menos metade da aula antes da conclusão automática, ou use Marcar como concluída.')
-    return set_lesson_progress(student, lesson, completed=True)
+    return set_lesson_progress(student, lesson, completed=True, automatic=True)
 
 
 def create_lesson_note(student, lesson, *, position_seconds, text):

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 from users.models import CreatorProfile, StudentProfile
 
@@ -106,6 +107,7 @@ class Course(models.Model):
 
 
 class Module(models.Model):
+    cover = models.ImageField(upload_to="courses/modules/", blank=True)
     status = models.CharField(max_length=12, choices=[('draft', 'Rascunho'), ('published', 'Publicado')], default='published')
     release_month = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(1)])
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name="modules")
@@ -155,6 +157,7 @@ def get_embed_url(url):
 
 
 class Lesson(models.Model):
+    cover = models.ImageField(upload_to="courses/lessons/", blank=True)
     published_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=12, choices=[('draft', 'Rascunho'), ('published', 'Publicado')], default='published')
     module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name="lessons")
@@ -212,6 +215,7 @@ class Lesson(models.Model):
 
 
 class LessonMaterial(models.Model):
+    created_at = models.DateTimeField(null=True, blank=True, default=timezone.now, editable=False)
     lesson = models.ForeignKey(
         Lesson, related_name="materials", on_delete=models.CASCADE
     )
@@ -260,6 +264,10 @@ class MaterialOpen(models.Model):
 
 
 class Progress(models.Model):
+    max_position_seconds = models.FloatField(default=0, validators=[MinValueValidator(0)])
+    started_at = models.DateTimeField(null=True, blank=True)
+    auto_completed_at = models.DateTimeField(null=True, blank=True)
+    manual_completed_at = models.DateTimeField(null=True, blank=True)
     last_position_seconds = models.FloatField(default=0, validators=[MinValueValidator(0)])
     watched_seconds = models.PositiveIntegerField(default=0)
     last_heartbeat_at = models.DateTimeField(null=True, blank=True)
@@ -312,6 +320,7 @@ class QuizQuestion(models.Model):
 
 
 class QuizChoice(models.Model):
+    explanation = models.TextField(blank=True, default="")
     question = models.ForeignKey(QuizQuestion, on_delete=models.PROTECT, related_name='choices')
     order = models.PositiveSmallIntegerField()
     text = models.TextField()
@@ -323,7 +332,7 @@ class QuizChoice(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['question', 'order'], condition=models.Q(is_active=True), name='active_choice_order_unique'),
             models.UniqueConstraint(fields=['question'], condition=models.Q(is_correct=True, is_active=True), name='one_active_correct_choice'),
-            models.CheckConstraint(check=models.Q(order__gte=1, order__lte=4), name='choice_order_one_to_four'),
+            models.CheckConstraint(check=models.Q(order__gte=1, order__lte=5), name='choice_order_one_to_five'),
         ]
 
 
@@ -529,6 +538,7 @@ class HeroBanner(models.Model):
         return f"Hero Banner: {self.title[:35]}"
 
 class LiveEvent(models.Model):
+    recording_added_at = models.DateTimeField(null=True, blank=True, editable=False)
     course=models.ForeignKey(Course,null=True,blank=True,on_delete=models.PROTECT,related_name='live_events')
     title=models.CharField(max_length=200)
     kind=models.CharField(max_length=15,default='mentoria',choices=[('mentoria','Mentoria'),('aberto','Aberto'),('aula_ao_vivo','Aula ao vivo')])
@@ -540,7 +550,80 @@ class LiveEvent(models.Model):
     is_active=models.BooleanField(default=True)
     class Meta:ordering=['starts_at','pk']
 
+    def save(self, *args, **kwargs):
+        fields = kwargs.get("update_fields")
+        if self.recording_url and (fields is None or "recording_url" in fields):
+            # Preserve the first publication even when the recording is replaced.
+            if self.pk:
+                previous = LiveEvent.objects.filter(pk=self.pk).values("recording_url", "recording_added_at").first()
+            else:
+                previous = None
+            if previous and previous["recording_added_at"]:
+                self.recording_added_at = previous["recording_added_at"]
+            elif not previous or not previous["recording_url"]:
+                self.recording_added_at = timezone.now()
+            if fields is not None:
+                kwargs["update_fields"] = set(fields) | {"recording_added_at"}
+        super().save(*args, **kwargs)
+
+
 class LiveReminder(models.Model):
     student=models.ForeignKey('users.StudentProfile',on_delete=models.CASCADE)
     event=models.ForeignKey(LiveEvent,on_delete=models.PROTECT,related_name='reminders')
     class Meta:constraints=[models.UniqueConstraint(fields=['student','event'],name='unique_student_live_reminder')]
+
+
+class LessonReaction(models.Model):
+    student = models.ForeignKey(StudentProfile, on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        abstract = True
+        constraints = [models.UniqueConstraint(fields=["student", "lesson"], name="%(class)s_once")]
+
+
+class LessonLike(LessonReaction):
+    pass
+
+
+class SavedLesson(LessonReaction):
+    pass
+
+
+class WeeklySelection(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    week_start = models.DateField()
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+
+    class Meta:
+        ordering = ["-week_start"]
+        constraints = [
+            models.UniqueConstraint(fields=["course", "week_start"], name="one_selection_per_week"),
+            models.CheckConstraint(check=models.Q(week_start__week_day=2), name="selection_starts_monday"),
+        ]
+
+    def clean(self):
+        if self.week_start and self.week_start.weekday() != 0:
+            raise ValidationError({"week_start": "Escolha a segunda-feira da semana."})
+
+    def __str__(self):
+        return f"{self.course} · {self.week_start}"
+
+
+class WeeklySelectionItem(models.Model):
+    selection = models.ForeignKey(WeeklySelection, related_name="items", on_delete=models.CASCADE)
+    lesson = models.ForeignKey(Lesson, on_delete=models.PROTECT)
+    position = models.PositiveSmallIntegerField()
+
+    class Meta:
+        ordering = ["position"]
+        constraints = [
+            models.CheckConstraint(check=models.Q(position__gte=1, position__lte=10), name="top_ten_position_range"),
+            models.UniqueConstraint(fields=["selection", "position"], name="top_ten_unique_position"),
+            models.UniqueConstraint(fields=["selection", "lesson"], name="top_ten_unique_lesson"),
+        ]
+
+    def clean(self):
+        if self.selection_id and self.lesson_id and self.lesson.module.course_id != self.selection.course_id:
+            raise ValidationError({"lesson": "A aula precisa pertencer ao curso da seleção."})

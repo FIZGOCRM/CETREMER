@@ -20,6 +20,8 @@ from courses import quiz_views
 from courses import material_views
 
 urlpatterns = [
+    path('', include('courses.experience_urls')),
+    path('courses/lesson/<int:lesson_id>/reaction/<slug:kind>/', player_views.lesson_reaction, name='lesson_reaction'),
     path('dashboard/meus-cursos/',student_views.my_courses,name='my_courses'),
     path('buscar/',student_views.search,name='member_search'),
     path('notificacoes/',notification_views.notifications,name='notifications'),
