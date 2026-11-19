@@ -168,6 +168,8 @@ class QuizQuestionForm(forms.Form):
     def clean(self):
         data = super().clean()
         keys = [key for key in 'abcde' if data.get('choice_'+key)]
+        if keys != list('abcde'[:len(keys)]):
+            self.add_error(None, 'Preencha as alternativas em sequência, começando por A.')
         for key in 'cde':
             if key in keys and not data.get('explanation_'+key):
                 self.add_error('explanation_'+key, 'Explique esta alternativa.')

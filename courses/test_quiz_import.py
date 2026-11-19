@@ -55,6 +55,16 @@ class QuizImportTests(TestCase):
         self.assertEqual(choices.count(), 5)
         self.assertEqual(choices.get(is_correct=True).explanation, 'Por E')
 
+    def test_rejects_skipped_letters_in_extended_csv_and_editor(self):
+        from painel.forms import QuizQuestionForm
+        self.header = self.header.rstrip() + ',alternativa_e,justificativa_a,justificativa_b,justificativa_c,justificativa_d,justificativa_e\n'
+        with self.assertRaisesRegex(CommandError, "sequência"):
+            self.run_csv('csv-course,aula,Aula única,1,Pergunta?,A,B,,,E,,E,Por A,Por B,,,Por E\n')
+        form = QuizQuestionForm(dict(order=1, text="Questão", correct="e",
+            choice_a="A", choice_b="B", choice_e="E", explanation_a="A", explanation_b="B", explanation_e="E"))
+        self.assertFalse(form.is_valid())
+        self.assertIn("sequência", str(form.errors))
+
     def test_duplicate_order_invalid_choice_and_ambiguous_lesson_are_refused(self):
         for rows in (self.row+self.row, self.row.replace(',A,Explicação', ',D,Explicação'), self.row.replace('A,B,,,', 'A,,,, ')):
             with self.assertRaisesRegex(CommandError, 'Linha'):

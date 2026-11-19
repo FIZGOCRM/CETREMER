@@ -76,6 +76,8 @@ def parse_quiz_csv(path):
                 raise ValueError('A correta deve apontar para uma alternativa preenchida.')
             explanations = None
             if not legacy:
+                if keys != list('abcde'[:len(keys)]):
+                    raise ValueError('Preencha as alternativas em sequência, começando por A.')
                 for key in 'abcde':
                     if bool(data['justificativa_'+key]) != (key in keys):
                         raise ValueError(f'A alternativa {key.upper()} e sua justificativa devem ser preenchidas juntas.')
