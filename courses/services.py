@@ -420,7 +420,8 @@ def record_heartbeat(student, lesson, *, position, playing):
     elapsed = max(0, (now-current_student.last_heartbeat_at).total_seconds()) if current_student.last_heartbeat_at else 0
     # The previous pulse opens the playing interval; pause/hidden/end closes it.
     # Requiring the new state to be playing discarded the watched tail on pause.
-    credit = min(20, int(elapsed)) if current_student.heartbeat_playing else 0
+    owns_clock = current_student.heartbeat_lesson_id == lesson.pk
+    credit = min(20, int(elapsed)) if owns_clock and current_student.heartbeat_playing else 0
     progress, _ = Progress.objects.get_or_create(student=student, lesson=lesson)
     previous_watched = progress.watched_seconds
     position = min(position, lesson.duration_seconds) if lesson.duration_seconds else position
@@ -431,7 +432,10 @@ def record_heartbeat(student, lesson, *, position, playing):
     progress.last_heartbeat_at = now
     progress.watched_seconds += credit
     progress.save(update_fields=['last_position_seconds', 'max_position_seconds', 'started_at', 'last_heartbeat_at', 'watched_seconds'])
-    StudentProfile.objects.filter(pk=student.pk).update(last_heartbeat_at=now, heartbeat_playing=playing)
+    if playing or owns_clock:
+        StudentProfile.objects.filter(pk=student.pk).update(
+            last_heartbeat_at=now, heartbeat_playing=playing, heartbeat_lesson_id=lesson.pk)
+
     if credit:
         # Dividir pulsos que atravessam meia-noite no fuso do projeto.
         from datetime import timedelta

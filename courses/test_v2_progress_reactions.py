@@ -31,6 +31,19 @@ class EngagementTests(TestCase):
         self.assertIsNotNone(first)
         self.assertEqual((record.max_position_seconds, record.last_position_seconds, record.started_at), (8, 1, first))
 
+    def test_closing_an_idle_lesson_does_not_steal_the_playing_lessons_time(self):
+        other = Lesson.objects.create(module=self.module, duration_seconds=12)
+        now = timezone.now()
+        for seconds, lesson, position, playing in (
+                (0, self.lesson, 0, True), (12, other, 0, False), (15, self.lesson, 10, False)):
+            with patch("courses.services.timezone.now", return_value=now + timedelta(seconds=seconds)):
+                services.record_heartbeat(self.student, lesson, position=position, playing=playing)
+        idle = Progress.objects.get(lesson=other)
+        self.assertEqual(idle.watched_seconds, 0)
+        self.assertIsNone(idle.started_at)
+        self.assertFalse(idle.is_completed)
+        self.assertEqual(Progress.objects.get(lesson=self.lesson).watched_seconds, 15)
+
     def test_manual_and_auto_have_independent_evidence(self):
         services.set_lesson_progress(self.student, self.lesson, completed=True)
         record = Progress.objects.get()

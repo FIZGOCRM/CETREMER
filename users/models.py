@@ -27,6 +27,7 @@ class StudentProfile(models.Model):
     email_live_events = models.BooleanField(default=True)
     last_heartbeat_at = models.DateTimeField(null=True, blank=True)
     heartbeat_playing = models.BooleanField(default=False)
+    heartbeat_lesson = models.ForeignKey('courses.Lesson', null=True, blank=True, editable=False, on_delete=models.SET_NULL, related_name='+')
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
     points = models.PositiveIntegerField(default=0)
     level = models.PositiveIntegerField(default=1)
