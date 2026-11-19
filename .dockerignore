@@ -7,3 +7,5 @@ media
 data_dump.json
 seed.py
 staticfiles
+
+.venv-v2
