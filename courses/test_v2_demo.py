@@ -19,7 +19,7 @@ class CourseDemoTests(TestCase):
                 self.assertEqual(student.enrollments.count(), 1)
                 self.assertEqual(SavedLesson.objects.filter(student=student).count(), 3)
                 self.assertEqual(LessonLike.objects.filter(student=student).count(), 1)
-                self.assertEqual(WeeklySelectionItem.objects.count(), 4)
+                self.assertEqual(WeeklySelectionItem.objects.count(), 5)
                 self.assertEqual(QuizChoice.objects.filter(order=5).exclude(explanation="").count(), 1)
                 self.assertTrue(LiveEvent.objects.filter(recording_added_at__isnull=False).exists())
                 self.assertGreaterEqual(LessonMaterial.objects.values("lesson__module").distinct().count(), 2)

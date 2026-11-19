@@ -11,7 +11,7 @@ from .models import (
     Course, Enrollment, Lesson, LessonLike, LessonMaterial, LiveEvent, Progress,
     Quiz, SavedLesson, WeeklySelection, WeeklySelectionItem,
 )
-from .services import create_plan, save_quiz_question
+from .services import create_plan, save_lesson, save_quiz_question
 
 
 def _qa_user(username, role, password):
@@ -27,6 +27,9 @@ def _qa_user(username, role, password):
 
 def populate_experience(password, owner, original_student):
     reader = _qa_user("aluno-v2", "STUDENT", password)
+    if not reader.student_profile.full_name:
+        reader.student_profile.full_name = "Marina Souza"
+        reader.student_profile.save(update_fields=["full_name"])
     producer = _qa_user("produtor-v2", "CREATOR", password)
     now = timezone.now()
     today = timezone.localdate(now)
@@ -35,6 +38,13 @@ def populate_experience(password, owner, original_student):
     enrollment, created = Enrollment.objects.get_or_create(student=reader.student_profile, course=course)
     if created:
         create_plan(enrollment, today, actor=producer)
+    from django.db.models import Max
+    module = course.modules.filter(status="published").order_by("-order", "-pk").first()
+    if module and not module.lessons.filter(title="Como usar os materiais · demo v2").exists():
+        order = (module.lessons.aggregate(high=Max("order"))["high"] or 0) + 1
+        save_lesson(Lesson(module=module, order=order, title="Como usar os materiais · demo v2",
+                           description="Conheça as leituras desta mentoria fictícia.",
+                           video_url="https://vimeo.com/76979871", duration_seconds=62))
     lessons = list(Lesson.objects.filter(module__course=course, status="published", module__status="published"
                    ).select_related("module").order_by("module__order", "module_id", "order", "pk"))
     if not lessons:
@@ -68,7 +78,6 @@ def populate_experience(password, owner, original_student):
     quiz, _ = Quiz.objects.get_or_create(lesson=lessons[0], defaults={"course": course, "kind": "lesson", "is_demo": True})
     question_text = "Onde retomar uma aula já iniciada nesta mentoria?"
     if quiz.is_demo and not quiz.questions.filter(text=question_text).exists():
-        from django.db.models import Max
         order = (quiz.questions.aggregate(high=Max("order"))["high"] or 0) + 1
         save_quiz_question(quiz, order=order, text=question_text, explanation="", actor=producer,
             choices=["Certificados", "Comunidade", "Suporte", "Minha conta", "Continue de onde parou"],
