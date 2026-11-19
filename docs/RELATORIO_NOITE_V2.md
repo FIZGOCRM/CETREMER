@@ -11,11 +11,11 @@ Referência: `docs/Plantao_Sem_GPT_Solicitacoes_TI.pdf`, 14 páginas. O item 11 
 | Item e página | Status | O que conferir |
 |---|---|---|
 | 1 · p. 1 · Retomada e interesse | Feito | A home prioriza a aula em andamento com atividade mais recente. A fileira pessoal reúne todas as iniciadas, com posição, minutos restantes, percentual e retomada no player. No painel, cada aula tem iniciantes, avanço médio, quatro faixas de alcance, chegadas ao final e marcações manuais. |
-| 2 · p. 2 · Top 10 | Feito | No painel do curso, escolha a segunda-feira e atribua posições de 1 a 10. As métricas aparecem na gestão. O aluno vê a seleção mais recente que já entrou em vigor. Há histórico por semana e validação de curso, posição e repetição. |
-| 3 · p. 3 · Novidades | Feito | Aulas, PDFs e gravações disponíveis aparecem na home, com selo de novidade e página completa de 14 dias. As publicações também chegam ao sininho e à fila de e-mail, respeitando acesso e preferências. Um PDF preparado antes de publicar a aula passa a ser novidade quando fica disponível. |
+| 2 · p. 2 · Top 10 | Feito | O produtor escolhe a semana, as posições de 1 a 10 e a arte opcional de cada aula. A home exibe a última seleção vigente do curso. O card abre a aula e o link no player retorna ao ranking do curso de origem. |
+| 3 · p. 3 · Novidades | Feito | O produtor escolhe as aulas, PDFs e gravações na aba Página inicial do curso. Cada destaque aparece para alunos com acesso por 14 dias a partir da inclusão na seção. O sininho e a fila de e-mail continuam vinculados à liberação do conteúdo. |
 | 4 · p. 4 · Encontros | Feito | A home apresenta os encontros do curso e os gerais. O aluno vê o tipo, a data, a hora, a duração e a proximidade. Inscrição e remoção do lembrete atualizam a tela via fetch. Lembretes de véspera e de última hora têm referências separadas. |
 | 5 · p. 5 · Minha lista | Feito | O botão de salvar aparece no card e na aula. A lista persiste por aluno e pode ser aberta na home e pelo menu. Remover um item atualiza os cards correspondentes. |
-| 6 · p. 6 · Organização e vitrine | Feito | A rolagem reúne hero, retomada, destaques, novidades, encontros, lista pessoal e outros cursos publicados. Só entram na vitrine cursos sem matrícula do aluno. O contato comercial cita o curso. |
+| 6 · p. 6 · Organização e vitrine | Feito | O hero permite alternar entre cursos publicados com acesso válido. As fileiras acompanham o curso escolhido. Em Outros cursos, o produtor define os cursos ofertados, a ordem e a arte. O aluno vê as ofertas publicadas em que ainda não tem matrícula. |
 | 7 · p. 7 · Ações da aula | Feito | Conclusão, curtida e Minha lista ficam sob o player. O aluno conserva Anterior/Próxima e a numeração global da aula. Repetir o estado de uma reação preserva um único registro. |
 | 8 · p. 8 · Abas | Feito | Visão geral, E-book, Quiz e Anotações, nessa ordem. A descrição vem da aula e as anotações continuam privadas e vinculadas ao minuto do vídeo. |
 | 9 · p. 9 · Quiz | Feito | Correção ao clicar, dentro da aba. No erro, o aluno vê sua escolha, a correta e as duas justificativas. O editor aceita de duas a cinco alternativas e exige as justificativas. Perguntas antigas usam o comentário geral. O CSV antigo e as tentativas anteriores continuam legíveis. |
@@ -93,6 +93,7 @@ O lançador local aponta para `.venv/gomut-v2.sqlite3` e `.venv/v2-media`. A dem
 | Primeira aula, materiais e quiz | `/courses/gomut-demo-plantao/lessons/1/` |
 | Relatórios por aula | `/painel/relatorios/aulas/` |
 | Top 10, semana e histórico | `/painel/cursos/1/top-10/` |
+| Curadoria de Novidades e Outros cursos | `/painel/cursos/1/inicio/` |
 | Conteúdo e módulos | `/painel/cursos/1/aulas/` |
 | Nova aula, seleção/criação de módulo e capas | `/painel/cursos/1/aulas/nova/` |
 | Editar aula e quiz | `/painel/aulas/1/editar/` e `/painel/aulas/1/quiz/` |
@@ -103,7 +104,7 @@ Para ver o feedback de erro e acerto, entre como aluno, abra a primeira aula, ma
 ## 6. Cuidados para uma publicação posterior
 
 1. Usar o processo Docker Compose já registrado em `docs/operacao-kvm4.md` e `docs/publicacao-https.md`. Preparar e verificar o backup do banco e da mídia antes da atualização. Coordenar a janela com web e scheduler para evitar escrita concorrente durante a reconstrução das tabelas SQLite.
-2. Aplicar `python manage.py migrate --noinput` à base persistente pela nova imagem. A ordem é `courses.0021` e depois `users.0016`. O afrouxamento do limite de alternativas e as adições preservam os registros preexistentes. Uma reversão para o código v1 depois de já cadastrar alternativas E ou seleções semanais requer planejar a restauração do snapshot e reconciliar dados novos.
+2. Aplicar `python manage.py migrate --noinput` à base persistente pela nova imagem. `users.0016` e `courses.0022_curadoria_home` dependem de `courses.0021`. A migração 0022 acrescenta a arte opcional dos itens semanais e a tabela de curadoria. Após a migração, o produtor deve selecionar as novidades e as ofertas de cada curso. As imagens editoriais são armazenadas em `courses/editorial/` dentro da mídia persistente. Uma reversão para o código v1 depois de já cadastrar alternativas E ou seleções semanais requer planejar a restauração do snapshot e reconciliar dados novos.
 3. Servir os novos estáticos da imagem e manter o volume de mídia. As capas usam `courses/modules/` e `courses/lessons/`, ambos sob o prefixo de imagens que o handler de produção já permite. Os PDFs continuam em um endpoint autenticado com `private, no-store`. O Dockerfile e os arquivos Compose não precisaram de mudança na v2.
 4. Manter uma instância do agendador. Conferir o ciclo de 15 minutos, o diário e `EmailLog`. Uma mensagem pendente precisa de configuração válida de SMTP, preferência e direito de acesso ainda válidos. Em DEBUG e sem SMTP a prévia de uma mensagem nova sai no console, sem marcar entrega real.
 5. Homologar com os domínios autorizados no Vimeo, uma matrícula válida e outra expirada. Validar mídia, retomada e o primeiro e-mail real somente quando houver autorização operacional.
@@ -140,3 +141,7 @@ O snapshot incluiu as alterações locais anteriores de QA, operação e publica
 - `docs: registrar entrega e validação local do Plantão v2` · relatório final.
 
 O commit do próprio relatório pode ser identificado com `git log -1 --oneline -- docs/RELATORIO_NOITE_V2.md`.
+
+### Verificação posterior da curadoria
+
+O commit `1c21094` acrescentou o editor da home por curso, a arte semanal e o retorno ao Top 10. A suíte completa passou com 434 testes em Django 5.2.19. No Chrome local, a validação percorreu a home com uma e duas matrículas, a troca de curso, a abertura da aula pelo ranking e os dois caminhos de volta, pelo player e pelo histórico do navegador. O teste foi repetido em larguras de 1440 e 390 pixels.
