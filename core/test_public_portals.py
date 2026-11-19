@@ -152,14 +152,14 @@ class PublicPortalTests(TestCase):
 
 class PublicSettingsTests(SimpleTestCase):
     def test_public_settings_are_https_only_host_only_and_keep_payments_off(self):
-        env=os.environ.copy();env.update(SECRET_KEY='test-only-'+'a'*70,FIELD_ENCRYPTION_KEY='e'*44,DJANGO_DATABASE_PATH='/data/db/db.sqlite3',DJANGO_MEDIA_ROOT='/data/media',GOMUT_STUDENT_HOST=STUDENT,GOMUT_PRODUCER_HOST=PRODUCER)
+        env=os.environ.copy();env.update(SECRET_KEY='test-only-'+'a'*70,FIELD_ENCRYPTION_KEY='e'*44,DJANGO_DATABASE_PATH=str(Path('/data/db/db.sqlite3').resolve()),DJANGO_MEDIA_ROOT=str(Path('/data/media').resolve()),GOMUT_STUDENT_HOST=STUDENT,GOMUT_PRODUCER_HOST=PRODUCER)
         result=subprocess.run([sys.executable,'-B','-c',"import core.settings_public as s; assert s.SECURE_SSL_REDIRECT and s.SESSION_COOKIE_SECURE and s.CSRF_COOKIE_SECURE; assert s.SESSION_COOKIE_DOMAIN is None and s.CSRF_COOKIE_DOMAIN is None; assert s.SECURE_HSTS_SECONDS>0 and not s.SECURE_HSTS_INCLUDE_SUBDOMAINS; assert not s.DEBUG and not s.ASAAS_API_ENABLED; print(s.PUBLIC_PORTALS)"],cwd=Path(__file__).resolve().parents[1],env=env,capture_output=True,text=True)
         self.assertEqual(result.returncode,0,result.stderr)
 
     def test_public_settings_refuse_missing_or_equal_hosts(self):
         for host,reason in ((STUDENT,'must be different'),('','explicit DNS hostname'),('*.gomut.com.br','explicit DNS hostname')):
             with self.subTest(host=host):
-                env=os.environ.copy();env.update(SECRET_KEY='test-only-'+'a'*70,FIELD_ENCRYPTION_KEY='e'*44,DJANGO_DATABASE_PATH='/data/db/db.sqlite3',DJANGO_MEDIA_ROOT='/data/media',GOMUT_STUDENT_HOST=STUDENT,GOMUT_PRODUCER_HOST=host)
+                env=os.environ.copy();env.update(SECRET_KEY='test-only-'+'a'*70,FIELD_ENCRYPTION_KEY='e'*44,DJANGO_DATABASE_PATH=str(Path('/data/db/db.sqlite3').resolve()),DJANGO_MEDIA_ROOT=str(Path('/data/media').resolve()),GOMUT_STUDENT_HOST=STUDENT,GOMUT_PRODUCER_HOST=host)
                 result=subprocess.run([sys.executable,'-B','-c','import core.settings_public'],cwd=Path(__file__).resolve().parents[1],env=env,capture_output=True,text=True)
                 self.assertNotEqual(result.returncode,0)
                 self.assertIn(reason,result.stderr)
