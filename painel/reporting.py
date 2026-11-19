@@ -1,11 +1,60 @@
 """Aggregate producer reports from recorded data, independent of request/rendering."""
 from collections import defaultdict
-from datetime import timedelta
-from django.db.models import Count,Max,Sum,Q
+from datetime import datetime, time, timedelta
+from django.db.models import Avg, Count, F, FilteredRelation, FloatField, Max, Q, Sum, Value
+from django.db.models.functions import Greatest, Least, NullIf
 from django.utils import timezone
 from courses.models import Course,Enrollment,Lesson,Progress,Quiz,QuizAttempt,StudyDay
 from courses.services import plan_status
 from users.models import StudentProfile,StudentVisit
+
+
+LESSON_SORTS = (
+    ('title', 'Título da aula'), ('started', 'Alunos que começaram'),
+    ('finished', 'Chegaram ao final'), ('finish_pct', 'Percentual que chegou ao final'),
+    ('avg_pct', 'Avanço médio'), ('manual', 'Conclusões manuais'),
+)
+
+
+def lesson_metrics(*, course=None, days=None, order='-started', on=None):
+    lessons = Lesson.objects.select_related('module__course')
+    if course:
+        lessons = lessons.filter(module__course=course)
+    window = Q()
+    if days is not None:
+        today = on or timezone.localdate()
+        first_day = today - timedelta(days=days - 1)
+        start = timezone.make_aware(datetime.combine(first_day, time.min))
+        end = timezone.make_aware(datetime.combine(today + timedelta(days=1), time.min))
+        window = Q(student_progress__started_at__gte=start, student_progress__started_at__lt=end)
+    lessons = lessons.annotate(tracking=FilteredRelation('student_progress', condition=window))
+    lessons = lessons.alias(
+        furthest=Greatest('tracking__max_position_seconds', 'tracking__last_position_seconds'),
+    )
+    advanced = Q(furthest__gt=0) | Q(tracking__watched_seconds__gt=0)
+    measured = advanced & Q(duration_seconds__gt=0)
+    reached_end = Q(duration_seconds__gt=0, furthest__gte=F('duration_seconds') * 0.9)
+    reached_end |= Q(tracking__auto_completed_at__isnull=False)
+    percent = Least(Value(100.0), F('furthest') * 100.0 / NullIf('duration_seconds', 0))
+    lessons = lessons.alias(percent=percent).annotate(
+        started=Count('tracking', filter=advanced),
+        finished=Count('tracking', filter=advanced & reached_end),
+        manual=Count('tracking', filter=Q(tracking__manual_completed_at__isnull=False)),
+        avg_pct=Avg('percent', filter=measured, output_field=FloatField()),
+        first_band=Count('tracking', filter=measured & Q(percent__lt=25)),
+        second_band=Count('tracking', filter=measured & Q(percent__gte=25, percent__lt=50)),
+        third_band=Count('tracking', filter=measured & Q(percent__gte=50, percent__lt=75)),
+        fourth_band=Count('tracking', filter=measured & Q(percent__gte=75)),
+    ).annotate(finish_pct=F('finished') * 100.0 / NullIf('started', 0))
+    key = order.lstrip('-')
+    if key not in dict(LESSON_SORTS):
+        key, order = 'started', '-started'
+    ordering = F(key).desc(nulls_last=True) if order.startswith('-') else F(key).asc(nulls_last=True)
+    return [{
+        'lesson': lesson, 'started': lesson.started, 'finished': lesson.finished,
+        'finish_pct': lesson.finish_pct, 'manual': lesson.manual, 'avg_pct': lesson.avg_pct,
+        'bands': [lesson.first_band, lesson.second_band, lesson.third_band, lesson.fourth_band],
+    } for lesson in lessons.order_by(ordering, 'title', 'pk')]
 
 
 def report_data(*,days=7,on=None):

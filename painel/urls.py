@@ -5,6 +5,7 @@ from .views import quizzes
 from .views import materials
 from .views import preview
 from .views import reports
+from .views import weekly
 from .views import certificates
 from .views import lessons
 from .views.course_management import course_overview_view
@@ -17,6 +18,8 @@ urlpatterns = [
     path('visualizar/encerrar/',preview.preview_end,name='preview_end'),
     path('visualizar/<int:student_id>/',preview.preview_start,name='preview_start'),
     path('relatorios/',reports.reports,name='reports'),
+    path('relatorios/aulas/', reports.lesson_report, name='lesson_metrics'),
+    path('cursos/<int:course_id>/top-10/', weekly.weekly_selection, name='weekly_selection'),
     path('relatorios/exportar/',reports.export_reports,name='reports_export'),
     path('certificados/',certificates.certificates,name='certificates'),
     path('aulas/<int:lesson_id>/editar/',lessons.lesson_edit,name='lesson_edit'),

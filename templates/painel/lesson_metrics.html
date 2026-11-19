@@ -1,0 +1,12 @@
+{% extends 'base_painel_gomut.html' %}
+{% block page_title %}Métricas por aula{% endblock %}
+{% block topbar_actions %}<a class="btn btn--outline" href="{% url 'painel:reports' %}">Voltar aos relatórios</a>{% endblock %}
+{% block content %}
+  <form method="get" class="gp-toolbar gp-form">
+    {% for field in form %}<label for="{{ field.id_for_label }}">{{ field.label }}{{ field }}{{ field.errors }}</label>{% endfor %}
+    <button class="btn btn--outline">Aplicar filtros</button>
+  </form>
+  <p class="muted">O período considera o primeiro início registrado. Todo o histórico inclui reproduções antigas sem data de início.</p>
+  {% include 'painel/lesson_metrics_table.html' %}
+  <p class="muted">Começaram inclui alunos com posição de vídeo ou tempo creditado. Chegaram ao final inclui quem alcançou 90% da duração ou concluiu automaticamente, entre os que começaram. O avanço usa a maior posição registrada. As conclusões manuais aparecem na última coluna.</p>
+{% endblock %}

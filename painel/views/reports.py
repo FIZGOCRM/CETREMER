@@ -3,6 +3,8 @@ from django.http import HttpResponse
 from core.decorators import painel_required
 from core.csv_export import safe_csv_cell
 from painel.reporting import report_data
+from painel.reporting import lesson_metrics
+from painel.analytics_forms import LessonMetricsForm
 from .common import page
 
 
@@ -13,6 +15,20 @@ def _period(request):
 @painel_required
 def reports(request):
     return page(request,'reports',report=report_data(days=_period(request)))
+
+
+@painel_required
+def lesson_report(request):
+    data = request.GET.copy()
+    data.setdefault('dias', 'tudo')
+    data.setdefault('ordem', '-started')
+    form = LessonMetricsForm(data)
+    rows = []
+    if form.is_valid():
+        filters = form.cleaned_data
+        days = None if filters['dias'] == 'tudo' else int(filters['dias'])
+        rows = lesson_metrics(course=filters['curso'], days=days, order=filters['ordem'])
+    return page(request, 'lesson_metrics', form=form, rows=rows)
 
 @painel_required
 def export_reports(request):

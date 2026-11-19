@@ -1,0 +1,26 @@
+<div class="gp-table-wrap">
+  <table class="gp-table">
+    <thead><tr>
+      <th scope="col">Aula</th><th scope="col">Começaram</th><th scope="col">Chegaram ao final</th>
+      <th scope="col">Avanço médio</th>{% if not compact %}<th scope="col">Alunos por faixa de avanço</th><th scope="col">Conclusões manuais</th>{% endif %}
+    </tr></thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td><a class="gp-text-link" href="{% url 'painel:lesson_edit' row.lesson.pk %}">{{ row.lesson.title }}</a>
+            <p class="muted">{% if not compact %}{{ row.lesson.module.course.title }} · {% endif %}{{ row.lesson.module.title }}</p></td>
+          <td>{{ row.started }}</td>
+          <td>{{ row.finished }}{% if row.finish_pct != None %} ({{ row.finish_pct|floatformat:1 }}%){% endif %}</td>
+          <td>{% if not row.lesson.duration_seconds %}Sem duração{% elif row.avg_pct != None %}{{ row.avg_pct|floatformat:1 }}%{% else %}—{% endif %}</td>
+          {% if not compact %}<td>{% if row.lesson.duration_seconds %}
+            0–&lt;25% · {{ row.bands.0 }}<br>25–&lt;50% · {{ row.bands.1 }}<br>
+            50–&lt;75% · {{ row.bands.2 }}<br>75–100% · {{ row.bands.3 }}
+          {% else %}Sem duração{% endif %}</td>
+          <td>{{ row.manual }}</td>{% endif %}
+        </tr>
+      {% empty %}
+        <tr><td colspan="{% if compact %}4{% else %}6{% endif %}" class="gp-empty">Nenhuma aula para os filtros escolhidos.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

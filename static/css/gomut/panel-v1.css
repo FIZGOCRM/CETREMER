@@ -21,3 +21,9 @@ html[data-area="coprodutor"] body { --gp-line:#e3e8e6;--gp-soft:#f5f8f7;--gp-ink
 @media(max-width:1023px) { .gp-settings { grid-template-columns:minmax(0,1fr); }.gp-settings-nav { display:flex;overflow:auto; }.gp-settings-nav>a { white-space:nowrap; } }
 @media(max-width:599px) { .gp-toolbar>select { flex-basis:auto; } }
 .gp-chart-scroll { max-width:100%;overflow:auto;margin-top:24px; }.gp-visits-chart { display:grid;grid-template-columns:repeat(var(--chart-columns),minmax(36px,1fr));gap:10px;min-width:300px; }.gp-chart-day { text-align:center;font-size:12px; }.gp-chart-track { height:148px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid #e3e8e6; }.gp-chart-track i { display:block;background:#04736b;border-radius:4px 4px 0 0;width:60%;max-width:42px; }.gp-chart-day>span { display:block;font-weight:600;color:#04736b; }.gp-chart-day>small { display:block;color:#6c7774;margin-top:10px; }
+
+@media (min-width: 1024px) {
+  .gp-split.gp-weekly { grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr); }
+}
+.gp-weekly section > h2 { margin-bottom: 16px; }
+.gp-weekly .gp-table { min-width: 30rem; }
