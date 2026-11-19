@@ -1,0 +1,1 @@
+{% for link in course_links %}<a href="{{ link.url }}"{% if link.active %} class="is-active" aria-current="page"{% endif %}>{% if mobile %}{% include 'partials/gomut/icon.html' with name=link.icon %}{% endif %}<span>{{ link.title }}</span></a>{% endfor %}

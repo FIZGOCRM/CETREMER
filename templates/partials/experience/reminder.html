@@ -1,0 +1,3 @@
+<form method="post" action="{% url 'live_remind' event.pk %}" data-reminder>
+  {% csrf_token %}<button class="btn btn--outline btn--sm" aria-pressed="{{ event.reminded|yesno:'true,false' }}"><span data-state>{% if event.reminded %}✓ Lembrete ativado{% else %}Lembrar-me{% endif %}</span></button>
+</form>

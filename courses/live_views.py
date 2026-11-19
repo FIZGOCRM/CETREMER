@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied,ValidationError
 from django.shortcuts import get_object_or_404,redirect,render
+from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.http import require_POST,require_GET
 from .models import LiveEvent
@@ -20,10 +21,16 @@ def agenda(request):
 @require_POST
 def remind(request,event_id):
     event=get_object_or_404(LiveEvent,pk=event_id)
+    ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     try:
         created=toggle_reminder(request.user,event)
+        if ajax:
+            return JsonResponse({"active": created})
         messages.success(request,'Lembrete ativado.' if created else 'Lembrete removido.')
-    except ValidationError as exc:messages.error(request,' '.join(exc.messages))
+    except ValidationError as exc:
+        if ajax:
+            return JsonResponse({"error": " ".join(exc.messages)}, status=400)
+        messages.error(request,' '.join(exc.messages))
     return redirect('live_classes')
 
 @login_required

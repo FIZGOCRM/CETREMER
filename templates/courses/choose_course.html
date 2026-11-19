@@ -1,0 +1,2 @@
+{% extends 'base_membros.html' %}{% block title %}Escolha seu curso · {{ site.school_name }}{% endblock %}
+{% block content %}<div class="page xp-page"><h1>Escolha seu curso</h1><div class="xp-grid">{% for choice in choices %}<a href="{% url target choice.slug %}">{% include 'partials/gomut/cover.html' with course=choice %}</a>{% empty %}<p class="xp-empty">Nenhum curso liberado.</p>{% endfor %}</div></div>{% endblock %}

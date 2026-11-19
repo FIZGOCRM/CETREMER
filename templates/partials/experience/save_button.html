@@ -1,0 +1,5 @@
+<form method="post" action="{% url 'lesson_reaction' card.lesson.pk 'saved' %}" class="xp-save" data-save="{{ card.lesson.pk }}">
+  {% csrf_token %}
+  <input type="hidden" name="active" value="{% if card.saved %}false{% else %}true{% endif %}">
+  <button class="btn btn--outline btn--sm" type="submit" aria-pressed="{{ card.saved|yesno:'true,false' }}" aria-label="Minha lista · {{ card.lesson.title }}"><span data-state>{% if card.saved %}✓ Na minha lista{% else %}+ Minha lista{% endif %}</span></button>
+</form>

@@ -14,12 +14,13 @@ class MemberNavigationTests(TestCase):
         self.lesson=Lesson.objects.create(module=self.module,title='ECG da demonstração')
         self.client.force_login(self.user)
 
-    def test_student_pages_use_only_member_styles_and_v1_navigation(self):
+    def test_student_pages_use_member_styles_and_course_navigation(self):
         for path in ['/dashboard/','/dashboard/meus-cursos/','/settings/','/community/','/ao-vivo/','/certificados/','/suporte/','/notificacoes/']:
             response=self.client.get(path)
             self.assertEqual(response.status_code,200,path)
             self.assertNotContains(response,'css/cetremer.css')
-            self.assertNotContains(response,'Minha lista')
+            self.assertContains(response,'Minha lista')
+            self.assertContains(response,'>Trilha<')
             self.assertNotContains(response,'>Trilhas<')
             self.assertContains(response,'Suporte')
 

@@ -1,0 +1,5 @@
+<ul class="xp-news">{% for item in news %}<li>
+  <div><p class="eyebrow">{{ item.kind }} · <time datetime="{{ item.date|date:'c' }}">{{ item.date|date:'d/m' }}</time></p>
+    <a href="{{ item.url }}">{{ item.title }}</a></div>
+  {% if item.card %}{% include 'partials/experience/save_button.html' with card=item.card %}{% endif %}
+</li>{% empty %}<li class="xp-empty">Nenhuma novidade nos últimos 14 dias.</li>{% endfor %}</ul>
