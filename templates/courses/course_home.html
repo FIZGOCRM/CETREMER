@@ -45,13 +45,27 @@
     <section><div class="xp-heading"><h2><a href="{% url 'course_saved' course.slug %}">Minha lista</a></h2><a href="{% url 'course_saved' course.slug %}">Ver lista completa</a></div>
       {% include 'partials/experience/saved_list.html' with limit=6 %}
     </section>
-    {% if offers %}<section class="showcase"><h2 class="showcase__title">Outros cursos da {{ site.school_name }}</h2><div class="xp-shelf xp-shelf--offers">
-      {% for offer in offers %}<article class="xp-offer">
-        {% include 'partials/gomut/cover.html' with course=offer.course %}
-        <span class="xp-offer__label">À venda</span>
-        {% if offer.contact %}<a class="btn btn--outline" href="{{ offer.contact }}" target="_blank" rel="noopener" aria-label="Consultar {{ offer.course.title }} pelo WhatsApp">Consultar pelo WhatsApp</a>{% else %}<a class="btn btn--outline" href="{% url 'support' %}">Consultar a escola</a>{% endif %}
-      </article>{% endfor %}
-    </div></section>{% endif %}
+    {% if offers %}<section class="showcase" aria-labelledby="outros-cursos">
+      <header class="showcase__head">
+        <p class="xp-offers-meta"><strong>À venda</strong> {{ offers|length }} curso{{ offers|length|pluralize }} vendido{{ offers|length|pluralize }} à parte</p>
+        <h2 class="showcase__title" id="outros-cursos">Outros cursos da {{ site.school_name }}</h2>
+        <p class="showcase__sub">Escolha um curso para consultar a escola.</p>
+      </header>
+      <div class="xp-shelf xp-shelf--offers">
+        {% for offer in offers %}{% cycle 'ecg' 'hex' 'scan' 'drop' 'rings' as motif silent %}
+          <a class="card card--poster" {% if offer.contact %}href="{{ offer.contact }}" target="_blank" rel="noopener"{% else %}href="{% url 'support' %}"{% endif %} aria-label="{{ offer.course.title }} · Bloqueado · {% if offer.contact %}Consultar pelo WhatsApp{% else %}Consultar a escola{% endif %}">
+            <span class="card__media">
+              <span class="cover cover--poster xp-offer-art" data-motif="{{ motif }}">
+                {% include 'partials/experience/offer_motif.html' %}
+                <strong class="cover__title">{{ offer.course.title }}</strong>
+              </span>
+              <span class="card__badge card__badge--lock">{% include 'partials/gomut/icon.html' with name='lock' %}Bloqueado</span>
+            </span>
+            <span class="card__caption">{{ offer.course.category.name|default:"Formação em saúde" }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </section>{% endif %}
   </div>
 </div>
 {% endblock %}

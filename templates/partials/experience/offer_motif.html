@@ -1,0 +1,12 @@
+{% if motif == 'ecg' %}{% include 'partials/gomut/motif_ecg.html' %}{% else %}
+<svg class="cover__motif" aria-hidden="true" focusable="false" viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+  {% if motif == 'hex' %}
+    <path d="M110 15l38 22v44l-38 22-38-22V37z M72 81l-38 22v44l38 22 38-22v-44 M148 81l38 22v44l-38 22-38-22"/>
+  {% elif motif == 'scan' %}
+    <path d="M116 8L27 157Q116 208 205 157z M51 117q65 38 130 0 M74 79q42 25 84 0 M97 40q19 11 38 0"/>
+  {% elif motif == 'drop' %}
+    <path d="M116 12C101 34 55 90 55 122a61 61 0 0 0 122 0c0-32-46-88-61-110z M72 121a44 44 0 0 0 44 44"/>
+  {% else %}
+    <circle cx="124" cy="98" r="18"/><circle cx="124" cy="98" r="44"/><circle cx="124" cy="98" r="70"/><circle cx="124" cy="98" r="96"/>
+  {% endif %}
+</svg>{% endif %}
