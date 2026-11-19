@@ -1,90 +1,140 @@
-/* CETREMER · reordenar aulas e módulos por arrastar (admin, tela "Aulas do curso").
-   Carregar só em painel/course_lessons.html.
-   Contrato:
-   - container [data-reorder-url] com os módulos <section data-module-id draggable="true">
-   - cada lista de aulas <ul class="module__list" data-module-id> com <li class="builder-lesson" data-lesson-id draggable="true">
-   - arrasta pela alça .drag-handle; ao soltar, envia POST JSON para data-reorder-url:
-       {"modules": [<module_id>, ...], "lessons": {"<module_id>": [<lesson_id>, ...], ...}}
-   - o backend regrava Module.order e Lesson.order (1..n dentro de cada módulo) e Lesson.module (aula pode mudar de módulo)
-   - teclado: a alça é um <button>; setas para cima/baixo movem o item e salvam
-*/
-(function () {
-  'use strict';
-  var root = document.querySelector('[data-reorder-url]');
+(() => {
+  const root = document.querySelector('[data-reorder-url]');
   if (!root) return;
-
-  function csrfToken() {
-    var field = document.querySelector('[name=csrfmiddlewaretoken]');
-    return field ? field.value : '';
+  const status = document.querySelector('[data-order-status]');
+  const key = 'gp-modules-' + root.dataset.course;
+  const modules = () => Array.from(root.children).filter(item => item.matches('section[data-module-id]'));
+  const buttons = Array.from(root.querySelectorAll('[data-module-toggle]'));
+  let preferences = {};
+  try { preferences = JSON.parse(localStorage.getItem(key)) || {}; } catch {}
+  function expand(button, open) {
+    button.setAttribute('aria-expanded', String(open));
+    document.getElementById(button.getAttribute('aria-controls')).hidden = !open;
+    const expandAll = document.querySelector('[data-expand-modules]');
+    expandAll.textContent = buttons.every(item => item.getAttribute('aria-expanded') === 'true') ? 'Recolher tudo' : 'Expandir tudo';
   }
-
-  function save() {
-    var payload = { modules: [], lessons: {} };
-    root.querySelectorAll('[data-module-id][draggable]').forEach(function (section) {
-      payload.modules.push(Number(section.getAttribute('data-module-id')));
-    });
-    root.querySelectorAll('ul.module__list[data-module-id]').forEach(function (list) {
-      payload.lessons[list.getAttribute('data-module-id')] = Array.prototype.map.call(
-        list.querySelectorAll('[data-lesson-id]'), function (li) { return Number(li.getAttribute('data-lesson-id')); }
-      );
-    });
-    var status = document.querySelector('[data-order-status]');
-    if (status) status.textContent = 'Salvando ordem…';
-    return fetch(root.getAttribute('data-reorder-url'), {
-      method: 'POST',
-      credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken() },
-      body: JSON.stringify(payload)
-    }).then(function(response) {
-      if (!response.ok) throw new Error('reorder');
-      if (status) status.textContent = 'Ordem salva.';
-      return response;
-    }).catch(function() {
-      if (status) status.textContent = 'Não foi possível salvar a ordem. Recarregue a página antes de continuar.';
-    });
+  function remember(button, open) {
+    expand(button, open);
+    preferences[button.getAttribute('aria-controls')] = open;
+    try { localStorage.setItem(key, JSON.stringify(preferences)); } catch {}
   }
-
-  var dragged = null;
-
-  root.addEventListener('dragstart', function (e) {
-    var item = e.target.closest('[draggable="true"]');
-    if (!item) return;
-    dragged = item;
-    item.classList.add('is-dragging');
-    e.dataTransfer.effectAllowed = 'move';
+  buttons.forEach(button => {
+    const saved = preferences[button.getAttribute('aria-controls')];
+    expand(button, typeof saved === 'boolean' ? saved : button.getAttribute('aria-expanded') === 'true');
+    button.addEventListener('click', () => remember(button, button.getAttribute('aria-expanded') !== 'true'));
+  });
+  document.querySelector('[data-expand-modules]').addEventListener('click', () => {
+    const open = buttons.some(button => button.getAttribute('aria-expanded') !== 'true');
+    buttons.forEach(button => remember(button, open));
   });
 
-  root.addEventListener('dragend', function () {
-    if (dragged) dragged.classList.remove('is-dragging');
-    dragged = null;
-    save();
+  function snapshot() {
+    return modules().map(module => {
+      const list = module.querySelector('ul.module__list');
+      return {module, list, lessons:Array.from(list.children)};
+    });
+  }
+  function displayOrder() {
+    modules().forEach((module, index) => {
+      module.querySelector('.gp-module__num').textContent = index + 1;
+      const hint = module.querySelector('.gp-module__head .gp-help');
+      const count = module.querySelectorAll('[data-lesson-id]').length;
+      hint.textContent = hint.textContent.split(' · ')[0] + ' · ' + count + (count === 1 ? ' aula' : ' aulas');
+    });
+  }
+  function payload(order) {
+    return {
+      modules:order.map(row => Number(row.module.dataset.moduleId)),
+      lessons:Object.fromEntries(order.map(row => [row.module.dataset.moduleId, row.lessons.map(item => Number(item.dataset.lessonId))])),
+    };
+  }
+  let saving = false;
+  async function save(before) {
+    const next = payload(snapshot());
+    if (JSON.stringify(next) === JSON.stringify(payload(before))) return;
+    saving = true;
+    status.textContent = 'Salvando ordem…';
+    try {
+      const response = await fetch(root.dataset.reorderUrl, {
+        method:'POST', credentials:'same-origin',
+        headers:{'Content-Type':'application/json', 'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},
+        body:JSON.stringify(next),
+      });
+      if (!response.ok || !(await response.json()).ok) throw Error();
+      status.textContent = 'Ordem salva.';
+    } catch {
+      before.forEach(({module, list, lessons}) => {
+        root.append(module);
+        lessons.forEach(item => list.append(item));
+      });
+      status.textContent = 'Não foi possível salvar a nova ordem. Tente de novo.';
+    } finally {
+      saving = false;
+      displayOrder();
+      window.gpToast?.(status.textContent);
+    }
+  }
+  let armed = null;
+  let dragging = null;
+  let before = null;
+  root.addEventListener('pointerdown', event => {
+    armed = event.target.closest('.drag-handle')?.closest('[draggable=true]');
   });
-
-  root.addEventListener('dragover', function (e) {
-    if (!dragged) return;
-    var isLesson = dragged.hasAttribute('data-lesson-id');
-    var target = isLesson ? e.target.closest('[data-lesson-id]') : e.target.closest('section[data-module-id]');
-    var list = isLesson ? e.target.closest('ul.module__list') : root;
-    if (!list) return;
-    e.preventDefault();
-    if (!target || target === dragged) {
-      if (isLesson && !list.querySelector('[data-lesson-id]')) list.appendChild(dragged);
+  root.addEventListener('dragstart', event => {
+    if (saving || event.target.closest('[draggable=true]') !== armed) {
+      event.preventDefault();
       return;
     }
-    var rect = target.getBoundingClientRect();
-    var after = (e.clientY - rect.top) > rect.height / 2;
-    target.parentNode.insertBefore(dragged, after ? target.nextSibling : target);
+    dragging = armed;
+    before = snapshot();
+    dragging.classList.add('gp-sortable-ghost');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', 'course-order');
   });
-
-  root.addEventListener('keydown', function (e) {
-    var handle = e.target.closest('.drag-handle');
-    if (!handle || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
-    e.preventDefault();
-    var item = handle.closest('[draggable="true"]');
-    var sibling = e.key === 'ArrowUp' ? item.previousElementSibling : item.nextElementSibling;
-    if (!sibling || !sibling.hasAttribute('draggable')) return;
-    item.parentNode.insertBefore(item, e.key === 'ArrowUp' ? sibling : sibling.nextSibling);
+  function destination(event) {
+    if (!dragging) return null;
+    if (dragging.hasAttribute('data-lesson-id')) {
+      const list = event.target.closest('.module__list');
+      return list && {parent:list, target:event.target.closest('[data-lesson-id]')};
+    }
+    const module = event.target.closest('section[data-module-id]');
+    return module && {parent:root, target:module};
+  }
+  root.addEventListener('dragover', event => { if (destination(event)) event.preventDefault(); });
+  root.addEventListener('drop', event => {
+    const dest = destination(event);
+    if (!dest) return;
+    event.preventDefault();
+    if (dest.target === dragging) return;
+    const rect = dest.target?.getBoundingClientRect();
+    const insert = rect && event.clientY > rect.top + rect.height / 2 ? dest.target.nextSibling : dest.target;
+    dest.parent.insertBefore(dragging, insert || null);
+    save(before);
+  });
+  root.addEventListener('dragend', () => {
+    dragging?.classList.remove('gp-sortable-ghost');
+    dragging = null;
+    armed = null;
+  });
+  root.addEventListener('keydown', event => {
+    const handle = event.target.closest('.drag-handle');
+    if (!handle || saving || !['ArrowUp', 'ArrowDown'].includes(event.key)) return;
+    event.preventDefault();
+    const item = handle.closest('[draggable=true]');
+    const previous = snapshot();
+    const up = event.key === 'ArrowUp';
+    const neighbor = up ? item.previousElementSibling : item.nextElementSibling;
+    if (neighbor?.matches('[draggable=true]')) {
+      item.parentElement.insertBefore(item, up ? neighbor : neighbor.nextSibling);
+    } else if (item.hasAttribute('data-lesson-id')) {
+      const groups = modules();
+      const target = groups[groups.indexOf(item.closest('section[data-module-id]')) + (up ? -1 : 1)];
+      if (!target) return;
+      remember(target.querySelector('[data-module-toggle]'), true);
+      const list = target.querySelector('ul.module__list');
+      list.insertBefore(item, up ? null : list.firstElementChild);
+    } else return;
     handle.focus();
-    save();
+    save(previous);
   });
 })();

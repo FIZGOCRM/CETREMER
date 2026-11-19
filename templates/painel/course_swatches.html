@@ -1,0 +1,3 @@
+<fieldset class="course-swatches"><legend class="gp-label">Cor de apoio</legend><div class="gp-swatches">
+{% for value,label in form.cover_color.field.choices %}{% if value %}<label class="gp-swatch" data-color="{{ value }}" title="{{ label }}"><input type="radio" aria-label="{{ label }}" name="cover_color" value="{{ value }}" {% if form.cover_color.value == value %}checked{% endif %}></label>{% endif %}{% endfor %}
+</div>{{ form.cover_color.errors }}</fieldset>

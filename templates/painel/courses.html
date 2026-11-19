@@ -1,1 +1,25 @@
-{% extends 'base_painel_gomut.html' %}{% block page_title %}Meus cursos{% endblock %}{% block topbar_actions %}<a class="btn btn--primary" href="{% url 'painel:course_new' %}">+ Criar curso</a>{% endblock %}{% block content %}<form method="get" class="gp-toolbar gp-form"><label class="sr-only" for="q">Buscar curso</label><input id="q" name="q" value="{{ q }}" placeholder="Buscar curso"><label class="sr-only" for="categoria">Categoria</label><select id="categoria" name="categoria"><option value="">Todas as categorias</option>{% for cat in categories %}<option value="{{ cat.slug }}" {% if cat.slug == category %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}</select><button class="btn btn--outline">Filtrar</button></form><div class="gp-courses">{% for course in courses %}<article class="gp-course-card"><a href="{% url 'painel:course_edit' course.pk %}">{% include 'partials/gomut/cover.html' %}<h2>{{ course.title }}</h2></a><p>{{ course.lessons_count }} aulas · {{ course.students_count }} aluno{{ course.students_count|pluralize }}</p><div class="gp-card-foot"><span class="gp-pill {% if course.is_published %}gp-pill--ok{% endif %}">{% if course.is_published %}Publicado{% else %}Rascunho{% endif %}</span><a href="{% url 'painel:course_lessons' course.pk %}">Gerenciar conteúdo →</a></div></article>{% empty %}<div class="gp-empty"><h2>Nenhum curso encontrado</h2><p>Crie seu primeiro curso para organizar o conteúdo.</p></div>{% endfor %}<a class="gp-new-course" href="{% url 'painel:course_new' %}"><span>+</span><strong>Criar curso</strong><small>Comece uma nova formação</small></a></div>{% endblock %}
+{% extends 'painel/course_base.html' %}
+{% block page_title %}Cursos{% endblock %}
+{% block subtitle %}<p class="gp-subtitle">{{ totals.total }} curso{{ totals.total|pluralize }} · {{ lesson_total }} aula{{ lesson_total|pluralize }} · {{ active_enrollments }} matrícula{{ active_enrollments|pluralize }} ativa{{ active_enrollments|pluralize }}</p>{% endblock %}
+{% block topbar_actions %}<a class="btn btn--primary" href="{% url 'painel:course_new' %}">+ Criar curso</a>{% endblock %}
+{% block content %}
+<form class="gp-toolbar course-filter" method="get" data-gp-autofilter data-gp-results="#course-list">
+  <div class="gp-seg" role="group" aria-label="Situação dos cursos">{% for key,label,count in views %}
+    <label class="gp-seg__opt course-filter-option"><input type="radio" name="visao" value="{{ key }}" {% if key == view %}checked{% endif %}>{% if key == 'atencao' %}<svg class="gp-icon"><use href="#i-alert"/></svg>{% endif %}{{ label }} <span class="gp-seg__n">{{ count }}</span></label>
+  {% endfor %}</div>
+  <div class="course-actions"><label class="gp-search"><svg class="gp-icon"><use href="#i-search"/></svg><input class="gp-input" type="search" name="q" value="{{ q }}" placeholder="Buscar curso" aria-label="Buscar curso"></label>
+  <select class="gp-select" name="categoria" aria-label="Categoria"><option value="">Todas as categorias</option>{% for cat in categories %}<option value="{{ cat.slug }}" {% if cat.slug == category %}selected{% endif %}>{{ cat.name }}</option>{% endfor %}</select></div>
+  <noscript><button class="btn">Aplicar filtros</button></noscript>
+</form>
+<div class="course-grid" id="course-list">
+  {% for course in courses %}<article class="gp-card gp-course-card catalog-card">
+    {% include 'painel/course_cover.html' %}
+    <div class="catalog-copy"><div class="course-actions"><h2 class="gp-section-title"><a class="catalog-open" href="{% url 'painel:course_overview' course.pk %}">{{ course.title }}</a></h2>
+      <div class="course-end"><button class="btn btn--sm btn--icon btn--ghost" type="button" data-gp-menu aria-haspopup="menu" aria-expanded="false" aria-label="Ações de {{ course.title }}">⋯</button><div class="gp-menu" role="menu" hidden><a class="gp-menu__item" role="menuitem" href="{% url 'painel:preview_choose' %}?curso={{ course.pk }}">Ver como aluno</a></div></div></div>
+      <p class="gp-help"><svg class="gp-icon"><use href="#i-play"/></svg> {% if course.lessons_count %}{{ course.lessons_count }} aula{{ course.lessons_count|pluralize }}{% else %}Nenhuma aula{% endif %}　<svg class="gp-icon"><use href="#i-users"/></svg> {% if course.students_count %}{{ course.students_count }} aluno{{ course.students_count|pluralize }}{% else %}Nenhum aluno{% endif %}</p>
+      {% if not course.published_count %}<p class="gp-callout {% if course.is_published %}gp-callout--warn{% else %}course-neutral{% endif %}">{% if course.is_published %}Publicado sem aulas. O aluno vê um curso vazio.{% else %}Falta 1 aula publicada para poder publicar.{% endif %}</p>{% endif %}
+    </div>
+    <div class="gp-card__foot">{% include 'painel/course_status.html' %}<span class="gp-link">Abrir curso →</span></div>
+  </article>{% empty %}<div class="gp-card gp-empty"><h2 class="gp-empty__title">{% if totals.total %}Nenhum curso encontrado{% else %}Nenhum curso ainda{% endif %}</h2>
+    {% if totals.total %}<a class="btn" href="{% url 'painel:courses' %}">Limpar filtros</a>{% else %}<a class="btn btn--primary" href="{% url 'painel:course_new' %}">Criar curso</a>{% endif %}</div>{% endfor %}
+</div>{% endblock %}

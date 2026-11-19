@@ -1,25 +1,14 @@
-{% extends 'base_painel_gomut.html' %}
-{% block page_title %}Página inicial do curso{% endblock %}
-{% block content %}
-  {% include 'painel/course_tabs.html' %}
-  <div class="gp-split gp-section">
-    <section class="gp-card gp-form">
-      <h2>{% if entry %}Editar card{% else %}Adicionar card{% endif %}</h2>
-      <p>Aulas, e-books e gravações ficam em Novidades por 14 dias após a inclusão. Os cursos escolhidos aparecem em Outros cursos para alunos sem matrícula neles.</p>
-      <form method="post" enctype="multipart/form-data" class="gp-stack">
-        {% csrf_token %}{% if entry %}<input type="hidden" name="item" value="{{ entry.pk }}">{% endif %}
-        {{ form.as_p }}<button class="btn btn--primary">Salvar card</button>
-        {% if entry %}<a href="{% url 'painel:home_features' course.pk %}">Cancelar edição</a>{% endif %}
-      </form>
-    </section>
-    <section class="gp-card gp-stack"><h2>Cards selecionados</h2>
-      {% for item in entries %}<article>
-        <p>{% if item.offer_id %}Outros cursos{% else %}Novidades{% endif %} · Posição {{ item.position }}</p>
-        <strong>{{ item.target.title }}</strong>
-        <div class="gp-actions"><a class="btn btn--outline" href="?item={{ item.pk }}">Editar</a>
-          <form method="post">{% csrf_token %}<input type="hidden" name="item" value="{{ item.pk }}"><button class="btn btn--outline" name="action" value="remove">Retirar da home</button></form>
-        </div>
-      </article>{% empty %}<p>Nenhum card selecionado para este curso.</p>{% endfor %}
-    </section>
-  </div>
+{% extends 'painel/course_base.html' %}{% block content %}
+<div class="gp-toolbar">{% include 'painel/course_showcase_nav.html' %}</div>
+<div class="gp-split ranking-layout"><div class="gp-rail">
+<section class="gp-card gp-card--pad gp-card--stack"><div class="gp-toolbar"><div><h2 class="gp-section-title">Novidades</h2><p class="gp-help">Cada conteúdo fica aqui por 14 dias depois de incluído.</p></div><span class="gp-badge gp-badge--neutral">{{ news|length }} {{ news|length|pluralize:'item,itens' }}</span></div>
+<div class="feature-strip">{% for item in news %}{% include 'painel/course_feature_card.html' %}{% endfor %}<a class="feature-add" href="#feature-editor">+ Adicionar</a></div></section>
+<section class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Outros cursos</h2><p class="gp-help">Aparece para alunos de {{ course.title }} que ainda não estão nestes cursos.</p>
+{% if offers %}<div class="feature-strip">{% for item in offers %}{% include 'painel/course_feature_card.html' %}{% endfor %}</div>{% else %}<div class="gp-empty"><strong>Nenhum curso escolhido</strong><p>Sugira outro curso da escola para quem já é aluno deste.</p></div>{% endif %}
+<a class="btn" href="#feature-editor">Escolher cursos</a></section></div>
+<aside id="feature-editor" class="gp-card gp-card--pad gp-card--stack gp-sticky-top"><h2 class="gp-section-title">{% if entry %}Editar card{% else %}Adicionar à página inicial{% endif %}</h2>
+<form method="post" enctype="multipart/form-data" class="gp-rail course-form" aria-label="Adicionar card">{% csrf_token %}{{ form.errors }}
+{% if entry %}<input type="hidden" name="item" value="{{ entry.pk }}">{% endif %}<label>Conteúdo{{ form.target }}</label><label>Posição{{ form.position }}</label>
+<label>Arte do card <small class="gp-help">Opcional · imagem 16:9</small>{{ form.artwork }}</label><p class="gp-help">Sem arte, usamos a capa da aula ou do curso.</p>
+<button class="btn btn--primary">{% if entry %}Salvar card{% else %}Adicionar{% endif %}</button>{% if entry %}<a class="gp-link" href="{% url 'painel:home_features' course.pk %}">Cancelar edição</a>{% endif %}</form></aside></div>
 {% endblock %}

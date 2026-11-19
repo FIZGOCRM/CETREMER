@@ -1,1 +1,42 @@
-{% with current=request.resolver_match.url_name %}<nav class="gp-crumbs"><a href="{% url 'painel:courses' %}">Meus cursos</a><span>/</span><span>{{ course.title }}</span></nav><nav class="gp-tabs" aria-label="Gestão do curso"><a href="{% url 'painel:course_edit' course.pk %}" {% if current == 'course_edit' %}aria-current="page"{% endif %}>Básico</a><a href="{% url 'painel:course_overview' course.pk %}" {% if current == 'course_overview' %}aria-current="page"{% endif %}>Visão geral</a><a href="{% url 'painel:course_lessons' course.pk %}" {% if current == 'course_lessons' or current == 'lesson_edit' or current == 'lesson_new' %}aria-current="page"{% endif %}>Conteúdo</a><a href="{% url 'painel:home_features' course.pk %}" {% if current == 'home_features' %}aria-current="page"{% endif %}>Página inicial</a><a href="{% url 'painel:weekly_selection' course.pk %}" {% if current == 'weekly_selection' %}aria-current="page"{% endif %}>Top 10 semanal</a><a href="{% url 'painel:live' %}?curso={{ course.pk }}">Ao vivo</a></nav>{% endwith %}
+{% load course_panel static %}{% course_counts course as stats %}
+{% with current=request.resolver_match.url_name %}
+{% if current == 'live' %}<link rel="stylesheet" href="{% static 'gomut/painel/cursos.css' %}">{% endif %}
+<section class="gp-card course-header">
+  <div class="gp-card__head" style="flex-wrap:wrap;justify-content:flex-start;gap:18px">
+    <div style="width:120px;height:80px;overflow:hidden;border-radius:8px">{% include 'painel/course_cover.html' with mini=True %}</div>
+    <div style="flex:1;min-width:180px">
+      <div class="gp-pagehead__actions"><h1 class="gp-title gp-title--course">{{ course.title }}</h1>{% include 'painel/course_status.html' %}</div>
+      <p class="gp-subtitle">{{ course.category.name|default:"Sem categoria" }} · {{ stats.lessons }} aula{{ stats.lessons|pluralize }} em {{ stats.modules }} módulo{{ stats.modules|pluralize }} · {{ stats.students }} aluno{{ stats.students|pluralize }} · acesso de {{ course.plan_months }} {{ course.plan_months|pluralize:"mês,meses" }}</p>
+    </div>
+    <div class="gp-pagehead__actions">
+      <a class="btn" href="{% url 'painel:preview_choose' %}?curso={{ course.pk }}"><svg class="gp-icon"><use href="#i-eye"/></svg>Ver como aluno</a>
+      <div><button class="btn" type="button" data-gp-menu aria-haspopup="menu" aria-expanded="false">{% if course.is_published %}Publicado{% else %}Rascunho{% endif %} ▾</button>
+        <div class="gp-menu" role="menu" hidden>{% if course.is_published %}
+          <button class="gp-menu__item" role="menuitem" type="button" data-gp-open="#course-unpublish">Voltar para rascunho</button>
+        {% else %}<form method="post" action="{% url 'painel:course_edit' course.pk %}">{% csrf_token %}
+          <input type="hidden" name="action" value="publication"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <button class="gp-menu__item" role="menuitem" name="status" value="published" {% if not stats.published %}disabled{% endif %}>Publicar curso</button>
+          {% if not stats.published %}<p class="gp-help">Publique ao menos uma aula antes.</p>{% endif %}</form>{% endif %}
+        </div>
+      </div>
+      <div><button class="btn btn--icon" type="button" data-gp-menu aria-expanded="false" aria-haspopup="menu" aria-label="Mais ações do curso">⋯</button>
+        <div class="gp-menu" role="menu" hidden><a class="gp-menu__item" role="menuitem" href="{% url 'painel:reports' %}?curso={{ course.pk }}">Relatório do curso</a><a class="gp-menu__item" role="menuitem" href="{% url 'painel:students' %}?curso={{ course.pk }}">Alunos deste curso</a></div>
+      </div>
+    </div>
+  </div>
+  <nav class="gp-tabs" aria-label="Seções do curso" style="padding:0 12px;border-top:1px solid var(--gp-line-soft);border-bottom:0">
+    <a class="gp-tab" href="{% url 'painel:course_overview' course.pk %}" {% if current == 'course_overview' %}aria-current="page"{% endif %}>Visão geral</a>
+    <a class="gp-tab" href="{% url 'painel:course_lessons' course.pk %}" {% if current == 'course_lessons' %}aria-current="page"{% endif %}>Conteúdo <span class="gp-tab__n">{{ stats.lessons }}</span></a>
+    <a class="gp-tab" href="{% url 'painel:course_edit' course.pk %}" {% if current == 'course_edit' %}aria-current="page"{% endif %}>Detalhes</a>
+    <a class="gp-tab" href="{% url 'painel:home_features' course.pk %}" {% if current == 'home_features' or current == 'weekly_selection' %}aria-current="page"{% endif %}>Vitrine</a>
+    <a class="gp-tab" href="{% url 'painel:course_materials' course.pk %}" {% if current == 'course_materials' %}aria-current="page"{% endif %}>Materiais <span class="gp-tab__n">{{ stats.materials }}</span></a>
+    <a class="gp-tab" href="{% url 'painel:final_quiz' course.pk %}" {% if current == 'final_quiz' %}aria-current="page"{% endif %}>Avaliação final</a>
+    <a class="gp-tab" href="{% url 'painel:live' %}?curso={{ course.pk }}" {% if current == 'live' %}aria-current="page"{% endif %}>Ao vivo</a>
+  </nav>
+</section>
+{% if course.is_published %}<dialog class="gp-dialog" id="course-unpublish" aria-labelledby="unpublish-title"><form method="post" action="{% url 'painel:course_edit' course.pk %}">{% csrf_token %}
+<div class="gp-dialog__head"><h2 id="unpublish-title" class="gp-dialog__title">Voltar {{ course.title }} para rascunho?</h2></div>
+<p class="gp-dialog__body">O curso ficará oculto para os alunos. As matrículas e o histórico serão preservados.</p>
+<input type="hidden" name="action" value="publication"><input type="hidden" name="next" value="{{ request.get_full_path }}">
+<div class="gp-dialog__foot"><button class="btn" type="button" data-gp-close>Cancelar</button><button class="btn btn--danger-solid" name="status" value="draft">Voltar para rascunho</button></div></form></dialog>{% endif %}
+{% endwith %}

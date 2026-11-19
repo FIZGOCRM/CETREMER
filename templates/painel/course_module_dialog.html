@@ -1,0 +1,10 @@
+<dialog class="gp-dialog" id="{% if module %}module-{{ module.pk }}{% else %}new-module{% endif %}" data-gp-guard {% if invalid_module and invalid_module.instance.pk == module.pk %}data-gp-autoopen{% endif %} aria-label="{% if module %}Editar módulo{% else %}Novo módulo{% endif %}"><form method="post" enctype="multipart/form-data" class="course-form">{% csrf_token %}
+<div class="gp-dialog__head"><h2 class="gp-dialog__title">{% if module %}Editar módulo{% else %}Novo módulo{% endif %}</h2></div>
+<div class="gp-dialog__body gp-rail">{% if module %}<input type="hidden" name="module_id" value="{{ module.pk }}">{% endif %}
+{% if invalid_module and invalid_module.instance.pk == module.pk %}{{ invalid_module.as_p }}{% else %}
+<label>Nome do módulo<input class="gp-input" name="title" value="{{ module.title }}" required maxlength="200"></label>
+<label>Mês de liberação<input class="gp-input" type="number" name="release_month" value="{{ module.release_month|default:1 }}" min="1" required></label>
+<label>Situação<select class="gp-select" name="status"><option value="published">Publicado</option><option value="draft" {% if module.status == 'draft' %}selected{% endif %}>Rascunho</option></select></label>
+{% if module.cover %}<a href="{{ module.cover.url }}">Ver capa atual</a><label><input type="checkbox" name="cover-clear"> Remover capa</label>{% endif %}<label>Capa opcional<input type="file" name="cover" accept="image/*"></label>{% endif %}</div>
+<div class="gp-dialog__foot"><button class="btn" type="button" data-gp-close>Cancelar</button>{% if module and not module.lessons_list %}<button class="btn btn--danger" data-course-confirm="Excluir este módulo vazio?" name="action" value="delete_module" formnovalidate>Excluir módulo</button>{% endif %}
+<button class="btn btn--primary" name="action" value="{% if module %}save_module{% else %}new_module{% endif %}">{% if module %}Salvar{% else %}Criar módulo{% endif %}</button></div></form></dialog>

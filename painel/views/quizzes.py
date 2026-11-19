@@ -7,6 +7,7 @@ from courses.models import Course, Lesson, Quiz, QuizQuestion
 from courses.services import create_lesson_quiz, create_final_quiz, save_quiz_question, delete_quiz_content, set_quiz_active
 from painel.forms import QuizQuestionForm
 from .common import page
+from .course_order import reorder_items
 
 
 @painel_required
@@ -27,6 +28,14 @@ def final_quiz(request, course_id):
 def _edit_quiz(request, *, course, lesson=None):
     quiz = getattr(lesson, 'quiz', None) if lesson else Quiz.objects.filter(course=course, kind='final').first()
     context = {'lesson':lesson, 'course':course, 'is_final':lesson is None}
+    if quiz:
+        if request.method == "POST" and request.content_type == "application/json":
+            return reorder_items(request, quiz, quiz.questions.all())
+        results = quiz.attempts.filter(finished_at__isnull=False).values("student_id").annotate(best=Max("score_pct"))
+        total = results.count()
+        passed = results.filter(best__gte=70).count()
+        context.update(has_attempts=quiz.attempts.exists(), active_questions=quiz.questions.filter(is_active=True).count(),
+                       result_total=total, result_passed=passed, result_pct=round(100 * passed / total) if total else 0)
     question = None
     raw_id = request.POST.get('question_id') if request.method == 'POST' else request.GET.get('pergunta')
     if raw_id:

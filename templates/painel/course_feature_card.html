@@ -1,0 +1,5 @@
+<article class="feature-card gp-card gp-card--clip"><div class="feature-art">
+{% if item.artwork %}<img src="{{ item.artwork.url }}" alt="">{% elif item.lesson.cover %}<img src="{{ item.lesson.cover.url }}" alt="">{% elif item.offer_id %}{% include 'painel/course_cover.html' with course=item.offer mini=True %}{% else %}{% include 'painel/course_cover.html' with mini=True %}{% endif %}
+<span class="gp-badge gp-badge--neutral">{% if item.offer_id %}Curso{% elif item.lesson_id %}Aula{% elif item.material_id %}E-book{% else %}Gravação{% endif %}</span></div>
+<div class="catalog-copy"><strong>{{ item.target.title }}</strong><div class="course-actions"><a class="btn btn--sm" href="?item={{ item.pk }}#feature-editor">Editar</a>
+<form method="post">{% csrf_token %}<input type="hidden" name="item" value="{{ item.pk }}"><button class="btn btn--ghost btn--sm" name="action" value="remove">Tirar da home</button></form></div></div></article>

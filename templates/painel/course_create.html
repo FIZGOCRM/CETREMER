@@ -1,1 +1,18 @@
-{% extends 'base_painel_gomut.html' %}{% block page_title %}Criar curso{% endblock %}{% block topbar_actions %}<a class="btn btn--outline" href="{% url 'painel:courses' %}">Cancelar</a><button class="btn btn--primary" form="new-course">Criar curso</button>{% endblock %}{% block content %}<p class="muted">Comece pelo básico. O curso fica em rascunho até você publicar.</p><form id="new-course" method="post" enctype="multipart/form-data" class="gp-form gp-section gp-split">{% csrf_token %}<section class="gp-card"><h2>Informações do curso</h2>{{ form.errors }}<label for="title">Nome do curso{{ form.title }}</label><label for="description">Descrição{{ form.description }}</label><div class="gp-field-grid"><label for="category">Categoria{{ form.category }}</label><label for="plan_months">Duração do plano (meses){{ form.plan_months }}</label></div></section><aside class="gp-card"><h2>Capa do curso</h2><div class="gp-upload-art" data-image-preview>Imagem de capa</div><label for="cover_image">Enviar imagem{{ form.cover_image }}</label><p class="muted">Use uma imagem nítida em formato horizontal.</p></aside></form>{% endblock %}
+{% extends 'painel/course_base.html' %}
+{% block page_title_text %}Criar curso{% endblock %}{% block page_title %}Criar curso{% endblock %}
+{% block subtitle %}<p class="gp-subtitle">Comece pelo básico. O curso fica em rascunho até ter ao menos uma aula publicada.</p>{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" id="new-course" class="course-form" data-gp-dirty>{% csrf_token %}
+{{ form.errors }}
+<div class="gp-split gp-split--wide-rail"><div class="gp-rail">
+<section class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Informações</h2>
+<label>Nome do curso{{ form.title }}</label><label>Descrição{{ form.description }}<small class="gp-help">Um resumo curto. Aparece no card do curso.</small></label>
+<div class="gp-grid-2"><label>Categoria{{ form.category }}</label><label>Duração do acesso{{ form.plan_months }}<small class="gp-help">Em meses, contados da matrícula.</small></label></div></section>
+<section class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Capa <small class="gp-help">Opcional</small></h2>
+<label class="gp-dropzone" data-gp-dropzone><svg class="gp-icon"><use href="#i-upload"/></svg>Arraste uma imagem horizontal ou clique para enviar<input type="file" name="cover_image" accept="image/*"><span class="gp-dropzone__hint">Sem imagem, geramos a capa com o nome e a cor de apoio.</span></label>
+{% include 'painel/course_swatches.html' %}</section></div>
+<aside class="gp-rail gp-sticky-top"><h2 class="gp-label">Como o aluno vê</h2>
+<div class="gp-card catalog-card" id="course-preview">{% include 'painel/course_cover.html' %}<div class="catalog-copy"><h3 class="gp-section-title" data-preview-title>Nome do curso</h3><span class="gp-help">Nenhuma aula · Nenhum aluno</span></div></div>
+<div class="gp-callout gp-callout--info">Depois de criar, você vai direto para Conteúdo para montar os módulos e as aulas.</div></aside></div>
+<div class="gp-savebar"><span class="gp-savebar__status">Novo curso · rascunho</span><a class="btn" href="{% url 'painel:courses' %}">Descartar</a><button class="btn btn--primary">Criar e adicionar aulas</button></div>
+</form>{% endblock %}

@@ -1,0 +1,6 @@
+{% extends 'base_painel_gomut.html' %}{% load static %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'gomut/painel/cursos.css' %}">{% endblock %}
+{% block page_class %}course-workspace{% endblock %}
+{% block page_title_text %}{{ course.title|default:"Cursos" }}{% endblock %}
+{% block page_header %}{% if course and request.resolver_match.url_name != 'lesson_edit' and request.resolver_match.url_name != 'lesson_new' and request.resolver_match.url_name != 'lesson_quiz' %}{% include 'painel/course_tabs.html' %}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block extra_js %}{{ block.super }}<script defer src="{% static 'js/course-workspace.js' %}"></script>{% endblock %}

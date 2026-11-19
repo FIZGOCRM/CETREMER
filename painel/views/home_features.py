@@ -70,4 +70,6 @@ def features(request, course_id):
             item.save()
             messages.success(request, "Card salvo na página inicial do curso.")
             return redirect("painel:home_features", course_id)
-    return page(request, "home_features", course=course, form=form, entry=entry, entries=entries)
+    items = list(entries)
+    return page(request, "home_features", course=course, form=form, entry=entry, entries=items,
+                news=[item for item in items if not item.offer_id], offers=[item for item in items if item.offer_id])

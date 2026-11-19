@@ -1,4 +1,6 @@
 from django.contrib import messages
+from django.db import transaction
+from django.db.models import Max
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from core.decorators import painel_required
@@ -6,6 +8,7 @@ from courses.models import Course, CourseMaterial
 from courses.services import save_course_material, remove_course_material
 from painel.forms import CourseMaterialForm
 from .common import page
+from .course_order import reorder_items
 
 
 @painel_required
@@ -13,6 +16,9 @@ def course_materials(request, course_id):
     if request.user.role not in ('ADMIN','CREATOR'):
         raise PermissionDenied
     course = get_object_or_404(Course,pk=course_id)
+    active = course.materials.filter(is_active=True)
+    if request.method == "POST" and request.content_type == "application/json":
+        return reorder_items(request, course, active)
     material = None
     raw = request.POST.get('material_id') if request.method == 'POST' else request.GET.get('editar')
     if raw:
@@ -22,7 +28,20 @@ def course_materials(request, course_id):
     form = CourseMaterialForm(request.POST or None,request.FILES or None,instance=material)
     if request.method == 'POST':
         try:
-            if request.POST.get('action') == 'remove' and material:
+            if request.POST.get("action") == "upload":
+                uploads = request.FILES.getlist("pdfs")
+                if not uploads:
+                    raise ValidationError("Escolha ao menos um PDF.")
+                with transaction.atomic():
+                    Course.objects.select_for_update().get(pk=course.pk)
+                    last = active.aggregate(last=Max("order"))["last"] or 0
+                    pending = [CourseMaterial(course=course, title=upload.name[:120], file=upload, order=last + index)
+                               for index, upload in enumerate(uploads, start=1)]
+                    for item in pending:
+                        item.full_clean()
+                    for item in pending:
+                        save_course_material(item, actor=request.user)
+            elif request.POST.get('action') == 'remove' and material:
                 remove_course_material(material,actor=request.user)
             elif form.is_valid():
                 item=form.save(commit=False);item.course=course

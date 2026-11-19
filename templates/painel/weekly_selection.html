@@ -1,34 +1,28 @@
-{% extends 'base_painel_gomut.html' %}
-{% block page_title %}Top 10 no Plantão desta semana{% endblock %}
-{% block content %}
-  {% include 'painel/course_tabs.html' %}
-  <form method="get" class="gp-toolbar gp-form">
-    <label for="{{ week_form.semana.id_for_label }}">{{ week_form.semana.label }}{{ week_form.semana }}{{ week_form.semana.errors }}</label>
-    <button class="btn btn--outline">Abrir semana</button>
-  </form>
-  {% if week %}
-    <div class="gp-split gp-weekly gp-section">
-      <section class="gp-card">
-        <h2>Seleção de {{ week|date:'d/m/Y' }}</h2>
-        <form method="post" enctype="multipart/form-data" class="gp-stack gp-form">
-          {% csrf_token %}{{ form.non_field_errors }}
-          <input type="hidden" name="semana" value="{{ week|date:'Y-m-d' }}">
-          {% for field in form.visible_fields %}
-            <label for="{{ field.id_for_label }}">{{ field.label }}{{ field }}{{ field.errors }}</label>
-          {% endfor %}
-          <button class="btn btn--primary">Salvar seleção</button>
-        </form>
-      </section>
-      <section><h2>Métricas acumuladas das aulas</h2>
-        {% include 'painel/lesson_metrics_table.html' with compact=True %}
-        <p class="gp-section"><a class="gp-text-link" href="{% url 'painel:lesson_metrics' %}?curso={{ course.pk }}">Ver relatório completo deste curso</a></p>
-      </section>
-    </div>
-  {% endif %}
-  <section class="gp-card gp-section">
-    <h2>Semanas salvas</h2>
-    {% for selection in history %}
-      <p><a href="?semana={{ selection.week_start|date:'Y-m-d' }}">{{ selection.week_start|date:'d/m/Y' }}</a> · {{ selection.total }} aula{{ selection.total|pluralize:'s' }}</p>
-    {% empty %}<p class="muted">Nenhuma seleção salva para este curso.</p>{% endfor %}
-  </section>
-{% endblock %}
+{% extends 'painel/course_base.html' %}{% load static %}{% block content %}
+<div class="gp-toolbar">{% include 'painel/course_showcase_nav.html' %}
+<form method="get" class="course-actions" data-week-picker>
+{% if previous_week %}<a class="btn btn--icon" href="?semana={{ previous_week|date:'Y-m-d' }}" aria-label="Semana anterior">‹</a>{% endif %}
+<label class="btn week-picker"><svg class="gp-icon"><use href="#i-calendar"/></svg>{% if week %}Semana de {{ week|date:'d/m' }} a {{ week_end|date:'d/m' }}{% else %}Escolha uma segunda-feira{% endif %}{{ week_form.semana }}</label>
+{% if next_week %}<a class="btn btn--icon" href="?semana={{ next_week|date:'Y-m-d' }}" aria-label="Próxima semana">›</a>{% endif %}
+<noscript><button class="btn">Abrir semana</button></noscript></form></div>{{ week_form.semana.errors }}
+{% if week %}{{ ranking_data|json_script:"ranking-data" }}
+<form method="post" id="weekly-ranking" enctype="multipart/form-data" data-gp-dirty>{% csrf_token %}<input type="hidden" name="semana" value="{{ week|date:'Y-m-d' }}">{{ form.errors }}
+<div class="gp-split ranking-layout"><div class="gp-rail"><section class="gp-card gp-card--pad gp-card--stack">
+<div class="gp-toolbar"><div><h2 class="gp-section-title">Top 10 no {{ course.short_name|default:course.title }} desta semana</h2><p class="gp-help"><span data-ranking-count>0</span> de 10 posições preenchidas · aparece na home do aluno</p></div>
+<button class="btn btn--sm" type="button" data-ranking-fill>Preencher pelo engajamento</button></div>
+<ol class="ranking-list">{% for position,lesson,art in slots %}
+<li class="ranking-slot" data-ranking-slot data-initial="{{ lesson.value|default:'' }}"><span class="ranking-number">{{ position }}</span>
+<div data-slot-content class="ranking-content"><label class="course-form">{{ lesson.label }}{{ lesson }}</label><label>{{ art.label }}{{ art }}</label></div></li>
+{% endfor %}</ol><p class="gp-help" role="status" data-ranking-status></p></section>
+<section class="gp-card gp-card--pad gp-card--stack"><h2 class="gp-section-title">Semanas salvas</h2>
+{% for selection in history %}<a class="gp-link" href="?semana={{ selection.week_start|date:'Y-m-d' }}">{{ selection.week_start|date:'d/m/Y' }} · {{ selection.total }} aula{{ selection.total|pluralize }}</a>{% empty %}<p class="gp-help">Nenhuma seleção salva para este curso.</p>{% endfor %}</section></div>
+<aside class="gp-card gp-card--pad gp-card--stack gp-sticky-top"><h2 class="gp-section-title">Aulas disponíveis</h2>
+<input type="search" class="gp-input" data-ranking-search placeholder="Buscar aula" aria-label="Buscar aula disponível">
+<ul class="gp-list ranking-library">{% for item in ranking_data %}<li class="gp-list__row" data-library-id="{{ item.id }}" draggable="true">
+<div class="gp-list__body"><strong class="gp-list__title">{{ item.title }}</strong><p class="gp-help">{{ item.module }} · {% if item.started %}{{ item.started }} iniciaram{% else %}ainda sem visualizações{% endif %}</p></div>
+<button class="btn btn--sm btn--icon" type="button" aria-label="Adicionar {{ item.title }} ao Top 10" data-ranking-add>+</button></li>{% endfor %}</ul>
+<p class="gp-help" data-library-empty hidden>Nenhuma aula disponível para esta busca.</p><a class="gp-link" href="{% url 'painel:lesson_metrics' %}?curso={{ course.pk }}" title="Começaram · Chegaram ao final · Avanço médio">Ver métricas completas das aulas →</a></aside></div>
+<div class="gp-savebar" hidden><span class="gp-savebar__status">Seleção alterada · semana de {{ week|date:'d/m' }} a {{ week_end|date:'d/m' }}</span><button class="btn" type="button" data-gp-discard>Descartar</button><button class="btn btn--primary">Salvar Top 10</button></div><noscript><button class="btn btn--primary">Salvar Top 10</button></noscript></form>
+<dialog id="ranking-art" class="gp-dialog" aria-labelledby="ranking-art-title"><div class="gp-dialog__head"><h2 class="gp-dialog__title" id="ranking-art-title">Arte do card</h2><button class="btn btn--icon" type="button" data-gp-close aria-label="Fechar">×</button></div><div class="gp-dialog__body"><div data-ranking-art-control></div><p class="gp-help">Use uma imagem vertical com proporção 2:3.</p></div><div class="gp-dialog__foot"><button class="btn" type="button" data-gp-close>Concluir</button></div></dialog>
+{% endif %}{% endblock %}
+{% block extra_js %}{{ block.super }}<script defer src="{% static 'js/course-ranking.js' %}"></script>{% endblock %}
