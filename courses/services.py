@@ -785,9 +785,10 @@ def save_lesson_editor(lesson, *, actor, ebook=None):
     if ebook:
         from .validators import validate_pdf_file
         validate_pdf_file(ebook)
-        material=lesson.materials.order_by('order','pk').first() or LessonMaterial(lesson=lesson,order=1)
+        material = lesson.materials.order_by('order', 'pk').first() if lesson.pk else None
+        material = material or LessonMaterial(lesson=lesson, order=1)
         material.file=ebook;material.title=ebook.name[:120];material.url=''
-        material.full_clean()
+        material.full_clean(exclude=['lesson'] if not lesson.pk else None)
     save_lesson(lesson)
     if material:material.save()
     return lesson

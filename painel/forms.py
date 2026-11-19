@@ -134,12 +134,13 @@ class LessonForm(forms.ModelForm):
 
 
 class ModuleForm(forms.ModelForm):
+    cover = forms.ImageField(required=False, label='Capa do módulo')
     status = forms.ChoiceField(choices=[('draft', 'Rascunho'), ('published', 'Publicado')], required=False)
     release_month = forms.IntegerField(min_value=1, required=False)
 
     class Meta:
         model = Module
-        fields = ['title', 'status', 'release_month']
+        fields = ['title', 'status', 'release_month', 'cover']
 
     def clean_status(self):
         return self.cleaned_data['status'] or self.instance.status or 'published'
@@ -198,12 +199,25 @@ class CourseBasicsForm(CourseForm):
         fields=[name for name in CourseForm.Meta.fields if name not in ('price','live_meet_url','live_calendar_url')]
 
 class LessonEditorForm(LessonForm):
+    cover = forms.ImageField(required=False, label='Capa da aula')
+    new_module_title = forms.CharField(max_length=200, required=False, label='Nome do novo módulo')
     duration_text=forms.CharField(label='Duração (min:seg)',max_length=12)
     ebook=forms.FileField(required=False,label='Enviar ou trocar e-book PDF')
+    class Meta(LessonForm.Meta):
+        fields = [*LessonForm.Meta.fields, 'cover']
+
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
+        self.fields['module'].required = False
+        self.fields['module'].empty_label = 'Criar um módulo com o nome abaixo'
         seconds=self.instance.duration_seconds or 0
         self.initial['duration_text']=f'{seconds//60}:{seconds%60:02d}'
+
+    def clean(self):
+        data = super().clean()
+        if 'module' in data and bool(data['module']) == bool(data.get('new_module_title')):
+            raise forms.ValidationError('Escolha um módulo existente ou informe apenas o nome do novo módulo.')
+        return data
     def clean_duration_text(self):
         value=self.cleaned_data['duration_text'].strip()
         parts=value.split(':')

@@ -117,7 +117,9 @@ def course_lessons(request, course_id):
             return redirect('painel:course_lessons',course_id=course.pk)
         if action in ('new_module', 'rename_module', 'save_module'):
             candidate = module or Module(course=course, order=course.modules.count()+1)
-            form = ModuleForm(request.POST, instance=candidate)
+            if ids["module_id"] and not module:
+                return HttpResponseBadRequest("Módulo inválido para este curso.")
+            form = ModuleForm(request.POST, request.FILES, instance=candidate)
             if form.is_valid():
                 try:
                     save_module(form.save(commit=False), actor=request.user, confirm_impact=bool(request.POST.get('confirm_impact')))
@@ -125,6 +127,7 @@ def course_lessons(request, course_id):
                     return page(request, 'module_confirmation', course=course, module=candidate, form=form, errors=exc.messages)
             else:
                 messages.error(request, ' '.join(error for errors in form.errors.values() for error in errors))
+                return redirect("painel:course_lessons", course_id=course.id)
         elif action == 'delete_module' and module:
             try:
                 delete_content(module, actor=request.user)

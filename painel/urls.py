@@ -20,6 +20,7 @@ urlpatterns = [
     path('relatorios/exportar/',reports.export_reports,name='reports_export'),
     path('certificados/',certificates.certificates,name='certificates'),
     path('aulas/<int:lesson_id>/editar/',lessons.lesson_edit,name='lesson_edit'),
+    path('cursos/<int:course_id>/aulas/nova/', lessons.lesson_edit, name='lesson_new'),
     path('cursos/<int:course_id>/visao-geral/',course_overview_view,name='course_overview'),
     path('ao-vivo/',live.live,name='live'),
     path('chamados/',support.tickets,name='tickets'),
