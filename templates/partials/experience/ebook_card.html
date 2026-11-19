@@ -1,0 +1,23 @@
+<article class="ebook-tile">
+  <a class="ebook-jacket {{ item.course.cover_class }}" href="{{ item.url }}" target="_blank" rel="noopener" aria-label="Abrir {{ item.material.title }}">
+    {% if item.material.cover %}
+      <img src="{{ item.material.cover.url }}" alt="" loading="lazy" decoding="async" width="300" height="400">
+    {% else %}
+      <span class="ebook-jacket__default" aria-hidden="true">
+        {% include 'partials/gomut/motif_ecg.html' %}
+        <span class="ebook-jacket__series">{{ item.course.title }}</span>
+        <strong>{{ item.material.title }}</strong>
+      </span>
+    {% endif %}
+  </a>
+  <div class="ebook-tile__details">
+    {% if extra %}<span class="eyebrow">Material extra</span>{% endif %}
+    <h3{% if not item.material.cover %} class="sr-only"{% endif %}>{{ item.material.title }}</h3>
+    {% if item.lesson %}<small>{% if card %}Aula {{ card.number }} · {% endif %}{{ item.lesson.title }}</small>{% endif %}
+    {% if global_library and item.opened %}<small>Já abri</small>{% endif %}
+  </div>
+  <div class="ebook-tile__links">
+    <a class="btn btn--outline btn--sm" href="{{ item.url }}?download=1" aria-label="Baixar e-book · {{ item.material.title }}">{% include 'partials/gomut/icon.html' with name='download' %}{% if item.kind == 'course' %}Baixar PDF{% else %}Baixar e-book{% endif %}</a>
+    {% if global_library and item.lesson %}<a class="linkbtn" href="{% url 'lesson_detail' item.course.slug item.lesson.pk %}">Ir para a aula</a>{% endif %}
+  </div>
+</article>

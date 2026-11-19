@@ -1,4 +1,6 @@
 from tempfile import TemporaryDirectory
+from io import BytesIO
+from PIL import Image
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -9,6 +11,50 @@ from users.models import User
 
 
 class MaterialLibraryTests(TestCase):
+    def test_each_pdf_has_its_own_optional_library_cover(self):
+        extra = LessonMaterial.objects.create(lesson=self.lesson, title='Leitura complementar', url='https://example.org/leitura.pdf', order=2)
+        general = models.CourseMaterial.objects.create(course=self.course, title='Caderno',
+            file=SimpleUploadedFile('caderno.pdf', b'%PDF-1.4\n%%EOF', content_type='application/pdf'))
+        for kind, material in [('lesson', extra), ('course', general)]:
+            url = reverse('painel:material_cover', args=[self.course.pk, kind, material.pk])
+            self.assertEqual(self.client.post(url).status_code, 403)
+            self.client.force_login(self.owner)
+            image = BytesIO()
+            Image.new('RGB', (40, 60)).save(image, 'PNG')
+            upload = SimpleUploadedFile('capa.png', image.getvalue(), content_type='image/png')
+            self.assertEqual(self.client.post(url, {'cover': upload}).status_code, 302)
+            material.refresh_from_db()
+            self.client.force_login(self.user)
+            for path in (reverse('course_ebooks', args=[self.course.slug]), reverse('ebooks')):
+                page = self.client.get(path)
+                self.assertContains(page, material.cover.url)
+                self.assertContains(page, self.material.title)
+        self.material.refresh_from_db()
+        self.assertFalse(self.material.cover)
+        self.client.force_login(self.owner)
+        invalid = SimpleUploadedFile('foto.png', b'invalid', content_type='image/png')
+        self.assertContains(self.client.post(url, {'cover': invalid}), 'errorlist')
+        old_name = general.cover.name
+        general.refresh_from_db()
+        self.assertEqual(general.cover.name, old_name)
+        self.assertEqual(self.client.post(url, {'action':'remove'}).status_code, 302)
+        general.refresh_from_db()
+        self.assertFalse(general.cover)
+        self.assertTrue(general.file)
+
+    def test_cover_editor_scopes_lesson_to_course_and_drafts_stay_out_of_library(self):
+        other = Course.objects.create(title='Outro curso', slug='outro', creator=self.owner.creator_profile)
+        self.client.force_login(self.owner)
+        wrong_course = reverse('painel:material_cover', args=[other.pk, 'lesson', self.material.pk])
+        self.assertEqual(self.client.post(wrong_course, {'action':'remove'}).status_code, 404)
+        self.material.cover = 'courses/ebooks/capa-do-rascunho.png'
+        self.material.save(update_fields=['cover'])
+        self.lesson.status = 'draft'
+        self.lesson.save(update_fields=['status'])
+        self.client.force_login(self.user)
+        for path in (reverse('course_ebooks', args=[self.course.slug]), reverse('ebooks')):
+            self.assertNotContains(self.client.get(path), self.material.cover.url)
+
     def setUp(self):
         self.folder = TemporaryDirectory(); self.addCleanup(self.folder.cleanup)
         self.media = override_settings(MEDIA_ROOT=self.folder.name); self.media.enable(); self.addCleanup(self.media.disable)

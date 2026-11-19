@@ -215,6 +215,7 @@ class Lesson(models.Model):
 
 
 class LessonMaterial(models.Model):
+    cover = models.ImageField(upload_to="courses/ebooks/", blank=True)
     created_at = models.DateTimeField(null=True, blank=True, default=timezone.now, editable=False)
     lesson = models.ForeignKey(
         Lesson, related_name="materials", on_delete=models.CASCADE
@@ -239,6 +240,7 @@ class LessonMaterial(models.Model):
 
 
 class CourseMaterial(models.Model):
+    cover = models.ImageField(upload_to="courses/ebooks/", blank=True)
     course = models.ForeignKey(Course, on_delete=models.PROTECT, related_name='materials')
     title = models.CharField(max_length=120)
     file = models.FileField(upload_to='materials/course/', validators=[FileExtensionValidator(['pdf'])])

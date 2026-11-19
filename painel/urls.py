@@ -31,6 +31,7 @@ urlpatterns = [
     path('chamados/',support.tickets,name='tickets'),
     path('ajuda/<slug:kind>/',support.support_settings,name='support_settings'),
     path('cursos/<int:course_id>/materiais/', materials.course_materials, name='course_materials'),
+    path('cursos/<int:course_id>/materiais/<slug:kind>/<int:material_id>/capa/', materials.material_cover, name='material_cover'),
     path('cursos/<int:course_id>/avaliacao/', quizzes.final_quiz, name='final_quiz'),
     path('aulas/<int:lesson_id>/quiz/', quizzes.lesson_quiz, name='lesson_quiz'),
     path('planos/<int:enrollment_id>/', plans.plan_manage, name='plan_manage'),

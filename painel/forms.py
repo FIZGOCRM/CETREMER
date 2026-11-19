@@ -4,6 +4,7 @@ from urllib.parse import urlparse
 from datetime import date
 
 from django import forms
+from django.core.validators import FileExtensionValidator
 
 from courses.models import Course, Lesson, Module, CourseMaterial
 
@@ -95,6 +96,14 @@ class CourseForm(forms.ModelForm):
         if url and urlparse(url).hostname != "calendar.google.com":
             raise forms.ValidationError("Use o link público de uma agenda do Google.")
         return url
+
+
+class MaterialCoverForm(forms.Form):
+    cover = forms.ImageField(
+        label="Capa do e-book",
+        validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"])],
+        widget=forms.FileInput(attrs={"accept": "image/jpeg,image/png,image/webp"}),
+    )
 
 
 class CourseMaterialForm(forms.ModelForm):

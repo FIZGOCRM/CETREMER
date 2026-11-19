@@ -1,0 +1,19 @@
+{% extends 'painel/course_base.html' %}
+{% block content %}
+<section class="gp-card gp-card--pad gp-card--stack">
+  <a class="gp-link" href="{% url 'painel:course_materials' course.pk %}">← Materiais do curso</a>
+  <div><h2 class="gp-section-title">Capa do e-book</h2><p>{{ material.title }}</p></div>
+  {% if material.cover %}<img class="gp-book-preview" src="{{ material.cover.url }}" alt="Capa atual de {{ material.title }}">{% endif %}
+  <form method="post" enctype="multipart/form-data" class="gp-rail">
+    {% csrf_token %}{{ form.cover.errors }}
+    <label class="gp-dropzone" data-gp-dropzone>Escolher a arte da capa {{ form.cover }}
+      <span class="gp-dropzone__hint">JPG, PNG ou WebP. Formato recomendado 3:4, por exemplo 900 × 1200 px. A imagem inteira aparece na biblioteca.</span>
+    </label>
+    <div class="course-actions">
+      <a class="btn" href="{% url 'painel:course_materials' course.pk %}">Cancelar</a>
+      <button class="btn btn--primary">Salvar capa</button>
+    </div>
+  </form>
+  {% if material.cover %}<form method="post" data-action-confirm="Remover esta arte e usar a capa padrão?">{% csrf_token %}<button class="btn btn--sm" name="action" value="remove">Remover capa</button></form>{% endif %}
+</section>
+{% endblock %}

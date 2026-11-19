@@ -28,7 +28,7 @@
     <a class="gp-tab" href="{% url 'painel:course_lessons' course.pk %}" {% if current == 'course_lessons' %}aria-current="page"{% endif %}>Conteúdo <span class="gp-tab__n">{{ stats.lessons }}</span></a>
     <a class="gp-tab" href="{% url 'painel:course_edit' course.pk %}" {% if current == 'course_edit' %}aria-current="page"{% endif %}>Detalhes</a>
     <a class="gp-tab" href="{% url 'painel:home_features' course.pk %}" {% if current == 'home_features' or current == 'weekly_selection' %}aria-current="page"{% endif %}>Vitrine</a>
-    <a class="gp-tab" href="{% url 'painel:course_materials' course.pk %}" {% if current == 'course_materials' %}aria-current="page"{% endif %}>Materiais <span class="gp-tab__n">{{ stats.materials }}</span></a>
+    <a class="gp-tab" href="{% url 'painel:course_materials' course.pk %}" {% if current == 'course_materials' or current == 'material_cover' %}aria-current="page"{% endif %}>Materiais <span class="gp-tab__n">{{ stats.materials }}</span></a>
     <a class="gp-tab" href="{% url 'painel:final_quiz' course.pk %}" {% if current == 'final_quiz' %}aria-current="page"{% endif %}>Avaliação final</a>
     <a class="gp-tab" href="{% url 'painel:live' %}?curso={{ course.pk }}" {% if current == 'live' %}aria-current="page"{% endif %}>Ao vivo</a>
   </nav>

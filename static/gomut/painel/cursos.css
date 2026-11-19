@@ -99,3 +99,6 @@
 @media(min-width:1101px){.ranking-layout {grid-template-columns:minmax(0,1fr) minmax(300px,360px);}}
 @media(max-width:1100px){.course-grid {grid-template-columns:repeat(2,minmax(0,1fr));}.course-workspace .gp-sticky-top{position:static;}}
 @media(max-width:720px){.course-grid,.course-video-grid{grid-template-columns:1fr;}.course-workspace .gp-toolbar,.course-header .gp-pagehead__actions{flex-wrap:wrap;}.course-workspace .gp-lesson{padding:10px;}.course-workspace .gp-list__body{min-width:min(100%,110px);}.course-workspace .gp-seg{flex-wrap:wrap;}.course-workspace .gp-file,.course-workspace .gp-list__row{gap:6px;}.course-workspace .gp-toolbar>*,.course-workspace .gp-savebar>*{max-width:100%;}.ranking-slot{padding:8px;gap:6px;}.gp-content.course-workspace{width:100%;}.course-workspace .gp-card--pad{padding:14px;}}
+
+.gp-book-thumb { width:36px; height:48px; object-fit:contain; background:var(--gp-soft); border-radius:4px; }
+.gp-book-preview { width:min(100%, 180px); aspect-ratio:3/4; object-fit:contain; border-radius:8px; background:var(--gp-soft); }

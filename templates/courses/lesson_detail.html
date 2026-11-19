@@ -46,7 +46,7 @@
 <div class="files">{% for material in materials %}
 {% if forloop.counter == 2 %}<h3>Materiais adicionais</h3>{% endif %}
 <article class="file lesson-material">
-<span class="file__ico">{% include 'partials/gomut/icon.html' with name='file' %}</span>
+{% if material.cover %}<img class="ebook-inline-cover" src="{{ material.cover.url }}" alt="" loading="lazy">{% else %}<span class="file__ico">{% include 'partials/gomut/icon.html' with name='file' %}</span>{% endif %}
 <div><strong>{{ material.title }}</strong><span>Aula {{ lesson_index }} · PDF · {{ lesson.title }}</span></div>
 <a class="btn btn--outline btn--sm" href="{% url 'material_open' 'lesson' material.pk %}?download=1">
 {% include 'partials/gomut/icon.html' with name='download' %}Baixar e-book</a>

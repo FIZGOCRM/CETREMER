@@ -1,9 +1,5 @@
-<ul class="xp-books">{% for card in group.books %}<li>
-  <p class="eyebrow">Aula {{ card.number }} · {{ card.lesson.title }}</p>
-  {% for item in card.books %}
-    <div class="xp-book">
-      <div><small>{% if forloop.first %}E-book principal{% else %}Material extra{% endif %}</small><h3>{{ item.material.title }}</h3></div>
-      <a class="btn btn--outline btn--sm" href="{{ item.url }}?download=1" aria-label="Baixar e-book · {{ item.material.title }}">{% include 'partials/gomut/icon.html' with name='download' %}Baixar e-book</a>
-    </div>
-  {% endfor %}
-</li>{% endfor %}</ul>
+<div class="ebook-shelf">
+  {% for card in group.books %}{% for item in card.books %}
+    {% include 'partials/experience/ebook_card.html' with extra=forloop.counter0 %}
+  {% endfor %}{% endfor %}
+</div>

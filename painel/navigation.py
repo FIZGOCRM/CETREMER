@@ -13,6 +13,7 @@ CHILDREN = {
     "course_overview": ("courses", "Visão geral"), "course_lessons": ("courses", "Conteúdo"),
     "lesson_new": ("courses", "Nova aula"), "lesson_edit": ("courses", "Editar aula"),
     "lesson_quiz": ("courses", "Quiz"), "final_quiz": ("courses", "Avaliação final"),
+    "material_cover": ("courses", "Capa do e-book"),
     "course_materials": ("courses", "Materiais"), "home_features": ("courses", "Página inicial"),
     "weekly_selection": ("courses", "Top 10 da semana"), "students_import": ("students", "Importar alunos"),
     "plan_manage": ("students", "Plano de acesso"), "support_settings": ("settings", "Central de ajuda"),

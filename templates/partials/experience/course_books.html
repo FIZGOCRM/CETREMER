@@ -4,4 +4,6 @@
 </header>
 {% for group in modules %}{% if group.books %}<section><h2>{{ group.module.title }}</h2>{% include 'partials/experience/module_books.html' %}</section>{% endif %}{% endfor %}
 {% if not available_books %}<p class="xp-empty">Nenhum e-book de aula liberado neste curso.</p>{% endif %}
-{% if general_books %}<section><h2>Materiais do curso</h2><ul class="xp-books">{% for item in general_books %}<li class="xp-book"><h3>{{ item.material.title }}</h3><a class="btn btn--outline btn--sm" href="{{ item.url }}?download=1">Baixar PDF</a></li>{% endfor %}</ul></section>{% endif %}
+{% if general_books %}<section><h2>Materiais do curso</h2>
+  <div class="ebook-shelf">{% for item in general_books %}{% include 'partials/experience/ebook_card.html' %}{% endfor %}</div>
+</section>{% endif %}
