@@ -152,19 +152,31 @@ class ModuleForm(forms.ModelForm):
 class QuizQuestionForm(forms.Form):
     order = forms.IntegerField(min_value=1, label='Ordem')
     text = forms.CharField(widget=forms.Textarea, label='Pergunta')
-    explanation = forms.CharField(required=False, widget=forms.Textarea, label='Comentário após responder')
-    choice_a = forms.CharField(label='Alternativa A')
-    choice_b = forms.CharField(label='Alternativa B')
-    choice_c = forms.CharField(required=False, label='Alternativa C')
-    choice_d = forms.CharField(required=False, label='Alternativa D')
-    correct = forms.ChoiceField(choices=[(key, key.upper()) for key in 'abcd'], label='Alternativa correta')
+    explanation = forms.CharField(required=False, widget=forms.Textarea(attrs={'rows': 2}), label='Comentário geral (opcional)')
+    correct = forms.ChoiceField(choices=[(key, key.upper()) for key in 'abcde'], label='Alternativa correta')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for key in 'abcde':
+            self.fields['choice_'+key] = forms.CharField(label=f'Alternativa {key.upper()}', required=key in 'ab')
+            self.fields['explanation_'+key] = forms.CharField(
+                label=f'Justificativa da alternativa {key.upper()}', required=key in 'ab',
+                widget=forms.Textarea(attrs={'rows': 2}),
+            )
+        self.fields['correct'] = self.fields.pop('correct')
 
     def clean(self):
         data = super().clean()
-        keys = [key for key in 'abcd' if data.get('choice_'+key)]
+        keys = [key for key in 'abcde' if data.get('choice_'+key)]
+        for key in 'cde':
+            if key in keys and not data.get('explanation_'+key):
+                self.add_error('explanation_'+key, 'Explique esta alternativa.')
+            if key not in keys and data.get('explanation_'+key):
+                self.add_error('choice_'+key, 'Preencha a alternativa correspondente.')
         if data.get('correct') not in keys:
             self.add_error('correct', 'A correta deve ser uma alternativa preenchida.')
         data['choices'] = [data['choice_'+key] for key in keys]
+        data['choice_explanations'] = [data.get('explanation_'+key, '') for key in keys]
         data['correct_index'] = keys.index(data['correct']) if data.get('correct') in keys else -1
         return data
 

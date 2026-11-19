@@ -5,7 +5,8 @@ from dataclasses import dataclass
 
 from .models import Course, Lesson, Quiz
 
-HEADERS = ['curso', 'tipo', 'aula', 'ordem', 'pergunta', 'alternativa_a', 'alternativa_b', 'alternativa_c', 'alternativa_d', 'correta', 'comentario']
+LEGACY_HEADERS = ['curso', 'tipo', 'aula', 'ordem', 'pergunta', 'alternativa_a', 'alternativa_b', 'alternativa_c', 'alternativa_d', 'correta', 'comentario']
+HEADERS = LEGACY_HEADERS + ['alternativa_e'] + ['justificativa_'+key for key in 'abcde']
 
 
 @dataclass(frozen=True)
@@ -19,6 +20,7 @@ class QuizImportRow:
     choices: tuple
     correct_index: int
     explanation: str
+    choice_explanations: tuple | None
 
     @property
     def key(self):
@@ -30,8 +32,10 @@ def parse_quiz_csv(path):
     if not text.strip():
         raise ValueError('Arquivo vazio.')
     reader = csv.DictReader(io.StringIO(text), delimiter=';' if ';' in text.splitlines()[0] and ',' not in text.splitlines()[0] else ',')
-    if not reader.fieldnames or len(reader.fieldnames) != len(HEADERS) or set(reader.fieldnames) != set(HEADERS):
-        raise ValueError('O cabeçalho deve conter exatamente: '+','.join(HEADERS))
+    headers = sorted(reader.fieldnames or [])
+    legacy = headers == sorted(LEGACY_HEADERS)
+    if not legacy and headers != sorted(HEADERS):
+        raise ValueError('Use o cabeçalho antigo ou o novo cabeçalho: '+','.join(HEADERS))
     rows, errors, seen = [], [], set()
     courses, lessons = {}, {}
     for line, source in enumerate(reader, 2):
@@ -64,13 +68,21 @@ def parse_quiz_csv(path):
             order = int(data['ordem'])
             if not data['pergunta']:
                 raise ValueError('Preencha o enunciado da pergunta.')
-            keys = [key for key in 'abcd' if data['alternativa_'+key]]
+            keys = [key for key in 'abcde' if data.get('alternativa_'+key)]
             if len(keys) < 2:
                 raise ValueError('Preencha pelo menos duas alternativas.')
             correct = data['correta'].lower()
             if correct not in keys:
                 raise ValueError('A correta deve apontar para uma alternativa preenchida.')
-            row = QuizImportRow(line, course, lesson, kind, order, data['pergunta'], tuple(data['alternativa_'+key] for key in keys), keys.index(correct), data['comentario'])
+            explanations = None
+            if not legacy:
+                for key in 'abcde':
+                    if bool(data['justificativa_'+key]) != (key in keys):
+                        raise ValueError(f'A alternativa {key.upper()} e sua justificativa devem ser preenchidas juntas.')
+                explanations = tuple(data['justificativa_'+key] for key in keys)
+            row = QuizImportRow(line, course, lesson, kind, order, data['pergunta'],
+                                tuple(data['alternativa_'+key] for key in keys), keys.index(correct),
+                                data['comentario'], explanations)
             if (row.key, order) in seen:
                 raise ValueError('Ordem repetida no mesmo quiz.')
             seen.add((row.key, order)); rows.append(row)

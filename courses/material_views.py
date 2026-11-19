@@ -43,7 +43,7 @@ def open_material(request, kind, material_id):
             stream = material.file.open('rb')
         except (FileNotFoundError, OSError):
             raise Http404('O arquivo ainda não está disponível.')
-        response = FileResponse(stream,content_type='application/pdf')
+        response = FileResponse(stream, content_type='application/pdf', as_attachment=request.GET.get('download') == '1')
     elif kind == 'lesson' and material.url and urlparse(material.url).scheme in ('http','https'):
         response = redirect(material.url)
     else:

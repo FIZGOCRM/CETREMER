@@ -39,6 +39,12 @@ def dashboard(request):
         key=lambda item: item["enrollment"].last_accessed_at or item["enrollment"].enrolled_at,
         reverse=True,
     )
+    active = [item for item in items if item["access"].allowed]
+    if len(active) == 1:
+        from .experience_views import render_home
+        enrollment = active[0]["enrollment"]
+        request.session["active_course_slug"] = enrollment.course.slug
+        return render_home(request, enrollment, hero_courses=hero_courses, summary=summary)
     live_item = next(
         (
             item
@@ -58,6 +64,7 @@ def dashboard(request):
         {
             "continue_item": continuing[0] if continuing else None,
             "my_courses": items,
+            "choosing_course": True,
             'summary': summary,
             "hero_courses": hero_courses,
             "community_posts": visible_posts(request.user).filter(course__in=[e.course_id for e in enrollments]).order_by("-created_at")[:4],
@@ -109,6 +116,7 @@ def member_section(request, section):
 
 @login_required
 def lesson_detail(request, course_slug, lesson_id):
+    from .models import LessonLike, SavedLesson
     course = get_object_or_404(Course, slug=course_slug, is_published=True)
     lesson = get_object_or_404(Lesson, id=lesson_id, module__course=course)
     if request.user.role != "STUDENT":
@@ -182,7 +190,9 @@ def lesson_detail(request, course_slug, lesson_id):
             'next_release': info.get('next_release'),
             "lesson_index": index + 1,
             "is_completed": lesson.id in completed_ids,
-            "materials": lesson.materials.all(),
+            "is_liked": LessonLike.objects.filter(student=student, lesson=lesson).exists(),
+            "is_saved": SavedLesson.objects.filter(student=student, lesson=lesson).exists(),
+            "materials": lesson.materials.order_by('order', 'pk'),
             "posts": posts,
             "completed_lesson_ids": completed_ids,
             "total_lessons": info["total"],

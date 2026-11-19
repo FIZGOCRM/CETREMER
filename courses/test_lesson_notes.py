@@ -17,9 +17,10 @@ class LessonExperienceTests(TestCase):
         self.url = f'/courses/lesson/{self.lesson.pk}/notes/'
         self.client.force_login(self.user)
 
-    def test_lesson_without_quiz_has_no_quiz_indication_and_has_notes(self):
+    def test_lesson_without_quiz_has_empty_quiz_tab_and_has_notes(self):
         response = self.client.get(reverse('lesson_detail', args=[self.course.slug, self.lesson.pk]))
-        self.assertNotContains(response, 'id="tab-quiz"')
+        self.assertContains(response, 'id="tab-quiz"')
+        self.assertContains(response, 'Esta aula ainda não tem quiz.')
         self.assertNotContains(response, 'Esta aula tem um quiz')
         self.assertContains(response, 'Anotações')
         self.assertContains(response, 'conclui com 90% assistido')
@@ -35,6 +36,23 @@ class LessonExperienceTests(TestCase):
         self.client.force_login(self.user)
         self.assertEqual(self.client.post(f'{self.url}{note_id}/delete/', HTTP_ACCEPT='application/json').status_code, 200)
         self.assertEqual(self.client.get(self.url).json()['notes'], [])
+
+    def test_lesson_navigation_uses_global_number_and_personal_reactions(self):
+        from courses.models import LessonLike, SavedLesson
+        self.lesson.order = 2
+        self.lesson.save(update_fields=['order'])
+        first = Lesson.objects.create(module=self.lesson.module, order=1, title='Primeira')
+        following = Lesson.objects.create(module=Module.objects.create(course=self.course, title='M2'), order=1, title='Seguinte')
+        Lesson.objects.create(module=self.lesson.module, title='Rascunho', status='draft')
+        url = reverse('lesson_detail', args=[self.course.slug, self.lesson.pk])
+        LessonLike.objects.create(student=self.user.student_profile, lesson=self.lesson)
+        SavedLesson.objects.create(student=self.other.student_profile, lesson=self.lesson)
+        response = self.client.get(url)
+        self.assertContains(response, 'Aula 2 de 3')
+        self.assertEqual(response.context['prev_lesson'], first)
+        self.assertEqual(response.context['next_lesson_nav'], following)
+        self.assertTrue(response.context['is_liked'])
+        self.assertFalse(response.context['is_saved'])
 
     def test_unenrolled_student_cannot_read_or_create_notes(self):
         outsider = User.objects.create_user(username='notes-outsider')

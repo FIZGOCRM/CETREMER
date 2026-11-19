@@ -3,7 +3,7 @@
 {% block content %}<div class="lesson">
 <div class="lesson__main" id="lesson-guide" data-completed="{{ is_completed|yesno:'true,false' }}" data-has-quiz="{{ has_quiz|yesno:'true,false' }}" data-quiz-pending="{{ quiz_pending|yesno:'true,false' }}" data-next-url="{% if next_lesson_nav %}{% url 'lesson_detail' course.slug next_lesson_nav.id %}{% endif %}">
 <nav class="crumbs">
-<a href="{% url 'member_course' course.slug %}">{% include 'partials/gomut/icon.html' with name='left' %}{{ course.title }}</a>
+<a href="{% url 'course_home' course.slug %}">{% include 'partials/gomut/icon.html' with name='left' %}{{ course.title }}</a>
 <span>·</span>
 <span>{{ lesson.module.title }}</span>
 </nav>
@@ -19,25 +19,41 @@
 <h1>{{ lesson.title }}</h1>
 </div>
 <div class="lesson__actions">{% csrf_token %}<button type="button" class="btn btn--sm btn-toggle-complete {% if is_completed %}btn--done{% else %}btn--red{% endif %}" data-lesson-id="{{ lesson.id }}" data-url="{% url 'toggle_progress' lesson.id %}" aria-pressed="{{ is_completed|yesno:'true,false' }}">{% include 'partials/gomut/icon.html' with name='check' %}<span data-label>{% if is_completed %}Concluída{% else %}Marcar como concluída{% endif %}</span>
-</button>{% if prev_lesson %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/gomut/icon.html' with name='left' %}Anterior</a>{% endif %}{% if next_lesson_nav %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}">Próxima{% include 'partials/gomut/icon.html' with name='right' %}</a>{% endif %}</div>
+</button>
+<button type="button" class="rbtn{% if is_liked %} is-on{% endif %}" data-lesson-reaction="{% url 'lesson_reaction' lesson.id 'like' %}" aria-pressed="{{ is_liked|yesno:'true,false' }}" title="Curtir">
+{% include 'partials/gomut/icon.html' with name='thumb' %}<span class="sr-only">Curtir</span></button>
+<button type="button" class="rbtn{% if is_saved %} is-on{% endif %}" data-lesson-reaction="{% url 'lesson_reaction' lesson.id 'saved' %}" aria-pressed="{{ is_saved|yesno:'true,false' }}" title="Minha lista">
+{% include 'partials/gomut/icon.html' with name='plus' %}<span class="sr-only">Minha lista</span></button>
+<nav class="lesson__actions" aria-label="Navegar pelas aulas">{% if prev_lesson %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug prev_lesson.id %}">{% include 'partials/gomut/icon.html' with name='left' %}Anterior</a>{% endif %}{% if next_lesson_nav %}<a class="btn btn--outline btn--sm" href="{% url 'lesson_detail' course.slug next_lesson_nav.id %}">Próxima{% include 'partials/gomut/icon.html' with name='right' %}</a>{% endif %}</nav>
+</div>
 </header>{% if next_release and not next_lesson_nav %}<p>Próximo módulo libera em {{ next_release|date:'d/m' }}</p>{% endif %}
 <p class="tag tag--line" role="alert" data-progress-error hidden>Não foi possível salvar. Tente de novo.</p>
-{% include 'partials/gomut/lesson_steps.html' %}
+<p data-reaction-error hidden role="alert">Não foi possível salvar. Tente novamente.</p>
 <div data-tabs>
 <div class="tabs" role="tablist" aria-label="Conteúdo da aula">
-<button class="tab is-on" type="button" role="tab" id="tab-overview" data-tab aria-controls="overview" aria-selected="true">Sobre a aula</button>
-<button class="tab" type="button" role="tab" id="tab-materials" data-tab aria-controls="materials" aria-selected="false" tabindex="-1">Material</button>
-{% if has_quiz %}<button class="tab" type="button" role="tab" id="tab-quiz" data-tab aria-controls="quiz" aria-selected="false" tabindex="-1">Quiz</button>{% endif %}<button class="tab" type="button" role="tab" id="tab-notes" data-tab aria-controls="notes" aria-selected="false" tabindex="-1">Anotações</button>
+<button class="tab is-on" type="button" role="tab" id="tab-overview" data-tab aria-controls="overview" aria-selected="true">Visão geral</button>
+<button class="tab" type="button" role="tab" id="tab-materials" data-tab aria-controls="materials" aria-selected="false" tabindex="-1">E-book</button>
+<button class="tab" type="button" role="tab" id="tab-quiz" data-tab aria-controls="quiz" aria-selected="false" tabindex="-1">Quiz</button>
+<button class="tab" type="button" role="tab" id="tab-notes" data-tab aria-controls="notes" aria-selected="false" tabindex="-1">Anotações</button>
 </div>
 <section class="tabpanel" id="overview" role="tabpanel" aria-labelledby="tab-overview">
 <h2 class="section-title">Sobre esta aula</h2>
 <p class="member-description">{{ lesson.description|default:'Conteúdo em preparação.' }}</p>
+{% include 'partials/gomut/lesson_steps.html' %}
 </section>
 <section class="tabpanel" id="materials" role="tabpanel" aria-labelledby="tab-materials" hidden>
-<h2 class="section-title">E-book da aula</h2><a class="linkbtn" href="{% url 'ebooks' %}">Ver todos os e-books</a>{% for material in materials %}<a class="file" href="{% url 'material_open' 'lesson' material.pk %}" target="_blank" rel="noopener">{% include 'partials/gomut/icon.html' with name='download' %}<span>{{ material.title }}</span>
-<strong>Baixar</strong>
-</a>{% empty %}<p class="muted">Nenhum material de apoio cadastrado para esta aula.</p>{% endfor %}</section>
-{% if has_quiz %}<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>{% include 'partials/gomut/quiz_tab.html' %}</section>{% endif %}
+<h2 class="section-title">E-book da aula</h2>
+<div class="files">{% for material in materials %}
+{% if forloop.counter == 2 %}<h3>Materiais adicionais</h3>{% endif %}
+<article class="file lesson-material">
+<span class="file__ico">{% include 'partials/gomut/icon.html' with name='file' %}</span>
+<div><strong>{{ material.title }}</strong><span>Aula {{ lesson_index }} · PDF · {{ lesson.title }}</span></div>
+<a class="btn btn--outline btn--sm" href="{% url 'material_open' 'lesson' material.pk %}?download=1">
+{% include 'partials/gomut/icon.html' with name='download' %}Baixar e-book</a>
+</article>{% empty %}<p class="muted">Nenhum e-book cadastrado para esta aula.</p>{% endfor %}</div>
+<a class="linkbtn" href="{% url 'course_ebooks' course.slug %}">Ver todos os e-books da mentoria</a></section>
+<section class="tabpanel" id="quiz" role="tabpanel" aria-labelledby="tab-quiz" hidden>
+{% if has_quiz %}{% include 'partials/gomut/quiz_tab.html' %}{% else %}<p class="muted">Esta aula ainda não tem quiz.</p>{% endif %}</section>
 <section class="tabpanel" id="notes" role="tabpanel" aria-labelledby="tab-notes" hidden>{% include 'partials/gomut/lesson_notes.html' %}</section>
 </div>
 <section class="panel panel__body"><h2>Dúvidas da turma</h2><a class="btn btn--outline btn--sm" href="{% url 'community_new' %}?course={{ course.id }}&amp;lesson={{ lesson.id }}">Tirar dúvida com a turma</a></section>

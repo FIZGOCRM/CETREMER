@@ -45,6 +45,16 @@ class QuizImportTests(TestCase):
             self.run_csv(self.row+'inexistente,final,,1,Inválida,A,B,,,A,\n')
         self.assertFalse(Quiz.objects.exists())
 
+    def test_extended_csv_imports_five_explained_choices(self):
+        self.header = self.header.rstrip() + ',alternativa_e,justificativa_a,justificativa_b,justificativa_c,justificativa_d,justificativa_e\n'
+        row = 'csv-course,aula,Aula única,1,Pergunta?,A,B,C,D,E,,E,Por A,Por B,Por C,Por D,Por E\n'
+        with self.assertRaisesRegex(CommandError, 'justificativa'):
+            self.run_csv(row.replace('Por E', ''))
+        self.run_csv(row)
+        choices = QuizQuestion.objects.get().choices.order_by('order')
+        self.assertEqual(choices.count(), 5)
+        self.assertEqual(choices.get(is_correct=True).explanation, 'Por E')
+
     def test_duplicate_order_invalid_choice_and_ambiguous_lesson_are_refused(self):
         for rows in (self.row+self.row, self.row.replace(',A,Explicação', ',D,Explicação'), self.row.replace('A,B,,,', 'A,,,, ')):
             with self.assertRaisesRegex(CommandError, 'Linha'):

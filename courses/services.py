@@ -519,12 +519,18 @@ def require_quiz_access(student, quiz):
 
 
 @transaction.atomic
-def save_quiz_question(quiz, *, order, text, explanation, choices, correct_index, actor, question=None):
+def save_quiz_question(quiz, *, order, text, explanation, choices, correct_index, actor,
+                       question=None, choice_explanations=None):
     from .models import QuizChoice, QuizQuestion
     _plan_actor(actor)
     choices = [str(value).strip() for value in choices]
-    if not 2 <= len(choices) <= 4 or not all(choices) or isinstance(correct_index, bool) or correct_index not in range(len(choices)):
-        raise ValidationError('Cadastre de duas a quatro alternativas preenchidas e exatamente uma correta.')
+    if not 2 <= len(choices) <= 5 or not all(choices) or type(correct_index) is not int or correct_index not in range(len(choices)):
+        raise ValidationError('Cadastre de duas a cinco alternativas preenchidas e exatamente uma correta.')
+    if choice_explanations is None:
+        # Cadastros antigos têm um único comentário por pergunta.
+        choice_explanations = [''] * len(choices)
+    elif len(choice_explanations) != len(choices) or not all(value.strip() for value in choice_explanations):
+        raise ValidationError('Preencha a justificativa de cada alternativa.')
     if question and question.quiz_id != quiz.pk:
         raise ValidationError('A pergunta não pertence a este quiz.')
     question = question or QuizQuestion(quiz=quiz)
@@ -533,7 +539,8 @@ def save_quiz_question(quiz, *, order, text, explanation, choices, correct_index
     # Alternativas antigas permanecem guardadas; cada tentativa possui sua cópia.
     question.choices.filter(is_active=True).update(is_active=False)
     for index, value in enumerate(choices):
-        choice = QuizChoice(question=question, order=index+1, text=value, is_correct=index == correct_index)
+        choice = QuizChoice(question=question, order=index+1, text=value,
+                            explanation=choice_explanations[index].strip(), is_correct=index == correct_index)
         choice.full_clean(); choice.save()
     if quiz.kind == 'final':refresh_course_qualifications(quiz.course_id)
     return question
@@ -566,10 +573,11 @@ def start_quiz(student, quiz):
     for question in quiz.questions.filter(is_active=True).prefetch_related(Prefetch('choices', queryset=QuizChoice.objects.filter(is_active=True), to_attr='active_choices')):
         choices = question.active_choices
         correct = [choice for choice in choices if choice.is_correct]
-        if not 2 <= len(choices) <= 4 or len(correct) != 1:
+        if not 2 <= len(choices) <= 5 or len(correct) != 1:
             raise ValidationError('O quiz precisa ser revisado pela equipe antes de começar.')
         snapshot.append({'id': question.pk, 'text': question.text, 'explanation': question.explanation,
-            'choices': [{'id': choice.pk, 'text': choice.text} for choice in choices], 'correct_choice_id': correct[0].pk})
+            'choices': [{'id': choice.pk, 'text': choice.text, 'explanation': choice.explanation} for choice in choices],
+            'correct_choice_id': correct[0].pk})
     if not snapshot:
         raise ValidationError('Este quiz ainda não tem perguntas publicadas.')
     return QuizAttempt.objects.create(student=student, quiz=quiz, total=len(snapshot), question_snapshot=snapshot)
@@ -597,7 +605,8 @@ def answer_quiz(student, attempt, *, question_id, choice_id):
     attempt.save(update_fields=['answers'])
     if attempt.quiz.kind == 'final':
         return {'saved': True, 'answered': len(attempt.answers), 'total': attempt.total}
-    return {'correct': choice_id == question['correct_choice_id'], 'correct_choice_id': question['correct_choice_id'], 'explanation': question['explanation']}
+    from .selectors import quiz_question_feedback
+    return quiz_question_feedback(question, choice_id)
 
 
 @transaction.atomic
@@ -715,7 +724,9 @@ def import_quiz_rows(rows):
         quiz.is_demo = False; quiz.is_active = True
         quiz.save(update_fields=['is_demo','is_active'])
         for row in group:
-            save_quiz_question(quiz, order=row.order, text=row.text, explanation=row.explanation, choices=row.choices, correct_index=row.correct_index, actor=actor)
+            save_quiz_question(quiz, order=row.order, text=row.text, explanation=row.explanation,
+                               choices=row.choices, choice_explanations=row.choice_explanations,
+                               correct_index=row.correct_index, actor=actor)
     for quiz in unlisted:
         set_quiz_active(quiz, False, actor=actor)
 

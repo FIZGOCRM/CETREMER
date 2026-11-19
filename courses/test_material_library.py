@@ -24,19 +24,35 @@ class MaterialLibraryTests(TestCase):
         response = self.client.get(f'/materiais/lesson/{self.material.pk}/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertTrue(response['Content-Disposition'].startswith('inline'))
         self.assertIn('no-store', response['Cache-Control'])
         response.close()
-        self.client.get(f'/materiais/lesson/{self.material.pk}/').close()
+        download = self.client.get(f'/materiais/lesson/{self.material.pk}/?download=1')
+        self.assertTrue(download['Content-Disposition'].startswith('attachment'))
+        self.assertEqual(download['Cache-Control'], 'private, no-store')
+        download.close()
         self.assertEqual(models.MaterialOpen.objects.count(), 1)
 
     def test_outsider_and_draft_cannot_download_or_see_in_library(self):
         outsider = User.objects.create_user(username='material-outsider')
         self.client.force_login(outsider)
         self.assertEqual(self.client.get(f'/materiais/lesson/{self.material.pk}/').status_code, 403)
+        self.assertEqual(self.client.get(f'/materiais/lesson/{self.material.pk}/?download=1').status_code, 403)
         self.client.force_login(self.user)
         self.lesson.status = 'draft'; self.lesson.save()
         self.assertEqual(self.client.get(f'/materiais/lesson/{self.material.pk}/').status_code, 403)
         self.assertNotContains(self.client.get('/dashboard/ebooks/'), 'PDF da aula')
+
+    def test_lesson_lists_main_pdf_first_and_links_course_library(self):
+        LessonMaterial.objects.create(lesson=self.lesson, title='Leitura extra', order=2, url='https://example.com/extra.pdf')
+        url = reverse('lesson_detail', args=[self.course.slug, self.lesson.pk])
+        response = self.client.get(url)
+        page = response.content.decode()
+        self.assertLess(page.index('PDF da aula'), page.index('Materiais adicionais'))
+        self.assertLess(page.index('Materiais adicionais'), page.index('Leitura extra'))
+        self.assertContains(response, 'Aula 1 · PDF')
+        self.assertContains(response, reverse('course_ebooks', args=[self.course.slug]))
+        self.assertContains(response, reverse('material_open', args=['lesson', self.material.pk]) + '?download=1')
 
     def test_course_pdf_has_upload_and_authenticated_library_entry(self):
         model = getattr(models, 'CourseMaterial', None)

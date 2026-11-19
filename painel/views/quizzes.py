@@ -36,8 +36,9 @@ def _edit_quiz(request, *, course, lesson=None):
     initial = {'order': (quiz.questions.aggregate(value=Max('order'))['value'] or 0)+1} if quiz else {'order': 1}
     if question:
         initial.update(order=question.order, text=question.text, explanation=question.explanation)
-        for key, choice in zip('abcd', question.choices.filter(is_active=True)):
+        for key, choice in zip('abcde', question.choices.filter(is_active=True)):
             initial['choice_'+key] = choice.text
+            initial['explanation_'+key] = choice.explanation
             if choice.is_correct:
                 initial['correct'] = key
     form = QuizQuestionForm(request.POST if request.method == 'POST' and request.POST.get('action') == 'save' else None, initial=initial)
@@ -54,7 +55,9 @@ def _edit_quiz(request, *, course, lesson=None):
                 delete_quiz_content(question or quiz, actor=request.user)
             elif action == 'save' and form.is_valid():
                 data = form.cleaned_data
-                save_quiz_question(quiz, question=question, actor=request.user, **{key: data[key] for key in ('order','text','explanation','choices','correct_index')})
+                save_quiz_question(quiz, question=question, actor=request.user, **{
+                    key: data[key] for key in ('order','text','explanation','choices','choice_explanations','correct_index')
+                })
             elif action == 'save':
                 return page(request, 'lesson_quiz', **context, quiz=quiz, question=question, form=form, questions=quiz.questions.all())
             else:

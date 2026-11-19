@@ -28,7 +28,7 @@ def course_modules(enrollment):
 def ordered_lessons(course):
     return list(
         Lesson.objects.filter(module__course=course, status='published', module__status='published').select_related('module__course').order_by(
-            "module__order", "order", "id"
+            "module__order", "module_id", "order", "id"
         )
     )
 
@@ -195,7 +195,18 @@ def member_summary(student, *, on=None):
 
 def public_quiz_attempt(attempt):
     return {'id': attempt.pk, 'quiz_id': attempt.quiz_id, 'is_demo': attempt.quiz.is_demo, 'kind': attempt.quiz.kind,
-        'questions': [{'id': question['id'], 'text': question['text'], 'choices': question['choices']} for question in attempt.question_snapshot]}
+        'questions': [{'id': question['id'], 'text': question['text'],
+                       'choices': [{'id': c['id'], 'text': c['text']} for c in question['choices']]}
+                      for question in attempt.question_snapshot]}
+
+
+def quiz_question_feedback(question, chosen_id):
+    correct_id = question['correct_choice_id']
+    general = question.get('explanation', '')
+    explanations = {choice['id']: choice.get('explanation') or general for choice in question['choices']}
+    return {'correct': chosen_id == correct_id, 'chosen_choice_id': chosen_id, 'correct_choice_id': correct_id,
+            'explanation': general, 'chosen_explanation': explanations.get(chosen_id, general),
+            'correct_explanation': explanations[correct_id]}
 
 
 def quiz_attempt_result(attempt):
@@ -205,7 +216,8 @@ def quiz_attempt_result(attempt):
         raise PermissionDenied('Finalize a tentativa antes de ver a correção.')
     best = attempt.quiz.attempts.filter(student=attempt.student, finished_at__isnull=False).aggregate(value=Max('score_pct'))['value'] or 0
     return {'id': attempt.pk, 'correct': attempt.correct, 'total': attempt.total, 'score_pct': float(attempt.score_pct), 'best_score': float(best),
-        'questions': [dict(question, chosen_choice_id=attempt.answers.get(str(question['id']))) for question in attempt.question_snapshot]}
+        'questions': [dict(question, **quiz_question_feedback(question, attempt.answers.get(str(question['id']))))
+                      for question in attempt.question_snapshot]}
 
 
 def lesson_quiz_state(student, lesson):

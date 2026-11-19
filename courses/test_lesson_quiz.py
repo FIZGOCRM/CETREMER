@@ -75,10 +75,46 @@ class LessonQuizTests(TestCase):
             services.delete_quiz_content(self.quiz, actor=self.owner)
         self.assertTrue(models.QuizQuestion.objects.filter(pk=self.question.pk).exists())
 
-    def test_choices_require_two_to_four_options_and_one_correct(self):
-        for choices, correct in [(['Só uma'], 0), (['a','b'], 2), (['a','b','c','d','e'], 0)]:
+    def test_choices_require_two_to_five_options_and_one_correct(self):
+        for choices, correct in [(['Só uma'], 0), (['a','b'], 2), (list('abcdef'), 0)]:
             with self.assertRaises(ValidationError):
                 services.save_quiz_question(self.quiz, order=2, text='Inválida', explanation='', choices=choices, correct_index=correct, actor=self.owner)
+
+    def test_feedback_uses_chosen_and_correct_explanations_from_snapshot(self):
+        services.save_quiz_question(self.quiz, question=self.question, order=1, text='ABCDE',
+            explanation='Comentário geral', choices=list('ABCDE'), correct_index=4, actor=self.owner,
+            choice_explanations=[f'Justificativa {letter}' for letter in 'ABCDE'])
+        services.set_lesson_progress(self.student, self.lesson, completed=True)
+        response = self.client.post(reverse('quiz_start', args=[self.quiz.pk]))
+        self.assertNotContains(response, 'Justificativa', status_code=201)
+        public = response.json()
+        question = public['questions'][0]
+        self.assertEqual(len(question['choices']), 5)
+        services.save_quiz_question(self.quiz, question=self.question, order=1, text='Outra',
+            explanation='', choices=['A2','B2'], correct_index=0, actor=self.owner,
+            choice_explanations=['Outra A','Outra B'])
+        result = self.client.post(reverse('quiz_answer', args=[public['id']]), {
+            'question_id': question['id'], 'choice_id': question['choices'][1]['id'],
+        }, content_type='application/json').json()
+        self.assertFalse(result['correct'])
+        self.assertEqual(result['correct_choice_id'], question['choices'][4]['id'])
+        self.assertEqual(result['chosen_explanation'], 'Justificativa B')
+        self.assertEqual(result['correct_explanation'], 'Justificativa E')
+        review = self.client.post(reverse('quiz_finish', args=[public['id']])).json()['questions'][0]
+        self.assertEqual(review['chosen_explanation'], result['chosen_explanation'])
+        self.assertEqual(review['correct_explanation'], result['correct_explanation'])
+
+    def test_legacy_snapshot_without_choice_explanations_uses_question_comment(self):
+        attempt = self.start()
+        question = attempt.question_snapshot[0]
+        for choice in question['choices']:
+            choice.pop('explanation')
+        attempt.save(update_fields=['question_snapshot'])
+        response = services.answer_quiz(self.student, attempt, question_id=question['id'],
+                                        choice_id=question['choices'][1]['id'])
+        self.assertEqual(response['chosen_explanation'], 'Comentário original')
+        result = services.finish_quiz(self.student, attempt)
+        self.assertEqual(result['questions'][0]['correct_explanation'], 'Comentário original')
 
     def test_another_student_cannot_answer_my_attempt(self):
         attempt = self.start()
@@ -122,8 +158,12 @@ class LessonQuizTests(TestCase):
     def test_panel_can_edit_questions_and_student_html_has_no_answer_key(self):
         self.client.force_login(self.owner)
         url = reverse('painel:lesson_quiz', args=[self.lesson.pk])
-        response = self.client.post(url, {'action':'save', 'order':2, 'text':'Segunda', 'explanation':'Explicação privada',
-            'choice_a':'Opção 1', 'choice_b':'Opção 2', 'correct':'b'})
+        data = {'action':'save', 'order':2, 'text':'Segunda', 'explanation':'Explicação privada',
+            'choice_a':'Opção 1', 'choice_b':'Opção 2', 'correct':'b'}
+        response = self.client.post(url, data)
+        self.assertIn('explanation_a', response.context['form'].errors)
+        self.assertEqual(self.quiz.questions.count(), 1)
+        response = self.client.post(url, {**data, 'explanation_a':'Motivo A', 'explanation_b':'Motivo B'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(self.quiz.questions.count(), 2)
         self.client.force_login(self.user)

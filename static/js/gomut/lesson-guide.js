@@ -3,6 +3,28 @@
   'use strict';
   const guide = document.getElementById('lesson-guide');
   if (!guide) return;
+  const reactionError = guide.querySelector('[data-reaction-error]');
+  guide.querySelectorAll('[data-lesson-reaction]').forEach(button => {
+    if (document.body.dataset.memberPreview === 'true') { button.disabled = true; return; }
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      reactionError.hidden = true;
+      try {
+        const response = await fetch(button.dataset.lessonReaction, {
+          method: 'POST', credentials: 'same-origin',
+          headers: {'Content-Type': 'application/json', 'Accept': 'application/json',
+                    'X-CSRFToken': guide.querySelector('[name=csrfmiddlewaretoken]').value},
+          body: JSON.stringify({active: button.getAttribute('aria-pressed') !== 'true'}),
+        });
+        if (!response.ok) throw new Error();
+        const {active} = await response.json();
+        if (typeof active !== 'boolean') throw new Error();
+        button.setAttribute('aria-pressed', String(active));
+        button.classList.toggle('is-on', active);
+      } catch { reactionError.hidden = false; }
+      finally { button.disabled = false; }
+    });
+  });
   const hasQuiz = guide.dataset.hasQuiz === 'true';
   let completed = guide.dataset.completed === 'true';
   let countdown = null;

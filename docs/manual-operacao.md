@@ -15,16 +15,16 @@ Use o painel com uma conta de administração autorizada. Os usuários aluno@gom
 
 ## Quizzes e avaliação final
 
-1. No editor da aula, abra Quiz. Cadastre pergunta,2a4alternativas, uma correta e comentário. Ordene e ative as perguntas.
+1. No editor da aula, abra Quiz. Cadastre a pergunta com duas a cinco alternativas, marque a correta e preencha a justificativa de cada alternativa. Ordene e ative as perguntas.
 2. O quiz libera após concluir a aula. Não conta para o certificado. A correção aparece por pergunta; refazer cria outra tentativa.
 3. Na última seção do conteúdo do curso, abra Avaliação final. É opcional: se ativa, exige pelo menos70% e todas as aulas publicadas concluídas. O resultado usa a melhor nota.
 4. Com tentativas, desative perguntas em vez de excluir. Alterações valem para tentativas futuras; resultados antigos conservam sua versão.
 
 Para importar perguntas, prepare CSV UTF-8 com separador vírgula ou ponto e vírgula, cabeçalho:
 
-    curso,tipo,aula,ordem,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,correta,comentario
+    curso,tipo,aula,ordem,pergunta,alternativa_a,alternativa_b,alternativa_c,alternativa_d,correta,comentario,alternativa_e,justificativa_a,justificativa_b,justificativa_c,justificativa_d,justificativa_e
 
-Use curso e título da aula exatamente como cadastrados, sem aulas homônimas no mesmo curso. tipo=lesson ou final; final deixa aula vazia. correta=A/B/C/D entre alternativas preenchidas. Primeiro rode:
+Informe o slug do curso e o título exato da aula. Use `aula` ou `final` em `tipo`. Para a avaliação final, deixe a coluna `aula` vazia. Em `correta`, informe uma letra de A a E entre as alternativas preenchidas. Preencha a justificativa de cada alternativa usada. O formato anterior, com as onze colunas até `comentario`, também é aceito e usa esse comentário para a correção. Primeiro rode:
 
     python manage.py import_quizzes ARQUIVO.csv --dry-run
 
