@@ -1,2 +1,2 @@
-<div class="xp-shelf" data-saved-list="{% url 'course_saved' course.slug %}"{% if limit %} data-limit="{{ limit }}"{% endif %}>{% for card in saved %}{% include 'partials/experience/lesson_card.html' %}{% endfor %}</div>
+<div class="xp-shelf" data-saved-list="{% url 'course_saved' course.slug %}"{% if limit %} data-limit="{{ limit }}"{% endif %}>{% for card in saved %}{% include 'partials/experience/lesson_card.html' with cover_only=True %}{% endfor %}</div>
 <p class="xp-empty" tabindex="-1" data-saved-empty {% if saved %}hidden{% endif %}>Você ainda não salvou aulas neste curso.</p>

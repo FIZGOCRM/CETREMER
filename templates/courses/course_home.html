@@ -57,11 +57,10 @@
             <span class="card__media">
               <span class="cover cover--poster xp-offer-art" data-motif="{{ motif }}">
                 {% include 'partials/experience/offer_motif.html' %}
-                <strong class="cover__title">{{ offer.course.title }}</strong>
+                <span class="xp-offer-caption"><span class="xp-offer-category">{{ offer.course.category.name|default:"Formação em saúde" }}</span><strong class="cover__title">{{ offer.course.title }}</strong></span>
               </span>
               <span class="card__badge card__badge--lock">{% include 'partials/gomut/icon.html' with name='lock' %}Bloqueado</span>
             </span>
-            <span class="card__caption">{{ offer.course.category.name|default:"Formação em saúde" }}</span>
           </a>
         {% endfor %}
       </div>

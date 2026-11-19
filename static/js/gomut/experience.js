@@ -1,6 +1,39 @@
 (() => {
   const requests = new Set();
   let shelfVersion = 0;
+  function enableShelfNavigation(shelf) {
+    const frame = document.createElement('div');
+    frame.className = 'xp-shelf-frame';
+    shelf.before(frame);
+    frame.append(shelf);
+    const heading = frame.closest('section').querySelector('h2').textContent.trim();
+    function addArrow(next) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'xp-shelf-arrow xp-shelf-arrow--' + (next ? 'next' : 'prev');
+      button.textContent = next ? '›' : '‹';
+      button.setAttribute('aria-label', heading + (next ? ' · Avançar' : ' · Voltar'));
+      button.addEventListener('click', () => {
+        const step = shelf.firstElementChild.getBoundingClientRect().width + parseFloat(getComputedStyle(shelf).columnGap);
+        const count = Math.max(1, Math.floor(shelf.clientWidth / step));
+        shelf.scrollBy({left: (next ? 1 : -1) * step * count,
+          behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+      });
+      frame.append(button);
+      return button;
+    }
+    const previous = addArrow(false);
+    const next = addArrow(true);
+    function update() {
+      previous.hidden = shelf.scrollLeft <= 1;
+      next.hidden = shelf.scrollLeft + shelf.clientWidth >= shelf.scrollWidth - 1;
+    }
+    shelf.addEventListener('scroll', update, {passive: true});
+    new ResizeObserver(update).observe(shelf);
+    new MutationObserver(update).observe(shelf, {childList: true});
+    update();
+  }
+  document.querySelectorAll('.xp-body .xp-shelf').forEach(enableShelfNavigation);
   function announce(text) {
     document.querySelector('#toasts').textContent = text;
   }

@@ -1,9 +1,10 @@
 <ul class="xp-news{% if shelf %} xp-shelf xp-news--shelf{% endif %}">{% for item in news %}<li>
   {% if shelf %}<a class="xp-news__cover" href="{{ item.url }}" aria-label="{{ item.kind }} · {{ item.title }}">
-    {% include 'partials/experience/shelf_art.html' with card=item.card kicker=item.kind art_title=item.title %}
+    {% firstof item.art_card.lesson.module.title item.kind as label %}
+    {% include 'partials/experience/shelf_art.html' with card=item.art_card kicker=label art_title=item.title %}
     <span class="xp-new">Novo</span>
-  </a>{% endif %}
+  </a>{% else %}
   <div><p class="eyebrow">{{ item.kind }} · <time datetime="{{ item.date|date:'c' }}">{{ item.date|date:'d/m' }}</time></p>
-    <a href="{{ item.url }}">{{ item.title }}</a></div>
-  {% if item.card %}{% include 'partials/experience/save_button.html' with card=item.card %}{% endif %}
+    <a href="{{ item.url }}">{{ item.title }}</a></div>{% endif %}
+  {% if item.card %}<div{% if shelf %} class="xp-card__action"{% endif %}>{% include 'partials/experience/save_button.html' with card=item.card %}</div>{% endif %}
 </li>{% empty %}<li class="xp-empty">Nenhuma novidade nos últimos 14 dias.</li>{% endfor %}</ul>
